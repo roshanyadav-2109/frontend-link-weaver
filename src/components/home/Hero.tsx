@@ -2,14 +2,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Globe, Package, Shield } from 'lucide-react';
 
 const Hero = () => {
   return (
     <div className="bg-gradient-to-r from-brand-blue via-brand-blue/95 to-brand-blue/90 pt-28 pb-20 md:py-32 lg:py-40 relative overflow-hidden">
       {/* Animated background pattern */}
       <div className="absolute top-0 left-0 w-full h-full">
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-20">
           {/* World map pattern */}
           <svg 
             width="100%" 
@@ -42,23 +42,23 @@ const Hero = () => {
       {/* Content */}
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          <span className="inline-block px-4 py-1 rounded-full text-white text-sm bg-white/10 backdrop-blur-sm mb-4 animate-fade-in shadow-glow">
+          <span className="inline-block px-4 py-1 rounded-full text-white text-sm bg-white/15 backdrop-blur-sm mb-4 animate-fade-in shadow-premium border border-white/20">
             Trusted by businesses in 20+ countries
           </span>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight animate-fade-in">
-            Global Trade, <span className="text-brand-teal">Heartfelt</span> Partnerships
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-on-dark mb-6 leading-tight animate-fade-in">
+            Global Trade, <span className="text-gradient bg-gradient-to-r from-white via-white to-brand-teal">Heartfelt</span> Partnerships
           </h1>
-          <p className="text-xl md:text-2xl text-white/90 mb-8 animate-fade-in animate-delay-100">
+          <p className="text-xl md:text-2xl text-white/90 mb-8 animate-fade-in animate-delay-100 text-shadow-sm">
             Welcome to <span className="font-bold">Anantya Overseas</span>, where exporters and buyers from across the world meet under one trusted roof. We help you source, ship, and scale—seamlessly.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in animate-delay-200">
             <Link to="/categories">
-              <Button size="lg" className="bg-white text-brand-blue hover:bg-white/90 px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all duration-300">
+              <Button size="lg" className="bg-white text-brand-blue hover:bg-white/90 px-8 py-6 text-lg shadow-premium-blue hover:shadow-xl transition-all duration-300 premium-btn">
                 Explore Products <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
             <Link to="/catalog-request">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 px-8 py-6 text-lg">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 px-8 py-6 text-lg premium-btn">
                 Request a Catalogue
               </Button>
             </Link>
@@ -67,28 +67,20 @@ const Hero = () => {
         
         {/* Trust indicators */}
         <div className="mt-16 flex items-center justify-center space-x-8 animate-fade-in animate-delay-300 px-4">
-          <div className="hidden md:flex items-center space-x-2 text-white/70">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
+          <div className="hidden md:flex items-center space-x-2 text-white/90 hover:text-white transition-colors">
+            <Shield className="h-5 w-5" />
             <span className="text-sm">Verified Suppliers</span>
           </div>
-          <div className="hidden md:flex items-center space-x-2 text-white/70">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
+          <div className="hidden md:flex items-center space-x-2 text-white/90 hover:text-white transition-colors">
+            <Package className="h-5 w-5" />
             <span className="text-sm">Quality Assured</span>
           </div>
-          <div className="flex items-center space-x-2 text-white/70">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
+          <div className="flex items-center space-x-2 text-white/90 hover:text-white transition-colors">
+            <Globe className="h-5 w-5" />
             <span className="text-sm">Global Shipping</span>
           </div>
-          <div className="flex items-center space-x-2 text-white/70">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
+          <div className="flex items-center space-x-2 text-white/90 hover:text-white transition-colors">
+            <Shield className="h-5 w-5" />
             <span className="text-sm">Premium Support</span>
           </div>
         </div>

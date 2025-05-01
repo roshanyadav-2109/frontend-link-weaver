@@ -42,20 +42,21 @@ const FeaturedCategories: React.FC = () => {
               key={category.id} 
               className="group"
             >
-              <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
-                <div className="h-48 overflow-hidden">
+              <div className="premium-card overflow-hidden">
+                <div className="h-48 overflow-hidden relative">
                   <img 
                     src={category.image} 
                     alt={category.name} 
-                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
                 <div className="p-6">
                   <h3 className="text-xl font-semibold text-brand-blue mb-2">{category.name}</h3>
                   <p className="text-gray-600 mb-4">{category.description}</p>
                   <div className="flex items-center text-brand-teal font-medium">
                     <span>Explore Category</span>
-                    <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight size={16} className="ml-2 transform group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
               </div>
@@ -65,7 +66,7 @@ const FeaturedCategories: React.FC = () => {
         
         <div className="mt-12 text-center">
           <Link to="/categories">
-            <button className="inline-flex items-center px-6 py-3 border border-brand-teal rounded-md text-brand-teal hover:bg-brand-teal hover:text-white transition-colors">
+            <button className="inline-flex items-center px-6 py-3 border border-brand-teal rounded-md text-brand-teal hover:bg-brand-teal hover:text-white transition-colors shadow-sm hover:shadow-md">
               View All Categories
               <ArrowRight size={16} className="ml-2" />
             </button>

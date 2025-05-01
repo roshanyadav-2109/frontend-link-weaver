@@ -1,5 +1,4 @@
 
-
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
@@ -89,27 +88,31 @@
   }
 }
 
+/* Container */
 .container {
   @apply px-4 mx-auto;
   max-width: 1280px;
 }
 
+/* Button Styles */
 .btn-primary {
-  @apply bg-brand-blue text-white py-2 px-4 rounded hover:bg-opacity-90 transition-all;
+  @apply bg-brand-blue text-white py-2 px-4 rounded hover:bg-opacity-90 transition-all shadow-md;
 }
 
 .btn-secondary {
-  @apply bg-brand-teal text-white py-2 px-4 rounded hover:bg-opacity-90 transition-all;
+  @apply bg-brand-teal text-white py-2 px-4 rounded hover:bg-opacity-90 transition-all shadow-md;
 }
 
 .btn-outline {
   @apply border border-brand-blue text-brand-blue py-2 px-4 rounded hover:bg-brand-blue hover:text-white transition-all;
 }
 
+/* Card Styles */
 .card {
   @apply bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow;
 }
 
+/* Section Styles */
 .section {
   @apply py-12 md:py-16;
 }
@@ -119,16 +122,49 @@
   @apply bg-white/90 backdrop-blur-sm border border-white/20 shadow-lg;
 }
 
+.premium-glass {
+  @apply bg-white/80 backdrop-blur-md border border-white/30 shadow-xl;
+}
+
 .premium-gradient {
   background: linear-gradient(135deg, #1a365d 0%, #2c7a7b 100%);
 }
 
+.premium-blue-gradient {
+  background: linear-gradient(135deg, #1E40AF 0%, #0284C7 100%);
+}
+
 .text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-blue to-brand-teal;
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-blue to-brand-teal font-semibold;
 }
 
 .hover-lift {
   @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+}
+
+/* Text visibility enhancements */
+.text-shadow-sm {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.text-shadow-md {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.text-shadow-lg {
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+}
+
+.text-on-dark {
+  @apply text-white text-shadow-md;
+}
+
+.text-on-gradient {
+  @apply text-white text-shadow-md;
+}
+
+.text-on-image {
+  @apply text-white text-shadow-lg;
 }
 
 /* Animation Classes */
@@ -150,3 +186,43 @@
 .animate-delay-100 { animation-delay: 100ms; }
 .animate-delay-200 { animation-delay: 200ms; }
 .animate-delay-300 { animation-delay: 300ms; }
+
+/* Premium Shadows */
+.shadow-premium {
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1), 
+              0 5px 15px -5px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-premium-blue {
+  box-shadow: 0 10px 30px -5px rgba(26, 54, 93, 0.15), 
+              0 5px 15px -5px rgba(26, 54, 93, 0.1);
+}
+
+.shadow-premium-teal {
+  box-shadow: 0 10px 30px -5px rgba(44, 122, 123, 0.15), 
+              0 5px 15px -5px rgba(44, 122, 123, 0.1);
+}
+
+/* Premium Effect for Cards */
+.premium-card {
+  @apply rounded-lg bg-white border border-gray-100 shadow-premium hover:shadow-premium-blue transition-all duration-300;
+}
+
+/* Premium Glass Effect */
+.premium-glass-card {
+  @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-premium rounded-lg;
+}
+
+/* Premium Button Effect */
+.premium-btn {
+  @apply relative overflow-hidden shadow-md hover:shadow-lg transition-all duration-300;
+}
+
+.premium-btn::after {
+  content: '';
+  @apply absolute top-0 left-0 h-full w-0 bg-white/20 transition-all duration-500;
+}
+
+.premium-btn:hover::after {
+  @apply w-full;
+}
