@@ -3,6 +3,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const allCategories = [
   {
@@ -46,18 +48,28 @@ const allCategories = [
 const Categories = () => {
   return (
     <div>
-      <div className="bg-brand-blue py-12">
-        <div className="container mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl font-bold text-white text-center">
+      <div className="bg-gradient-to-r from-brand-blue to-brand-blue/80 py-16 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path d="M0,0 L100,0 L100,100 L0,100 Z" fill="url(#grid)" />
+          </svg>
+          <defs>
+            <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+              <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" strokeWidth="0.5" />
+            </pattern>
+          </defs>
+        </div>
+        <div className="container mx-auto px-4 relative z-10">
+          <h1 className="text-3xl md:text-5xl font-bold text-white text-center mb-2 animate-fade-in">
             Explore Our Expertly Curated Product Categories
           </h1>
-          <p className="mt-4 text-lg text-white/80 text-center max-w-3xl mx-auto">
+          <p className="mt-4 text-lg text-white/90 text-center max-w-3xl mx-auto">
             We bring you a wide range of export-quality goods from India's finest manufacturers.
           </p>
         </div>
       </div>
 
-      <div className="py-16 bg-gray-50">
+      <div className="py-20 bg-gradient-to-b from-gray-50 to-white">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {allCategories.map((category) => (
@@ -66,30 +78,34 @@ const Categories = () => {
                 key={category.id} 
                 className="group"
               >
-                <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
-                  <div className="h-48 overflow-hidden">
+                <Card className="h-full overflow-hidden hover:shadow-xl transition-all duration-300 border-0">
+                  <div className="h-48 overflow-hidden relative">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
                     <img 
                       src={category.image} 
                       alt={category.name} 
-                      className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
                     />
+                    <Badge className="absolute top-4 right-4 bg-brand-teal/80 backdrop-blur-sm z-20">
+                      Export Ready
+                    </Badge>
                   </div>
-                  <div className="p-6 flex flex-col flex-grow">
+                  <CardContent className="p-6 bg-white">
                     <h3 className="text-xl font-semibold text-brand-blue mb-2">{category.name}</h3>
-                    <p className="text-gray-600 mb-4 flex-grow">{category.description}</p>
+                    <p className="text-gray-600 mb-4">{category.description}</p>
                     <div className="flex items-center text-brand-teal font-medium mt-auto">
                       <span>Explore Category</span>
-                      <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight size={16} className="ml-2 group-hover:translate-x-2 transition-transform" />
                     </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               </Link>
             ))}
           </div>
 
           <div className="mt-16 text-center">
             <Link to="/catalog-request">
-              <Button className="bg-brand-teal hover:bg-brand-teal/90 px-8 py-6 text-lg">
+              <Button className="bg-brand-teal hover:bg-brand-teal/90 px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all duration-300">
                 Request Full Product Catalogue
               </Button>
             </Link>

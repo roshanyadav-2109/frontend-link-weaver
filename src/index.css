@@ -114,3 +114,39 @@
   @apply py-12 md:py-16;
 }
 
+/* Premium UI Enhancements */
+.glass-card {
+  @apply bg-white/90 backdrop-blur-sm border border-white/20 shadow-lg;
+}
+
+.premium-gradient {
+  background: linear-gradient(135deg, #1a365d 0%, #2c7a7b 100%);
+}
+
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-blue to-brand-teal;
+}
+
+.hover-lift {
+  @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+}
+
+/* Animation Classes */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.animate-delay-100 { animation-delay: 100ms; }
+.animate-delay-200 { animation-delay: 200ms; }
+.animate-delay-300 { animation-delay: 300ms; }
