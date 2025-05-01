@@ -16,6 +16,14 @@ import CatalogRequest from "./pages/CatalogRequest";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 
+import { AuthProvider } from "./hooks/useAuth";
+import Login from "./pages/admin/Login";
+import AdminLayout from "./components/admin/AdminLayout";
+import Dashboard from "./pages/admin/Dashboard";
+import ProductsManager from "./pages/admin/ProductsManager";
+import CareersManager from "./pages/admin/CareersManager";
+import Settings from "./pages/admin/Settings";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -24,24 +32,45 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <div className="flex flex-col min-h-screen">
-          <Navbar />
-          <main className="flex-grow">
+        <AuthProvider>
+          <div className="flex flex-col min-h-screen">
             <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/auth/manufacturer" element={<ManufacturerAuth />} />
-              <Route path="/auth/client" element={<ClientAuth />} />
-              <Route path="/categories" element={<Categories />} />
-              <Route path="/categories/:categoryId" element={<SubCategories />} />
-              <Route path="/categories/:categoryId/:subcategoryId" element={<SubCategories />} />
-              <Route path="/catalog-request" element={<CatalogRequest />} />
-              <Route path="/careers" element={<Careers />} />
-              <Route path="*" element={<NotFound />} />
+              {/* Admin Routes */}
+              <Route path="/admin/login" element={<Login />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="products" element={<ProductsManager />} />
+                <Route path="careers" element={<CareersManager />} />
+                <Route path="settings" element={<Settings />} />
+              </Route>
+              
+              {/* Public Routes */}
+              <Route
+                path="*"
+                element={
+                  <>
+                    <Navbar />
+                    <main className="flex-grow">
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/contact" element={<Contact />} />
+                        <Route path="/auth/manufacturer" element={<ManufacturerAuth />} />
+                        <Route path="/auth/client" element={<ClientAuth />} />
+                        <Route path="/categories" element={<Categories />} />
+                        <Route path="/categories/:categoryId" element={<SubCategories />} />
+                        <Route path="/categories/:categoryId/:subcategoryId" element={<SubCategories />} />
+                        <Route path="/catalog-request" element={<CatalogRequest />} />
+                        <Route path="/careers" element={<Careers />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </main>
+                    <Footer />
+                  </>
+                }
+              />
             </Routes>
-          </main>
-          <Footer />
-        </div>
+          </div>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
