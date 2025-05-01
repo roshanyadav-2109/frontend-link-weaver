@@ -26,54 +26,56 @@ import Settings from "./pages/admin/Settings";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <div className="flex flex-col min-h-screen">
-            <Routes>
-              {/* Admin Routes */}
-              <Route path="/admin/login" element={<Login />} />
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<Dashboard />} />
-                <Route path="products" element={<ProductsManager />} />
-                <Route path="careers" element={<CareersManager />} />
-                <Route path="settings" element={<Settings />} />
-              </Route>
-              
-              {/* Public Routes */}
-              <Route
-                path="*"
-                element={
-                  <>
-                    <Navbar />
-                    <main className="flex-grow">
-                      <Routes>
-                        <Route path="/" element={<Index />} />
-                        <Route path="/contact" element={<Contact />} />
-                        <Route path="/auth/manufacturer" element={<ManufacturerAuth />} />
-                        <Route path="/auth/client" element={<ClientAuth />} />
-                        <Route path="/categories" element={<Categories />} />
-                        <Route path="/categories/:categoryId" element={<SubCategories />} />
-                        <Route path="/categories/:categoryId/:subcategoryId" element={<SubCategories />} />
-                        <Route path="/catalog-request" element={<CatalogRequest />} />
-                        <Route path="/careers" element={<Careers />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </main>
-                    <Footer />
-                  </>
-                }
-              />
-            </Routes>
-          </div>
+          <TooltipProvider>
+            <div className="flex flex-col min-h-screen">
+              <Toaster />
+              <Sonner />
+              <Routes>
+                {/* Admin Routes */}
+                <Route path="/admin/login" element={<Login />} />
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<Dashboard />} />
+                  <Route path="products" element={<ProductsManager />} />
+                  <Route path="careers" element={<CareersManager />} />
+                  <Route path="settings" element={<Settings />} />
+                </Route>
+                
+                {/* Public Routes */}
+                <Route
+                  path="*"
+                  element={
+                    <>
+                      <Navbar />
+                      <main className="flex-grow">
+                        <Routes>
+                          <Route path="/" element={<Index />} />
+                          <Route path="/contact" element={<Contact />} />
+                          <Route path="/auth/manufacturer" element={<ManufacturerAuth />} />
+                          <Route path="/auth/client" element={<ClientAuth />} />
+                          <Route path="/categories" element={<Categories />} />
+                          <Route path="/categories/:categoryId" element={<SubCategories />} />
+                          <Route path="/categories/:categoryId/:subcategoryId" element={<SubCategories />} />
+                          <Route path="/catalog-request" element={<CatalogRequest />} />
+                          <Route path="/careers" element={<Careers />} />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </main>
+                      <Footer />
+                    </>
+                  }
+                />
+              </Routes>
+            </div>
+          </TooltipProvider>
         </AuthProvider>
       </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </QueryClientProvider>
+  );
+};
 
 export default App;
