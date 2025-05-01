@@ -9,9 +9,9 @@ const Footer: React.FC = () => {
       <div className="container mx-auto px-4 pt-12 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-xl font-bold mb-4">Link<span className="text-brand-teal">Weaver</span></h3>
+            <h3 className="text-xl font-bold mb-4">Anantya<span className="text-brand-teal">Overseas</span></h3>
             <p className="mb-4 text-gray-300">
-              Connecting manufacturers and clients through our comprehensive product catalog system.
+              Global Trade, Heartfelt Partnerships. We help you source, ship, and scale—seamlessly.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-300 hover:text-white">
@@ -44,7 +44,7 @@ const Footer: React.FC = () => {
                 <Link to="/categories" className="text-gray-300 hover:text-white">Products</Link>
               </li>
               <li>
-                <Link to="/catalog-request" className="text-gray-300 hover:text-white">Request Catalog</Link>
+                <Link to="/catalog-request" className="text-gray-300 hover:text-white">Request Catalogue</Link>
               </li>
               <li>
                 <Link to="/contact" className="text-gray-300 hover:text-white">Contact Us</Link>
@@ -76,21 +76,21 @@ const Footer: React.FC = () => {
             <ul className="space-y-2">
               <li className="flex items-start">
                 <MapPin className="h-5 w-5 mr-2 mt-0.5 text-brand-teal" />
-                <span className="text-gray-300">1234 Industrial Way, Business Park, CA 92101</span>
+                <span className="text-gray-300">123 Export Avenue, Business District, Mumbai, 400001, India</span>
               </li>
               <li className="flex items-center">
                 <Phone className="h-5 w-5 mr-2 text-brand-teal" />
-                <a href="tel:+1800123456" className="text-gray-300 hover:text-white">(800) 123-456</a>
+                <a href="tel:+919012345678" className="text-gray-300 hover:text-white">+91 90123 45678</a>
               </li>
               <li className="flex items-center">
                 <Mail className="h-5 w-5 mr-2 text-brand-teal" />
-                <a href="mailto:info@linkweaver.com" className="text-gray-300 hover:text-white">info@linkweaver.com</a>
+                <a href="mailto:info@anantyaoverseas.com" className="text-gray-300 hover:text-white">info@anantyaoverseas.com</a>
               </li>
             </ul>
           </div>
         </div>
         <div className="border-t border-gray-700 mt-8 pt-8">
-          <p className="text-sm text-gray-300 text-center">&copy; {new Date().getFullYear()} LinkWeaver. All rights reserved.</p>
+          <p className="text-sm text-gray-300 text-center">&copy; {new Date().getFullYear()} Anantya Overseas. All rights reserved.</p>
         </div>
       </div>
     </footer>

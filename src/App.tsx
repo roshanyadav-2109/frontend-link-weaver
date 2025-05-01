@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import Contact from "./pages/Contact";
 import ManufacturerAuth from "./pages/auth/ManufacturerAuth";
 import ClientAuth from "./pages/auth/ClientAuth";
+import Careers from "./pages/Careers";
 import Categories from "./pages/categories/Categories";
 import SubCategories from "./pages/categories/SubCategories";
 import CatalogRequest from "./pages/CatalogRequest";
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="/categories/:categoryId" element={<SubCategories />} />
               <Route path="/categories/:categoryId/:subcategoryId" element={<SubCategories />} />
               <Route path="/catalog-request" element={<CatalogRequest />} />
+              <Route path="/careers" element={<Careers />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

@@ -17,7 +17,7 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-brand-blue text-xl font-bold">Link<span className="text-brand-teal">Weaver</span></span>
+              <span className="text-brand-blue text-xl font-bold">Anantya<span className="text-brand-teal">Overseas</span></span>
             </Link>
           </div>
           
@@ -29,11 +29,11 @@ const Navbar: React.FC = () => {
               <Link to="/categories" className="text-brand-dark hover:text-brand-blue font-medium">
                 Products
               </Link>
+              <Link to="/careers" className="text-brand-dark hover:text-brand-blue font-medium">
+                Careers
+              </Link>
               <Link to="/contact" className="text-brand-dark hover:text-brand-blue font-medium">
                 Contact
-              </Link>
-              <Link to="/catalog-request" className="text-brand-dark hover:text-brand-blue font-medium">
-                Request Catalog
               </Link>
             </div>
           </div>
@@ -70,11 +70,11 @@ const Navbar: React.FC = () => {
             <Link to="/categories" className="block px-3 py-2 text-base font-medium text-brand-dark hover:text-brand-blue">
               Products
             </Link>
+            <Link to="/careers" className="block px-3 py-2 text-base font-medium text-brand-dark hover:text-brand-blue">
+              Careers
+            </Link>
             <Link to="/contact" className="block px-3 py-2 text-base font-medium text-brand-dark hover:text-brand-blue">
               Contact
-            </Link>
-            <Link to="/catalog-request" className="block px-3 py-2 text-base font-medium text-brand-dark hover:text-brand-blue">
-              Request Catalog
             </Link>
             <div className="pt-4 pb-3 border-t border-gray-200">
               <div className="flex items-center px-3 space-x-3">

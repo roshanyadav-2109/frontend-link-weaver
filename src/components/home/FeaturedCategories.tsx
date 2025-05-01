@@ -4,78 +4,58 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
 const categories = [
-  { 
-    id: 'electronics', 
-    name: 'Electronics', 
-    description: 'Components, devices, and equipment for various applications',
-    image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=300&h=200'
+  {
+    id: 'agriculture',
+    name: 'Agriculture',
+    description: 'Premium grains, spices, and processed foods from India's fertile lands.',
+    image: 'https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?auto=format&fit=crop&w=600&q=80',
   },
-  { 
-    id: 'machinery', 
-    name: 'Machinery', 
-    description: 'Industrial machines, tools, and equipment for manufacturing',
-    image: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=300&h=200' 
+  {
+    id: 'textiles',
+    name: 'Textiles',
+    description: 'Handcrafted fabrics, garments, and home textiles with traditional artistry.',
+    image: 'https://images.unsplash.com/photo-1618520422828-41a3e03f7ee0?auto=format&fit=crop&w=600&q=80',
   },
-  { 
-    id: 'building-materials', 
-    name: 'Building Materials', 
-    description: 'Construction materials, supplies, and hardware components',
-    image: 'https://images.unsplash.com/photo-1459767129954-1b1c1f9b9ace?auto=format&fit=crop&w=300&h=200'
-  },
-  { 
-    id: 'packaging', 
-    name: 'Packaging', 
-    description: 'Solutions for product protection, presentation, and shipping',
-    image: 'https://images.unsplash.com/photo-1497604401993-f2e922e5cb0a?auto=format&fit=crop&w=300&h=200'
-  },
-  { 
-    id: 'textiles', 
-    name: 'Textiles', 
-    description: 'Fabrics, fibers, and materials for various industries',
-    image: 'https://images.unsplash.com/photo-1496307653780-42ee777d4833?auto=format&fit=crop&w=300&h=200'
-  },
-  { 
-    id: 'chemicals', 
-    name: 'Chemicals', 
-    description: 'Industrial chemicals, compounds, and raw materials',
-    image: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=300&h=200'
-  },
+  {
+    id: 'electronics',
+    name: 'Electronics',
+    description: 'Modern technology and electronic components meeting global standards.',
+    image: 'https://images.unsplash.com/photo-1526406915894-7bcd65f60845?auto=format&fit=crop&w=600&q=80',
+  }
 ];
 
 const FeaturedCategories: React.FC = () => {
   return (
-    <section className="bg-white py-16">
+    <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-brand-blue mb-4">Browse Product Categories</h2>
+          <h2 className="text-3xl font-bold text-brand-blue mb-4">Explore Our Product Categories</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Explore our comprehensive range of product categories from trusted manufacturers worldwide
+            We bring you a wide range of export-quality goods—from fresh grains and spices to cutting-edge electronics and premium textiles.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {categories.map((category) => (
             <Link 
               to={`/categories/${category.id}`} 
-              key={category.id}
+              key={category.id} 
               className="group"
             >
-              <div className="card h-full flex flex-col overflow-hidden">
+              <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
                 <div className="h-48 overflow-hidden">
                   <img 
                     src={category.image} 
                     alt={category.name} 
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="p-6">
-                  <h3 className="text-xl font-semibold text-brand-blue mb-2 group-hover:text-brand-teal transition-colors">
-                    {category.name}
-                  </h3>
+                  <h3 className="text-xl font-semibold text-brand-blue mb-2">{category.name}</h3>
                   <p className="text-gray-600 mb-4">{category.description}</p>
-                  <div className="mt-auto flex items-center text-brand-teal font-medium">
-                    <span>Explore</span>
-                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  <div className="flex items-center text-brand-teal font-medium">
+                    <span>Explore Category</span>
+                    <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
               </div>
@@ -83,10 +63,11 @@ const FeaturedCategories: React.FC = () => {
           ))}
         </div>
         
-        <div className="text-center mt-10">
+        <div className="mt-12 text-center">
           <Link to="/categories">
-            <button className="btn-outline">
+            <button className="inline-flex items-center px-6 py-3 border border-brand-teal rounded-md text-brand-teal hover:bg-brand-teal hover:text-white transition-colors">
               View All Categories
+              <ArrowRight size={16} className="ml-2" />
             </button>
           </Link>
         </div>
