@@ -7,7 +7,7 @@ const categories = [
   {
     id: 'agriculture',
     name: 'Agriculture',
-    description: 'Premium grains, spices, and processed foods from India's fertile lands.',
+    description: "Premium grains, spices, and processed foods from India's fertile lands.",
     image: 'https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?auto=format&fit=crop&w=600&q=80',
   },
   {

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import { ArrowRight } from 'lucide-react';
 const categoryData = {
   agriculture: {
     name: 'Agriculture & Food Products',
-    description: 'Premium grains, spices, vegetables, fruits, and processed foods from India's fertile lands.',
+    description: "Premium grains, spices, vegetables, fruits, and processed foods from India's fertile lands.",
     image: 'https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?auto=format&fit=crop&w=1200&q=80',
     subcategories: [
       { id: 'grains', name: 'Grains & Pulses' },
@@ -40,7 +41,7 @@ const categoryData = {
   },
   handicrafts: {
     name: 'Handicrafts & Decor',
-    description: 'Authentic handmade crafts, décor items, and artisanal products representing India's rich heritage.',
+    description: "Authentic handmade crafts, décor items, and artisanal products representing India's rich heritage.",
     image: 'https://images.unsplash.com/photo-1503455637927-730bce8583c0?auto=format&fit=crop&w=1200&q=80',
     subcategories: [
       { id: 'wooden', name: 'Wooden Handicrafts' },

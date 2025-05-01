@@ -10,7 +10,7 @@ const jobOpenings = [
     department: 'Sales & Marketing',
     location: 'Mumbai, India',
     type: 'Full-time',
-    description: 'We're looking for an experienced International Business Developer to expand our global network of buyers and sellers.',
+    description: "We're looking for an experienced International Business Developer to expand our global network of buyers and sellers.",
   },
   {
     id: 2,
