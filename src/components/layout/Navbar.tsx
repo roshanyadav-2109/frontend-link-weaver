@@ -52,6 +52,12 @@ const Navbar: React.FC = () => {
               >
                 Home
               </Link>
+              <Link 
+                to="/about" 
+                className={`font-medium transition-colors relative ${isScrolled ? (isActive('/about') ? 'text-brand-blue' : 'text-brand-dark') : (isActive('/about') ? 'text-white font-semibold' : 'text-white/90 hover:text-white')} ${!isScrolled && 'text-shadow-sm'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
+              >
+                About Us
+              </Link>
               <HoverCard>
                 <HoverCardTrigger asChild>
                   <Link 
@@ -127,6 +133,13 @@ const Navbar: React.FC = () => {
               onClick={() => setIsOpen(false)}
             >
               Home
+            </Link>
+            <Link 
+              to="/about" 
+              className="block px-3 py-2 text-base font-medium text-brand-dark hover:text-brand-blue hover:bg-gray-50 rounded-md"
+              onClick={() => setIsOpen(false)}
+            >
+              About Us
             </Link>
             <Link 
               to="/categories" 

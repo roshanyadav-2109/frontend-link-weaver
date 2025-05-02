@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Contact from "./pages/Contact";
+import AboutUs from "./pages/AboutUs";
 import ManufacturerAuth from "./pages/auth/ManufacturerAuth";
 import ClientAuth from "./pages/auth/ClientAuth";
 import Careers from "./pages/Careers";
@@ -55,6 +56,7 @@ const App = () => {
                         <Routes>
                           <Route path="/" element={<Index />} />
                           <Route path="/contact" element={<Contact />} />
+                          <Route path="/about" element={<AboutUs />} />
                           <Route path="/auth/manufacturer" element={<ManufacturerAuth />} />
                           <Route path="/auth/client" element={<ClientAuth />} />
                           <Route path="/categories" element={<Categories />} />
