@@ -10,6 +10,7 @@ import Contact from "./pages/Contact";
 import AboutUs from "./pages/AboutUs";
 import ManufacturerAuth from "./pages/auth/ManufacturerAuth";
 import ClientAuth from "./pages/auth/ClientAuth";
+import AuthCallback from "./pages/auth/AuthCallback";
 import Careers from "./pages/Careers";
 import Categories from "./pages/categories/Categories";
 import SubCategories from "./pages/categories/SubCategories";
@@ -45,6 +46,9 @@ const App = () => {
                   <Route path="careers" element={<CareersManager />} />
                   <Route path="settings" element={<Settings />} />
                 </Route>
+                
+                {/* Auth Callback Route */}
+                <Route path="/auth/callback" element={<AuthCallback />} />
                 
                 {/* Public Routes */}
                 <Route

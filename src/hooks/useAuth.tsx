@@ -2,58 +2,127 @@
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { Session, User } from '@supabase/supabase-js';
 
-type User = {
-  email: string;
-  isAdmin: boolean;
+type Profile = {
+  is_admin: boolean;
 };
 
-interface AuthContextType {
+type AuthContextType = {
   user: User | null;
+  profile: Profile | null;
+  session: Session | null;
   login: (email: string, password: string) => Promise<boolean>;
+  signInWithGoogle: () => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
-}
+  loading: boolean;
+};
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// This would ideally be stored in a backend/database
-const ADMIN_CREDENTIALS = {
-  email: 'singhrittika231@gmail.com',
-  password: 'roshan231',
-  isAdmin: true
-};
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   
-  // Check local storage on initial load
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    // Set up the auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        if (currentSession?.user) {
+          // Fetch the user profile data
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', currentSession.user.id)
+            .single();
+          
+          setProfile(profileData);
+        } else {
+          setProfile(null);
+        }
+        
+        setLoading(false);
+      }
+    );
+    
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      
+      if (currentSession?.user) {
+        // Fetch the user profile data
+        supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', currentSession.user.id)
+          .single()
+          .then(({ data: profileData }) => {
+            setProfile(profileData);
+          });
+      }
+      
+      setLoading(false);
+    });
+    
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
-    // In a real app, this would be an API call
-    if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
-      const userData = { email, isAdmin: true };
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      toast.success('Welcome to the admin panel!');
-      return true;
-    } else {
-      toast.error('Invalid credentials');
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) {
+        toast.error(error.message);
+        return false;
+      }
+      
+      if (data.user) {
+        toast.success('Welcome back!');
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      toast.error('An error occurred during login');
       return false;
     }
   };
+  
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/auth/callback',
+        }
+      });
+      
+      if (error) {
+        toast.error(error.message);
+      }
+    } catch (error) {
+      toast.error('An error occurred during Google sign-in');
+    }
+  };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem('user');
+    setProfile(null);
+    setSession(null);
     navigate('/');
     toast.info('You have been logged out');
   };
@@ -62,10 +131,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     <AuthContext.Provider
       value={{
         user,
+        profile,
+        session,
         login,
+        signInWithGoogle,
         logout,
         isAuthenticated: !!user,
-        isAdmin: user?.isAdmin || false
+        isAdmin: profile?.is_admin || false,
+        loading
       }}
     >
       {children}

@@ -6,9 +6,9 @@ import AdminSidebar from './AdminSidebar';
 import { Loader2 } from 'lucide-react';
 
 const AdminLayout: React.FC = () => {
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin, loading } = useAuth();
   
-  if (isAuthenticated === undefined) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Loader2 className="w-8 h-8 animate-spin text-brand-blue" />
