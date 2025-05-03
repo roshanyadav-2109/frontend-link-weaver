@@ -105,30 +105,29 @@ const CatalogRequestForm = ({ preselectedProducts = [], onSuccess }: CatalogRequ
     }
   };
 
+  // Get display products based on props or local storage
+  const displayProducts = preselectedProducts.length > 0 
+    ? preselectedProducts 
+    : viewedProducts.slice(0, 3);
+
   return (
     <div className="rounded-xl border border-blue-100 bg-white shadow-premium p-6 md:p-8">
       <h2 className="text-2xl font-bold text-[#1a365d] mb-6">Request Product Catalog</h2>
       
       {/* Display selected products if any */}
-      {!form.watch('customCatalog') && (preselectedProducts.length > 0 || viewedProducts.length > 0) && (
+      {!form.watch('customCatalog') && (displayProducts.length > 0) && (
         <div className="mb-6 bg-[#f7fafd] p-4 rounded-lg">
           <h3 className="font-semibold text-[#2d6da3] mb-2">Selected Products</h3>
           <ul className="space-y-1">
-            {preselectedProducts.length > 0 ? (
-              preselectedProducts.map((product, index) => (
-                <li key={`selected-${index}`} className="flex items-center">
-                  <span className="h-2 w-2 bg-[#2d6da3] rounded-full mr-2"></span>
-                  <span className="text-gray-700">{product.name}</span>
-                </li>
-              ))
-            ) : (
-              viewedProducts.slice(0, 3).map((product, index) => (
-                <li key={`viewed-${index}`} className="flex items-center">
-                  <span className="h-2 w-2 bg-[#2d6da3] rounded-full mr-2"></span>
-                  <span className="text-gray-700">{product.name}</span>
-                </li>
-              ))
-            )}
+            {displayProducts.map((product, index) => (
+              <li key={`selected-${index}`} className="flex items-center">
+                <span className="h-2 w-2 bg-[#2d6da3] rounded-full mr-2"></span>
+                <span className="text-gray-700">{product.name}</span>
+                {product.category && (
+                  <span className="text-gray-500 text-xs ml-2">({product.category})</span>
+                )}
+              </li>
+            ))}
           </ul>
         </div>
       )}

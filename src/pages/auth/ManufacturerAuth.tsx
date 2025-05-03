@@ -21,6 +21,7 @@ const registerSchema = z.object({
   companyName: z.string().min(2, { message: 'Company name must be at least 2 characters.' }),
   contactName: z.string().min(2, { message: 'Contact name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email address.' }),
+  gstin: z.string().length(15, { message: 'GSTIN must be exactly 15 characters.' }),
   phone: z.string().min(10, { message: 'Please enter a valid phone number.' }),
   address: z.string().min(10, { message: 'Address must be at least 10 characters.' }),
   productCategory: z.string().min(2, { message: 'Please select a product category.' }),
@@ -42,7 +43,7 @@ const ManufacturerAuth = () => {
       if (isAdmin) {
         navigate('/admin');
       } else {
-        navigate('/');
+        navigate('/manufacturer/dashboard');
       }
     }
   }, [isAuthenticated, isAdmin, loading, navigate]);
@@ -61,6 +62,7 @@ const ManufacturerAuth = () => {
       companyName: '',
       contactName: '',
       email: '',
+      gstin: '',
       phone: '',
       address: '',
       productCategory: '',
@@ -100,6 +102,8 @@ const ManufacturerAuth = () => {
           data: {
             full_name: values.contactName,
             company: values.companyName,
+            gstin: values.gstin,
+            user_type: 'manufacturer'
           }
         }
       });
@@ -217,6 +221,20 @@ const ManufacturerAuth = () => {
                         )}
                       />
                     </div>
+                    
+                    <FormField
+                      control={registerForm.control}
+                      name="gstin"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-gray-700">GSTIN Number <span className="text-red-500">*</span></FormLabel>
+                          <FormControl>
+                            <Input placeholder="15-character GSTIN" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     
                     <FormField
                       control={registerForm.control}
