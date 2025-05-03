@@ -7,17 +7,21 @@ import { Session, User } from '@supabase/supabase-js';
 
 type Profile = {
   is_admin: boolean;
+  user_type?: 'manufacturer' | 'client';
+  gstin?: string;
 };
 
 type AuthContextType = {
   user: User | null;
   profile: Profile | null;
   session: Session | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  signIn: (email: string, password: string) => Promise<boolean>;
   signInWithGoogle: () => Promise<void>;
-  logout: () => void;
+  signOut: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isManufacturer: boolean;
+  isClient: boolean;
   loading: boolean;
 };
 
@@ -41,7 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Fetch the user profile data
           const { data: profileData } = await supabase
             .from('profiles')
-            .select('is_admin')
+            .select('is_admin, user_type, gstin')
             .eq('id', currentSession.user.id)
             .single();
           
@@ -63,7 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Fetch the user profile data
         supabase
           .from('profiles')
-          .select('is_admin')
+          .select('is_admin, user_type, gstin')
           .eq('id', currentSession.user.id)
           .single()
           .then(({ data: profileData }) => {
@@ -77,7 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -118,7 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const logout = async () => {
+  const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
@@ -133,11 +137,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         profile,
         session,
-        login,
+        signIn,
         signInWithGoogle,
-        logout,
+        signOut,
         isAuthenticated: !!user,
         isAdmin: profile?.is_admin || false,
+        isManufacturer: profile?.user_type === 'manufacturer',
+        isClient: profile?.user_type === 'client',
         loading
       }}
     >

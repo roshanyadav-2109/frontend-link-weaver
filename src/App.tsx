@@ -26,6 +26,11 @@ import ProductsManager from "./pages/admin/ProductsManager";
 import CareersManager from "./pages/admin/CareersManager";
 import Settings from "./pages/admin/Settings";
 
+// Manufacturer pages
+import ManufacturerLayout from "./components/manufacturer/ManufacturerLayout";
+import ManufacturerDashboard from "./pages/manufacturer/Dashboard";
+import CatalogRequests from "./pages/manufacturer/CatalogRequests";
+
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -45,6 +50,12 @@ const App = () => {
                   <Route path="products" element={<ProductsManager />} />
                   <Route path="careers" element={<CareersManager />} />
                   <Route path="settings" element={<Settings />} />
+                </Route>
+                
+                {/* Manufacturer Routes */}
+                <Route path="/manufacturer" element={<ManufacturerLayout />}>
+                  <Route path="dashboard" element={<ManufacturerDashboard />} />
+                  <Route path="catalog-requests" element={<CatalogRequests />} />
                 </Route>
                 
                 {/* Auth Callback Route */}

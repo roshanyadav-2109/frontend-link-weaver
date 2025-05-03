@@ -24,6 +24,7 @@ const registerSchema = z.object({
   phone: z.string().min(10, { message: 'Please enter a valid phone number.' }),
   address: z.string().min(10, { message: 'Address must be at least 10 characters.' }),
   productCategory: z.string().min(2, { message: 'Please select a product category.' }),
+  gstin: z.string().min(15).max(15, { message: 'GSTIN must be exactly 15 characters.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
   confirmPassword: z.string().min(6, { message: 'Please confirm your password.' }),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -42,7 +43,7 @@ const ManufacturerAuth = () => {
       if (isAdmin) {
         navigate('/admin');
       } else {
-        navigate('/');
+        navigate('/manufacturer/dashboard');
       }
     }
   }, [isAuthenticated, isAdmin, loading, navigate]);
@@ -64,6 +65,7 @@ const ManufacturerAuth = () => {
       phone: '',
       address: '',
       productCategory: '',
+      gstin: '',
       password: '',
       confirmPassword: '',
     },
@@ -100,6 +102,11 @@ const ManufacturerAuth = () => {
           data: {
             full_name: values.contactName,
             company: values.companyName,
+            gstin: values.gstin,
+            phone: values.phone,
+            address: values.address,
+            product_category: values.productCategory,
+            user_type: 'manufacturer'
           }
         }
       });
@@ -226,6 +233,27 @@ const ManufacturerAuth = () => {
                           <FormLabel className="text-gray-700">Business Address</FormLabel>
                           <FormControl>
                             <Input placeholder="123 Manufacturing St, City, State, India" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={registerForm.control}
+                      name="gstin"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-gray-700 flex items-center">
+                            GSTIN Number <span className="text-red-500 ml-1">*</span>
+                          </FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="15-digit GSTIN" 
+                              {...field} 
+                              className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" 
+                              required
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
