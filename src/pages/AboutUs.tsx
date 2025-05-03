@@ -33,25 +33,26 @@ const AboutUs: React.FC = () => {
 
   return (
     <div className="pt-16">
-      {/* Hero section - improved contrast and visibility */}
-      <div className="relative h-[60vh] md:h-[70vh] bg-gradient-to-br from-brand-blue via-brand-blue/90 to-brand-teal overflow-hidden">
-        <div className="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200')] bg-cover bg-center mix-blend-overlay"></div>
+      {/* Hero section with improved design */}
+      <div className="relative h-[60vh] md:h-[70vh] overflow-hidden bg-[#1a365d]">
+        <div className="absolute inset-0 opacity-30 bg-[url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200')] bg-cover bg-center"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1a365d]/80 to-[#2d507a]/70"></div>
         <div className="container h-full mx-auto flex flex-col justify-center items-center text-center z-10 relative px-4">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 text-shadow-lg animate-fade-in leading-tight tracking-tight">
             About Us – Anantya Overseas
           </h1>
-          <p className="text-white text-xl md:text-2xl max-w-3xl mx-auto text-shadow-md animate-fade-in animate-delay-100 bg-brand-blue/30 px-6 py-3 rounded-lg backdrop-blur-sm">
+          <p className="text-white text-xl md:text-2xl max-w-3xl mx-auto text-shadow-md animate-fade-in animate-delay-100 bg-[#1a365d]/30 px-6 py-3 rounded-lg backdrop-blur-sm">
             Bridge the gap between high-quality Indian products and global markets
           </p>
         </div>
       </div>
 
-      {/* Introduction section - improved text contrast and added premium design elements */}
-      <section className="py-16 bg-gradient-to-b from-white to-gray-50">
+      {/* Introduction section with improved design */}
+      <section className="py-16 bg-gradient-to-b from-white to-[#f0f9ff]">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row items-center gap-10">
             <div className="lg:w-1/2 animate-fade-in">
-              <h2 className="text-3xl font-bold text-brand-blue mb-6 relative after:content-[''] after:absolute after:w-20 after:h-1 after:bg-brand-teal after:rounded-full after:-bottom-2 after:left-0">Our Story</h2>
+              <h2 className="text-3xl font-bold text-[#1a365d] mb-6 relative after:content-[''] after:absolute after:w-20 after:h-1 after:bg-[#2d6da3] after:rounded-full after:-bottom-2 after:left-0">Our Story</h2>
               <p className="text-gray-700 mb-6 leading-relaxed text-base md:text-lg">
                 Anantya Overseas is a forward-thinking Indian export company with a mission to bridge the gap between high-quality Indian products and global markets. Specializing in electronics, textiles, and custom-sourced goods, we pride ourselves on delivering exceptional products at competitive prices with a focus on reliability and excellence.
               </p>
@@ -60,13 +61,13 @@ const AboutUs: React.FC = () => {
               </p>
             </div>
             <div className="lg:w-1/2 relative animate-fade-in animate-delay-200">
-              <div className="aspect-video bg-black/10 rounded-lg shadow-premium flex items-center justify-center overflow-hidden border border-gray-100">
-                <div className="absolute inset-0 bg-brand-blue/10 backdrop-blur-sm flex items-center justify-center">
+              <div className="aspect-video bg-black/10 rounded-lg shadow-premium overflow-hidden border border-blue-100">
+                <div className="absolute inset-0 bg-[#1a365d]/10 backdrop-blur-sm flex items-center justify-center z-10">
                   <button 
                     className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center hover:bg-white transition-all shadow-xl hover:scale-105"
                     aria-label="Play brand video"
                   >
-                    <Play size={32} className="text-brand-blue ml-1" />
+                    <Play size={32} className="text-[#1a365d] ml-1" />
                   </button>
                 </div>
                 <img 
@@ -81,12 +82,12 @@ const AboutUs: React.FC = () => {
         </div>
       </section>
 
-      {/* Vision section - improved contrast and premium glass effect */}
-      <section className="py-16 bg-gradient-to-r from-brand-blue/5 to-brand-teal/5">
+      {/* Vision section with improved design */}
+      <section className="py-16 bg-gradient-to-r from-[#f7fafd]/80 to-[#e5f0fd]/80">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl font-bold text-brand-blue mb-8 relative inline-block after:content-[''] after:absolute after:w-32 after:h-1 after:bg-brand-teal after:rounded-full after:-bottom-2 after:left-1/2 after:-translate-x-1/2">Our Vision</h2>
-            <div className="premium-glass-card p-10 mb-8 shadow-premium border-t border-l border-white">
+            <h2 className="text-3xl font-bold text-[#1a365d] mb-8 relative inline-block after:content-[''] after:absolute after:w-32 after:h-1 after:bg-[#2d6da3] after:rounded-full after:-bottom-2 after:left-1/2 after:-translate-x-1/2">Our Vision</h2>
+            <div className="bg-white/70 backdrop-blur-md p-10 mb-8 shadow-premium rounded-2xl border border-blue-100">
               <p className="text-gray-700 leading-relaxed text-xl italic">
                 "To become the most trusted and innovative Indian export company, providing reliable, high-quality products worldwide. We aim to foster long-term relationships built on transparency, trust, and exceptional service, contributing to the growth of businesses globally."
               </p>
@@ -95,10 +96,10 @@ const AboutUs: React.FC = () => {
         </div>
       </section>
 
-      {/* Why choose us section - redesigned as premium cards */}
+      {/* Why choose us section with improved design */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-brand-blue mb-12 text-center relative after:content-[''] after:absolute after:w-32 after:h-1 after:bg-brand-teal after:rounded-full after:-bottom-2 after:left-1/2 after:-translate-x-1/2">Why Choose Anantya Overseas</h2>
+          <h2 className="text-3xl font-bold text-[#1a365d] mb-12 text-center relative after:content-[''] after:absolute after:w-32 after:h-1 after:bg-[#2d6da3] after:rounded-full after:-bottom-2 after:left-1/2 after:-translate-x-1/2">Why Choose Anantya Overseas</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
             {[
@@ -108,11 +109,11 @@ const AboutUs: React.FC = () => {
               { title: 'Custom Sourcing', description: 'Sourcing tailored to your specific product needs' },
               { title: 'Dedicated Support', description: 'Transparent communication and customer-centric service' }
             ].map((feature, index) => (
-              <div key={index} className="bg-white rounded-lg p-6 shadow-premium border-t border-l border-gray-50 hover:translate-y-[-5px] transition-all duration-300">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-blue to-brand-teal flex items-center justify-center mb-4 text-white font-bold text-xl">
+              <div key={index} className="bg-white rounded-xl p-6 shadow-premium border border-blue-50 hover:translate-y-[-5px] transition-all duration-300">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-[#1a365d] to-[#2d6da3] flex items-center justify-center mb-4 text-white font-bold text-xl">
                   {index + 1}
                 </div>
-                <h3 className="text-xl font-semibold text-brand-blue mb-3">{feature.title}</h3>
+                <h3 className="text-xl font-semibold text-[#1a365d] mb-3">{feature.title}</h3>
                 <p className="text-gray-600">{feature.description}</p>
               </div>
             ))}
@@ -120,8 +121,8 @@ const AboutUs: React.FC = () => {
         </div>
       </section>
 
-      {/* Global presence section - improved text visibility */}
-      <section className="py-16 bg-gradient-to-br from-brand-blue to-brand-teal text-white relative overflow-hidden">
+      {/* Global presence section with improved design */}
+      <section className="py-16 bg-gradient-to-br from-[#1a365d] to-[#2d6da3] text-white relative overflow-hidden">
         {/* Background pattern for premium effect */}
         <div className="absolute inset-0 opacity-10">
           <div className="h-full w-full">
@@ -145,7 +146,7 @@ const AboutUs: React.FC = () => {
           
           <div className="flex flex-col lg:flex-row items-center justify-between gap-10">
             <div className="lg:w-1/2">
-              <div className="bg-white/15 backdrop-blur-md border border-white/20 p-8 rounded-lg shadow-premium">
+              <div className="bg-white/15 backdrop-blur-md border border-white/20 p-8 rounded-xl shadow-premium">
                 <p className="text-white mb-6 text-shadow-sm text-lg font-medium">
                   Anantya Overseas proudly serves clients in the following regions:
                 </p>
@@ -160,13 +161,13 @@ const AboutUs: React.FC = () => {
               </div>
             </div>
             <div className="lg:w-1/2">
-              <div className="relative rounded-lg overflow-hidden shadow-premium border-2 border-white/30">
+              <div className="relative rounded-xl overflow-hidden shadow-premium border-2 border-white/30">
                 <img 
                   src="https://images.unsplash.com/photo-1589519160732-57fc6ea83edb?auto=format&fit=crop&w=800" 
                   alt="World Map" 
                   className="w-full h-auto"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-brand-blue/70 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1a365d]/70 to-transparent"></div>
                 <div className="absolute bottom-4 left-4 right-4 text-white text-shadow-md">
                   <h3 className="text-xl font-bold">Global Network</h3>
                   <p className="text-sm">Our presence across continents ensures reliable service worldwide</p>
@@ -177,16 +178,16 @@ const AboutUs: React.FC = () => {
         </div>
       </section>
 
-      {/* Founder section - redesigned with premium cards */}
-      <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+      {/* Founder section with improved design */}
+      <section className="py-16 bg-gradient-to-b from-[#f7fafd] to-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-brand-blue mb-12 text-center relative after:content-[''] after:absolute after:w-32 after:h-1 after:bg-brand-teal after:rounded-full after:-bottom-2 after:left-1/2 after:-translate-x-1/2">Board of Founders</h2>
+          <h2 className="text-3xl font-bold text-[#1a365d] mb-12 text-center relative after:content-[''] after:absolute after:w-32 after:h-1 after:bg-[#2d6da3] after:rounded-full after:-bottom-2 after:left-1/2 after:-translate-x-1/2">Board of Founders</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {founders.map((founder, index) => (
-              <div key={index} className="bg-white rounded-lg overflow-hidden shadow-premium border border-gray-100 hover:shadow-xl transition-all duration-300">
+              <div key={index} className="bg-white rounded-xl overflow-hidden shadow-premium border border-blue-50 hover:shadow-xl transition-all duration-300">
                 <div className="h-48 overflow-hidden relative">
-                  <div className="absolute inset-0 bg-gradient-to-t from-brand-blue/70 to-transparent z-10"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1a365d]/80 to-transparent z-10"></div>
                   <img 
                     src={founder.image} 
                     alt={founder.name} 
@@ -197,11 +198,56 @@ const AboutUs: React.FC = () => {
                   </div>
                 </div>
                 <div className="p-6">
-                  <p className="text-brand-teal font-medium mb-4 text-sm">{founder.title}</p>
+                  <p className="text-[#2d6da3] font-medium mb-4 text-sm">{founder.title}</p>
                   <p className="text-gray-700 text-sm leading-relaxed">{founder.description}</p>
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Company Mission Video section - NEW SECTION */}
+      <section className="py-16 bg-gradient-to-b from-[#f0f9ff] to-white relative">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold text-[#1a365d] mb-12 text-center relative after:content-[''] after:absolute after:w-32 after:h-1 after:bg-[#2d6da3] after:rounded-full after:-bottom-2 after:left-1/2 after:-translate-x-1/2">Our Global Mission</h2>
+            
+            <div className="relative rounded-xl overflow-hidden shadow-premium-blue border border-blue-100">
+              <div className="aspect-video bg-[#1a365d]/5 relative">
+                {/* Video thumbnail with play button */}
+                <div className="absolute inset-0 flex items-center justify-center z-10">
+                  <div className="p-4 bg-[#1a365d]/80 rounded-full backdrop-blur-sm">
+                    <button 
+                      className="w-20 h-20 rounded-full bg-white flex items-center justify-center hover:bg-[#f0f9ff] transition-all"
+                      aria-label="Play mission video"
+                    >
+                      <Play size={36} className="text-[#1a365d] ml-1" />
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Video thumbnail image */}
+                <img 
+                  src="https://images.unsplash.com/photo-1504607798333-52a30db54a5d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80" 
+                  alt="Anantya Overseas Global Mission" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              
+              <div className="bg-white p-8">
+                <h3 className="text-2xl font-bold text-[#1a365d] mb-2">Building Global Trade Bridges</h3>
+                <p className="text-gray-700 mb-4">
+                  Our mission extends beyond simply facilitating transactions. We're building lasting relationships that connect Indian manufacturers with global markets, fostering economic growth and international cooperation.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <span className="px-3 py-1 bg-[#f0f9ff] text-[#1a365d] rounded-full text-sm font-medium">Global Reach</span>
+                  <span className="px-3 py-1 bg-[#f0f9ff] text-[#1a365d] rounded-full text-sm font-medium">Quality Focus</span>
+                  <span className="px-3 py-1 bg-[#f0f9ff] text-[#1a365d] rounded-full text-sm font-medium">Ethical Trade</span>
+                  <span className="px-3 py-1 bg-[#f0f9ff] text-[#1a365d] rounded-full text-sm font-medium">Innovation</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

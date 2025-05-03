@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -8,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase, signInWithLinkedIn } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { Separator } from '@/components/ui/separator';
 
 const loginSchema = z.object({
@@ -33,7 +34,7 @@ const registerSchema = z.object({
 const ManufacturerAuth = () => {
   const [searchParams] = useSearchParams();
   const [isRegister, setIsRegister] = useState(searchParams.get('register') === 'true');
-  const { login, signInWithGoogle, isAuthenticated, isAdmin, loading } = useAuth();
+  const { signInWithGoogle, isAuthenticated, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -69,14 +70,25 @@ const ManufacturerAuth = () => {
   });
 
   async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
-    const success = await login(values.email, values.password);
-    if (success) {
-      if (isAdmin) {
-        navigate('/admin');
-      } else {
-        navigate('/');
+    const success = await loginForm.handleSubmit(async () => {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: values.email,
+          password: values.password
+        });
+        
+        if (error) {
+          toast.error(error.message);
+          return false;
+        }
+        
+        toast.success('Successfully logged in! Welcome back.');
+        return true;
+      } catch (error) {
+        toast.error('An error occurred during login');
+        return false;
       }
-    }
+    })();
   }
 
   async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
@@ -106,21 +118,6 @@ const ManufacturerAuth = () => {
     }
   }
 
-  const handleGoogleSignIn = async () => {
-    await signInWithGoogle();
-  };
-
-  const handleLinkedInSignIn = async () => {
-    try {
-      const { error } = await signInWithLinkedIn();
-      if (error) {
-        toast.error(error.message);
-      }
-    } catch (error) {
-      toast.error('An error occurred during LinkedIn sign-in');
-    }
-  };
-
   const productCategories = [
     'Agriculture & Food Products',
     'Textiles & Fabrics',
@@ -143,27 +140,12 @@ const ManufacturerAuth = () => {
   }
 
   return (
-    <div className="relative min-h-screen bg-gray-50 py-16 overflow-hidden">
-      {/* Background video */}
-      <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-brand-blue/80 to-brand-blue/90 z-10"></div>
-        <video 
-          className="absolute min-w-full min-h-full object-cover" 
-          autoPlay 
-          loop 
-          muted 
-          playsInline
-          poster="https://images.unsplash.com/photo-1661956602153-23384936a1d3?q=80&w=1740"
-        >
-          <source src="https://cdn.coverr.co/videos/coverr-global-business-3118/1080p.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-      </div>
-      
-      <div className="container mx-auto px-4 relative z-20">
-        <div className="max-w-md mx-auto">
-          <div className="bg-white/95 backdrop-blur-md rounded-lg shadow-xl overflow-hidden">
-            <div className="bg-brand-teal p-8 text-white text-center">
+    <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-[#f0f4f8] to-[#d0e0f2]">
+      {/* Left side - Authentication Form */}
+      <div className="md:w-1/2 flex items-center justify-center p-8">
+        <div className="max-w-md w-full">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-premium-blue overflow-hidden border border-blue-100">
+            <div className="bg-gradient-to-r from-[#1a365d] to-[#2d507a] p-8 text-white text-center">
               <h1 className="text-3xl font-bold">
                 {isRegister ? 'Register as Manufacturer' : 'Welcome Back, Manufacturer!'}
               </h1>
@@ -183,9 +165,9 @@ const ManufacturerAuth = () => {
                       name="companyName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Company Name</FormLabel>
+                          <FormLabel className="text-gray-700">Company Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="Your Manufacturing Company Ltd." {...field} />
+                            <Input placeholder="Your Manufacturing Company Ltd." {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -197,9 +179,9 @@ const ManufacturerAuth = () => {
                       name="contactName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Contact Person</FormLabel>
+                          <FormLabel className="text-gray-700">Contact Person</FormLabel>
                           <FormControl>
-                            <Input placeholder="John Doe" {...field} />
+                            <Input placeholder="John Doe" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -212,9 +194,9 @@ const ManufacturerAuth = () => {
                         name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Email Address</FormLabel>
+                            <FormLabel className="text-gray-700">Email Address</FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="you@company.com" {...field} />
+                              <Input type="email" placeholder="you@company.com" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -226,9 +208,9 @@ const ManufacturerAuth = () => {
                         name="phone"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Phone Number</FormLabel>
+                            <FormLabel className="text-gray-700">Phone Number</FormLabel>
                             <FormControl>
-                              <Input placeholder="+91 98765 43210" {...field} />
+                              <Input placeholder="+91 98765 43210" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -241,9 +223,9 @@ const ManufacturerAuth = () => {
                       name="address"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Business Address</FormLabel>
+                          <FormLabel className="text-gray-700">Business Address</FormLabel>
                           <FormControl>
-                            <Input placeholder="123 Manufacturing St, City, State, India" {...field} />
+                            <Input placeholder="123 Manufacturing St, City, State, India" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -255,10 +237,10 @@ const ManufacturerAuth = () => {
                       name="productCategory"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Primary Product Category</FormLabel>
+                          <FormLabel className="text-gray-700">Primary Product Category</FormLabel>
                           <FormControl>
                             <select 
-                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                              className="flex h-10 w-full rounded-md border border-gray-300 bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                               {...field}
                             >
                               <option value="">Select a category</option>
@@ -280,9 +262,9 @@ const ManufacturerAuth = () => {
                         name="password"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Password</FormLabel>
+                            <FormLabel className="text-gray-700">Password</FormLabel>
                             <FormControl>
-                              <Input type="password" {...field} />
+                              <Input type="password" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -294,9 +276,9 @@ const ManufacturerAuth = () => {
                         name="confirmPassword"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Confirm Password</FormLabel>
+                            <FormLabel className="text-gray-700">Confirm Password</FormLabel>
                             <FormControl>
-                              <Input type="password" {...field} />
+                              <Input type="password" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -304,7 +286,7 @@ const ManufacturerAuth = () => {
                       />
                     </div>
                     
-                    <Button type="submit" className="w-full bg-brand-teal hover:bg-brand-teal/90">
+                    <Button type="submit" className="w-full bg-gradient-to-r from-[#1a365d] to-[#2d507a] hover:from-[#1a365d] hover:to-[#234069] text-white">
                       Register as Manufacturer
                     </Button>
                   </form>
@@ -318,9 +300,9 @@ const ManufacturerAuth = () => {
                         name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Email Address</FormLabel>
+                            <FormLabel className="text-gray-700">Email Address</FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="company@example.com" {...field} />
+                              <Input type="email" placeholder="company@example.com" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -332,13 +314,13 @@ const ManufacturerAuth = () => {
                         name="password"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Password</FormLabel>
+                            <FormLabel className="text-gray-700">Password</FormLabel>
                             <FormControl>
-                              <Input type="password" {...field} />
+                              <Input type="password" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
                             </FormControl>
                             <FormMessage />
                             <div className="text-right">
-                              <a href="#" className="text-sm text-brand-teal hover:underline">
+                              <a href="#" className="text-sm text-[#2d6da3] hover:underline">
                                 Forgot Password?
                               </a>
                             </div>
@@ -346,7 +328,7 @@ const ManufacturerAuth = () => {
                         )}
                       />
                       
-                      <Button type="submit" className="w-full bg-brand-teal hover:bg-brand-teal/90">
+                      <Button type="submit" className="w-full bg-gradient-to-r from-[#1a365d] to-[#2d507a] hover:from-[#1a365d] hover:to-[#234069] text-white">
                         Sign In
                       </Button>
                     </form>
@@ -362,12 +344,12 @@ const ManufacturerAuth = () => {
                       </div>
                     </div>
 
-                    <div className="mt-4 space-y-3">
+                    <div className="mt-4">
                       <Button 
                         type="button" 
                         variant="outline" 
-                        className="w-full"
-                        onClick={handleGoogleSignIn}
+                        className="w-full border-gray-300 hover:bg-gray-50 transition-all"
+                        onClick={() => signInWithGoogle()}
                       >
                         <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                           <path
@@ -389,18 +371,6 @@ const ManufacturerAuth = () => {
                         </svg>
                         Sign in with Google
                       </Button>
-
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        className="w-full"
-                        onClick={handleLinkedInSignIn}
-                      >
-                        <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="#0A66C2">
-                          <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/>
-                        </svg>
-                        Sign in with LinkedIn
-                      </Button>
                     </div>
                   </div>
                 </>
@@ -412,7 +382,7 @@ const ManufacturerAuth = () => {
                   <button
                     type="button"
                     onClick={() => setIsRegister(!isRegister)}
-                    className="ml-1 text-brand-teal hover:underline font-medium"
+                    className="ml-1 text-[#2d6da3] hover:underline font-medium"
                   >
                     {isRegister ? 'Sign In' : 'Register Now'}
                   </button>
@@ -422,11 +392,39 @@ const ManufacturerAuth = () => {
           </div>
           
           <div className="mt-8 text-center">
-            <p className="text-white">
+            <p className="text-gray-700">
               Looking to source products?
-              <a href="/auth/client" className="ml-1 text-white hover:underline font-medium">
+              <a href="/auth/client" className="ml-1 text-[#2d6da3] hover:underline font-medium">
                 Sign in as Client
               </a>
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Right side - Video */}
+      <div className="md:w-1/2 relative overflow-hidden">
+        {/* Background overlay for better text visibility */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#1a365d]/60 to-[#2d507a]/60 z-10"></div>
+        
+        <video 
+          className="absolute w-full h-full object-cover" 
+          autoPlay 
+          loop 
+          muted 
+          playsInline
+          poster="https://images.unsplash.com/photo-1661956602153-23384936a1d3?q=80&w=1740"
+        >
+          <source src="https://cdn.coverr.co/videos/coverr-global-business-3118/1080p.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        
+        {/* Content overlay on the video */}
+        <div className="absolute inset-0 flex flex-col justify-center items-center text-center z-20 p-8">
+          <div className="bg-[#1a365d]/50 backdrop-blur-sm p-8 rounded-2xl shadow-premium max-w-md">
+            <h2 className="text-3xl font-bold text-white mb-4">Showcase Your Products Globally</h2>
+            <p className="text-white/90 text-lg">
+              Join our network of trusted manufacturers and reach international buyers looking for quality products from India.
             </p>
           </div>
         </div>

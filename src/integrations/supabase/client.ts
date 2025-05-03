@@ -18,14 +18,4 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   }
 });
 
-// LinkedIn OAuth provider
-export const signInWithLinkedIn = async () => {
-  return supabase.auth.signInWithOAuth({
-    provider: 'linkedin_oidc',
-    options: {
-      redirectTo: window.location.origin + '/auth/callback'
-    }
-  });
-};
-
 // Google OAuth provider is already implemented in useAuth.tsx
