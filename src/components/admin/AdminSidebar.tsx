@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 const AdminSidebar: React.FC = () => {
-  const { signOut, user } = useAuth();
+  const { logout, user } = useAuth();
   const location = useLocation();
   
   const menuItems = [
@@ -65,7 +65,7 @@ const AdminSidebar: React.FC = () => {
           </div>
           
           <button
-            onClick={signOut}
+            onClick={logout}
             className="w-full flex items-center justify-center p-2 text-sm bg-white/10 rounded-md hover:bg-white/20 transition-colors"
           >
             <LogOut className="w-4 h-4 mr-2" />

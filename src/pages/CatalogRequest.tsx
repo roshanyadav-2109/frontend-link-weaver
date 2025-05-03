@@ -1,23 +1,32 @@
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import CatalogRequestForm, { ProductInfo } from '@/components/CatalogRequestForm';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useProductTracking } from '@/hooks/useProductTracking';
 
 const CatalogRequest: React.FC = () => {
-  const { viewedProducts } = useProductTracking();
+  const [viewedProducts, setViewedProducts] = useState<ProductInfo[]>([]);
   const navigate = useNavigate();
   
+  // Load viewed products from local storage
+  useEffect(() => {
+    try {
+      const storedProducts = localStorage.getItem('viewedProducts');
+      if (storedProducts) {
+        const parsedProducts = JSON.parse(storedProducts);
+        setViewedProducts(parsedProducts);
+      }
+    } catch (error) {
+      console.error('Error loading viewed products:', error);
+    }
+  }, []);
+
   const handleSuccess = () => {
     // Navigate back to homepage or thank you page
     setTimeout(() => navigate('/'), 2000);
   };
 
   return (
-    <div className="pt-24 bg-gradient-to-b from-[#f0f9ff] to-white py-16">
+    <div className="bg-gradient-to-b from-[#f0f9ff] to-white py-16">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
@@ -36,7 +45,7 @@ const CatalogRequest: React.FC = () => {
             </div>
             
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl border border-blue-100 shadow-premium p-6 sticky top-28">
+              <div className="bg-white rounded-xl border border-blue-100 shadow-premium p-6 sticky top-8">
                 <h3 className="text-xl font-bold text-[#1a365d] mb-4">Why Request Our Catalog?</h3>
                 
                 <ul className="space-y-4">
@@ -69,17 +78,6 @@ const CatalogRequest: React.FC = () => {
                     </li>
                   ))}
                 </ul>
-                
-                {viewedProducts.length === 0 && (
-                  <div className="mt-6">
-                    <Link to="/categories">
-                      <Button className="w-full bg-[#1a365d] hover:bg-[#0f2341] text-white">
-                        Browse Products First
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </div>
-                )}
                 
                 <div className="mt-6 pt-4 border-t border-gray-100">
                   <p className="text-sm text-gray-500">

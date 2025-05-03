@@ -16,7 +16,7 @@ const loginSchema = z.object({
 });
 
 const Login = () => {
-  const { signIn, signInWithGoogle, isAuthenticated, isAdmin, loading } = useAuth();
+  const { login, signInWithGoogle, isAuthenticated, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -44,7 +44,7 @@ const Login = () => {
   }
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
-    const success = await signIn(values.email, values.password);
+    const success = await login(values.email, values.password);
     if (success) {
       // Navigation will be handled by the useEffect
     }

@@ -1,119 +1,155 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { Session, User } from '@supabase/supabase-js';
 
-// Auth context type
-interface AuthContextType {
-  user: any | null; // Replace with your user type
-  signIn: (email: string, password: string) => Promise<any>;
-  signOut: () => Promise<void>;
-  loading: boolean;
+type Profile = {
+  is_admin: boolean;
+};
+
+type AuthContextType = {
+  user: User | null;
+  profile: Profile | null;
+  session: Session | null;
+  login: (email: string, password: string) => Promise<boolean>;
+  signInWithGoogle: () => Promise<void>;
+  logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  signInWithGoogle: () => Promise<void>;
-}
+  loading: boolean;
+};
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  signIn: async () => {},
-  signOut: async () => {},
-  loading: true,
-  isAuthenticated: false,
-  isAdmin: false,
-  signInWithGoogle: async () => {},
-});
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export const useAuth = () => useContext(AuthContext);
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<any | null>(null);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const isAuthenticated = !!user;
-  const isAdmin = !!user?.app_metadata?.isAdmin;
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Set up the auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        if (currentSession?.user) {
+          // Fetch the user profile data
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', currentSession.user.id)
+            .single();
+          
+          setProfile(profileData);
+        } else {
+          setProfile(null);
+        }
+        
+        setLoading(false);
+      }
+    );
+    
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      
+      if (currentSession?.user) {
+        // Fetch the user profile data
+        supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', currentSession.user.id)
+          .single()
+          .then(({ data: profileData }) => {
+            setProfile(profileData);
+          });
+      }
+      
+      setLoading(false);
+    });
+    
+    return () => subscription.unsubscribe();
+  }, []);
 
-  // Sign in function
-  const signIn = async (email: string, password: string) => {
+  const login = async (email: string, password: string) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       });
-
-      if (error) throw error;
-      setUser(data.user);
-      return data;
+      
+      if (error) {
+        toast.error(error.message);
+        return false;
+      }
+      
+      if (data.user) {
+        toast.success('Welcome back!');
+        return true;
+      }
+      
+      return false;
     } catch (error) {
-      console.error('Error signing in:', error);
-      throw error;
+      toast.error('An error occurred during login');
+      return false;
     }
   };
-
-  // Sign out function
-  const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      setUser(null);
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
-  // Google sign in
+  
   const signInWithGoogle = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
+          redirectTo: window.location.origin + '/auth/callback',
+        }
       });
-      if (error) throw error;
+      
+      if (error) {
+        toast.error(error.message);
+      }
     } catch (error) {
-      console.error('Error signing in with Google:', error);
-      throw error;
+      toast.error('An error occurred during Google sign-in');
     }
   };
 
-  // Auth state listener
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const { data } = await supabase.auth.getUser();
-        setUser(data.user || null);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching user:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user || null);
-        setLoading(false);
-      }
-    );
-
-    return () => {
-      if (authListener && authListener.subscription) {
-        authListener.subscription.unsubscribe();
-      }
-    };
-  }, []);
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setProfile(null);
+    setSession(null);
+    navigate('/');
+    toast.info('You have been logged out');
+  };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      signIn, 
-      signOut, 
-      loading,
-      isAuthenticated,
-      isAdmin,
-      signInWithGoogle 
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        profile,
+        session,
+        login,
+        signInWithGoogle,
+        logout,
+        isAuthenticated: !!user,
+        isAdmin: profile?.is_admin || false,
+        loading
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };

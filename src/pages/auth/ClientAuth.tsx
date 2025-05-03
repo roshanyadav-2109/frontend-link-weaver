@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { Separator } from '@/components/ui/separator';
 
 const loginSchema = z.object({
@@ -18,10 +18,10 @@ const loginSchema = z.object({
 });
 
 const registerSchema = z.object({
-  fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
-  companyName: z.string().min(2, { message: 'Company name must be at least 2 characters.' }),
+  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email address.' }),
-  country: z.string().min(2, { message: 'Country is required.' }),
+  company: z.string().min(2, { message: 'Company name must be at least 2 characters.' }),
+  country: z.string().min(2, { message: 'Country must be at least 2 characters.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
   confirmPassword: z.string().min(6, { message: 'Please confirm your password.' }),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -34,13 +34,13 @@ const ClientAuth = () => {
   const [isRegister, setIsRegister] = useState(searchParams.get('register') === 'true');
   const { signInWithGoogle, isAuthenticated, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
-
+  
   useEffect(() => {
     if (!loading && isAuthenticated) {
       if (isAdmin) {
         navigate('/admin');
       } else {
-        navigate('/client/dashboard');
+        navigate('/');
       }
     }
   }, [isAuthenticated, isAdmin, loading, navigate]);
@@ -56,9 +56,9 @@ const ClientAuth = () => {
   const registerForm = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      fullName: '',
-      companyName: '',
+      name: '',
       email: '',
+      company: '',
       country: '',
       password: '',
       confirmPassword: '',
@@ -66,25 +66,21 @@ const ClientAuth = () => {
   });
 
   async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
-    const success = await loginForm.handleSubmit(async () => {
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: values.email,
-          password: values.password
-        });
-        
-        if (error) {
-          toast.error(error.message);
-          return false;
-        }
-        
-        toast.success('Successfully logged in! Welcome back.');
-        return true;
-      } catch (error) {
-        toast.error('An error occurred during login');
-        return false;
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password
+      });
+      
+      if (error) {
+        toast.error(error.message);
+        return;
       }
-    })();
+      
+      toast.success('Successfully logged in! Welcome back.');
+    } catch (error) {
+      toast.error('An error occurred during login');
+    }
   }
 
   async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
@@ -94,10 +90,9 @@ const ClientAuth = () => {
         password: values.password,
         options: {
           data: {
-            full_name: values.fullName,
-            company: values.companyName,
-            country: values.country,
-            user_type: 'client'
+            full_name: values.name,
+            company: values.company,
+            country: values.country
           }
         }
       });
@@ -108,15 +103,13 @@ const ClientAuth = () => {
       }
       
       if (data.user) {
-        toast.success('Registration submitted! Please check your email to confirm your account.');
+        toast.success('Registration successful! Please check your email to confirm your account.');
         setIsRegister(false);
       }
     } catch (error) {
       toast.error('An error occurred during registration');
     }
   }
-
-  const countries = ["Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Côte d'Ivoire","Cabo Verde","Cambodia","Cameroon","Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo","Costa Rica","Croatia","Cuba","Cyprus","Czechia","Democratic Republic of the Congo","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Holy See","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Palestine State","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States of America","Uruguay","Uzbekistan","Vanuatu","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"];
 
   if (loading) {
     return (
@@ -137,12 +130,12 @@ const ClientAuth = () => {
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-premium-blue overflow-hidden border border-blue-100">
             <div className="bg-gradient-to-r from-[#1a365d] to-[#2d507a] p-8 text-white text-center">
               <h1 className="text-3xl font-bold">
-                {isRegister ? 'Register as Client' : 'Welcome Back!'}
+                {isRegister ? 'Create Client Account' : 'Welcome Back, Client!'}
               </h1>
               <p className="mt-2 text-white/80">
                 {isRegister 
-                  ? 'Create an account to source premium products globally.'
-                  : 'Sign in to access your sourcing dashboard and requests.'}
+                  ? 'Join thousands of global buyers sourcing quality products from India.'
+                  : 'Sign in to access your personalized buying experience.'}
               </p>
             </div>
             
@@ -152,26 +145,12 @@ const ClientAuth = () => {
                   <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
                     <FormField
                       control={registerForm.control}
-                      name="fullName"
+                      name="name"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-gray-700">Full Name</FormLabel>
                           <FormControl>
                             <Input placeholder="John Doe" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={registerForm.control}
-                      name="companyName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-gray-700">Company Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Your Company Ltd." {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -194,60 +173,62 @@ const ClientAuth = () => {
                     
                     <FormField
                       control={registerForm.control}
-                      name="country"
+                      name="company"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-gray-700">Country</FormLabel>
+                          <FormLabel className="text-gray-700">Company Name</FormLabel>
                           <FormControl>
-                            <select 
-                              className="flex h-10 w-full rounded-md border border-gray-300 bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                              {...field}
-                            >
-                              <option value="">Select your country</option>
-                              {countries.map((country) => (
-                                <option key={country} value={country}>
-                                  {country}
-                                </option>
-                              ))}
-                            </select>
+                            <Input placeholder="Your Company Ltd." {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={registerForm.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-gray-700">Password</FormLabel>
-                            <FormControl>
-                              <Input type="password" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={registerForm.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-gray-700">Confirm Password</FormLabel>
-                            <FormControl>
-                              <Input type="password" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                    <FormField
+                      control={registerForm.control}
+                      name="country"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-gray-700">Country</FormLabel>
+                          <FormControl>
+                            <Input placeholder="United States" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={registerForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-gray-700">Password</FormLabel>
+                          <FormControl>
+                            <Input type="password" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={registerForm.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-gray-700">Confirm Password</FormLabel>
+                          <FormControl>
+                            <Input type="password" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     
                     <Button type="submit" className="w-full bg-gradient-to-r from-[#1a365d] to-[#2d507a] hover:from-[#1a365d] hover:to-[#234069] text-white">
-                      Register as Client
+                      Create Account
                     </Button>
                   </form>
                 </Form>
@@ -353,7 +334,7 @@ const ClientAuth = () => {
           
           <div className="mt-8 text-center">
             <p className="text-gray-700">
-              Are you a manufacturer?
+              Looking to showcase your products?
               <a href="/auth/manufacturer" className="ml-1 text-[#2d6da3] hover:underline font-medium">
                 Sign in as Manufacturer
               </a>
@@ -373,18 +354,18 @@ const ClientAuth = () => {
           loop 
           muted 
           playsInline
-          poster="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1740"
+          poster="https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?q=80&w=1740"
         >
-          <source src="https://cdn.coverr.co/videos/coverr-business-meeting-in-an-office-5714/1080p.mp4" type="video/mp4" />
+          <source src="https://cdn.coverr.co/videos/coverr-international-business-handshake-7267/1080p.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
         
         {/* Content overlay on the video */}
         <div className="absolute inset-0 flex flex-col justify-center items-center text-center z-20 p-8">
           <div className="bg-[#1a365d]/50 backdrop-blur-sm p-8 rounded-2xl shadow-premium max-w-md">
-            <h2 className="text-3xl font-bold text-white mb-4">Source Premium Products Globally</h2>
+            <h2 className="text-3xl font-bold text-white mb-4">Global Import-Export Solutions</h2>
             <p className="text-white/90 text-lg">
-              Connect with verified manufacturers and access high-quality products from around the world.
+              Connect with trusted suppliers and buyers from around the world. Our platform streamlines international trade with secure, transparent processes.
             </p>
           </div>
         </div>
