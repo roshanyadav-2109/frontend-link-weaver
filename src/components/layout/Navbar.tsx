@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -58,16 +58,16 @@ const Navbar: React.FC = () => {
               >
                 About Us
               </Link>
-              <HoverCard>
-                <HoverCardTrigger asChild>
+              <Popover>
+                <PopoverTrigger asChild>
                   <Link 
                     to="/categories" 
                     className={`font-medium transition-colors relative ${isScrolled ? (isActive('/categories') ? 'text-brand-blue' : 'text-brand-dark') : (isActive('/categories') ? 'text-white font-semibold' : 'text-white/90 hover:text-white')} ${!isScrolled && 'text-shadow-sm'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
                   >
                     Products
                   </Link>
-                </HoverCardTrigger>
-                <HoverCardContent className="w-80 p-0 shadow-premium-blue premium-glass-card border-white/20">
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0 shadow-premium-blue premium-glass-card border-white/20">
                   <div className="grid grid-cols-2 gap-2 p-4">
                     {['Agriculture', 'Textiles', 'Electronics', 'Handicrafts'].map((cat) => (
                       <Link 
@@ -80,8 +80,8 @@ const Navbar: React.FC = () => {
                       </Link>
                     ))}
                   </div>
-                </HoverCardContent>
-              </HoverCard>
+                </PopoverContent>
+              </Popover>
               <Link 
                 to="/careers" 
                 className={`font-medium transition-colors relative ${isScrolled ? (isActive('/careers') ? 'text-brand-blue' : 'text-brand-dark') : (isActive('/careers') ? 'text-white font-semibold' : 'text-white/90 hover:text-white')} ${!isScrolled && 'text-shadow-sm'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
