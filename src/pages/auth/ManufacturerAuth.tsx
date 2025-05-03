@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -9,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, signInWithLinkedIn } from '@/integrations/supabase/client';
 import { Separator } from '@/components/ui/separator';
 
 const loginSchema = z.object({
@@ -111,6 +110,17 @@ const ManufacturerAuth = () => {
     await signInWithGoogle();
   };
 
+  const handleLinkedInSignIn = async () => {
+    try {
+      const { error } = await signInWithLinkedIn();
+      if (error) {
+        toast.error(error.message);
+      }
+    } catch (error) {
+      toast.error('An error occurred during LinkedIn sign-in');
+    }
+  };
+
   const productCategories = [
     'Agriculture & Food Products',
     'Textiles & Fabrics',
@@ -133,10 +143,26 @@ const ManufacturerAuth = () => {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen py-16">
-      <div className="container mx-auto px-4">
+    <div className="relative min-h-screen bg-gray-50 py-16 overflow-hidden">
+      {/* Background video */}
+      <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-brand-blue/80 to-brand-blue/90 z-10"></div>
+        <video 
+          className="absolute min-w-full min-h-full object-cover" 
+          autoPlay 
+          loop 
+          muted 
+          playsInline
+          poster="https://images.unsplash.com/photo-1661956602153-23384936a1d3?q=80&w=1740"
+        >
+          <source src="https://cdn.coverr.co/videos/coverr-global-business-3118/1080p.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+      
+      <div className="container mx-auto px-4 relative z-20">
         <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="bg-white/95 backdrop-blur-md rounded-lg shadow-xl overflow-hidden">
             <div className="bg-brand-teal p-8 text-white text-center">
               <h1 className="text-3xl font-bold">
                 {isRegister ? 'Register as Manufacturer' : 'Welcome Back, Manufacturer!'}
@@ -336,7 +362,7 @@ const ManufacturerAuth = () => {
                       </div>
                     </div>
 
-                    <div className="mt-4">
+                    <div className="mt-4 space-y-3">
                       <Button 
                         type="button" 
                         variant="outline" 
@@ -363,6 +389,18 @@ const ManufacturerAuth = () => {
                         </svg>
                         Sign in with Google
                       </Button>
+
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={handleLinkedInSignIn}
+                      >
+                        <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="#0A66C2">
+                          <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/>
+                        </svg>
+                        Sign in with LinkedIn
+                      </Button>
                     </div>
                   </div>
                 </>
@@ -384,9 +422,9 @@ const ManufacturerAuth = () => {
           </div>
           
           <div className="mt-8 text-center">
-            <p className="text-gray-600">
+            <p className="text-white">
               Looking to source products?
-              <a href="/auth/client" className="ml-1 text-brand-teal hover:underline font-medium">
+              <a href="/auth/client" className="ml-1 text-white hover:underline font-medium">
                 Sign in as Client
               </a>
             </p>

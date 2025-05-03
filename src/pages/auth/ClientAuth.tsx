@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -50,22 +51,73 @@ const ClientAuth = () => {
     },
   });
 
-  function onLoginSubmit(values: z.infer<typeof loginSchema>) {
-    console.log(values);
-    toast.success('Successfully logged in! Welcome back.');
+  async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password
+      });
+      
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      
+      toast.success('Successfully logged in! Welcome back.');
+    } catch (error) {
+      toast.error('An error occurred during login');
+    }
   }
 
-  function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
-    console.log(values);
-    toast.success('Registration successful! You can now sign in.');
-    setIsRegister(false);
+  async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: {
+          data: {
+            full_name: values.name,
+            company: values.company,
+            country: values.country
+          }
+        }
+      });
+      
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      
+      if (data.user) {
+        toast.success('Registration successful! Please check your email to confirm your account.');
+        setIsRegister(false);
+      }
+    } catch (error) {
+      toast.error('An error occurred during registration');
+    }
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen py-16">
-      <div className="container mx-auto px-4">
+    <div className="relative min-h-screen py-16">
+      {/* Background video */}
+      <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-brand-blue/80 to-brand-blue/90 z-10"></div>
+        <video 
+          className="absolute min-w-full min-h-full object-cover" 
+          autoPlay 
+          loop 
+          muted 
+          playsInline
+          poster="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=1470"
+        >
+          <source src="https://cdn.coverr.co/videos/coverr-international-business-handshake-7267/1080p.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+
+      <div className="container mx-auto px-4 relative z-20">
         <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="bg-white/95 backdrop-blur-md rounded-lg shadow-xl overflow-hidden">
             <div className="bg-brand-blue p-8 text-white text-center">
               <h1 className="text-3xl font-bold">
                 {isRegister ? 'Create Client Account' : 'Welcome Back, Client!'}
@@ -229,9 +281,9 @@ const ClientAuth = () => {
           </div>
           
           <div className="mt-8 text-center">
-            <p className="text-gray-600">
+            <p className="text-white">
               Looking to showcase your products?
-              <a href="/auth/manufacturer" className="ml-1 text-brand-teal hover:underline font-medium">
+              <a href="/auth/manufacturer" className="ml-1 text-white hover:underline font-medium">
                 Sign in as Manufacturer
               </a>
             </p>

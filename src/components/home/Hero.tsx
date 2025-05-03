@@ -6,43 +6,27 @@ import { ArrowRight, Globe, Package, Shield } from 'lucide-react';
 
 const Hero = () => {
   return (
-    <div className="bg-gradient-to-r from-brand-blue via-brand-blue/95 to-brand-blue/90 pt-28 pb-20 md:py-32 lg:py-40 relative overflow-hidden">
-      {/* Animated background pattern */}
-      <div className="absolute top-0 left-0 w-full h-full">
-        <div className="absolute inset-0 opacity-20">
-          {/* World map pattern */}
-          <svg 
-            width="100%" 
-            height="100%" 
-            viewBox="0 0 1920 1080" 
-            fill="none" 
-            xmlns="http://www.w3.org/2000/svg" 
-            className="opacity-20"
-            preserveAspectRatio="none"
-          >
-            <path 
-              d="M950,80 Q1050,80 1050,180 T1150,280 T1250,380 T1350,480 T1450,580 T1550,680 T1650,780 T1750,880"
-              stroke="white" 
-              strokeWidth="8"
-              fill="none"
-            />
-            <path 
-              d="M150,880 Q250,880 250,780 T350,680 T450,580 T550,480 T650,380 T750,280 T850,180"
-              stroke="white" 
-              strokeWidth="8"
-              fill="none"
-            />
-            <circle cx="950" cy="500" r="300" stroke="white" strokeWidth="4" fill="none" />
-            <circle cx="950" cy="500" r="200" stroke="white" strokeWidth="3" fill="none" />
-            <circle cx="950" cy="500" r="100" stroke="white" strokeWidth="2" fill="none" />
-          </svg>
-        </div>
+    <div className="relative pt-28 pb-20 md:py-32 lg:py-40 overflow-hidden">
+      {/* Background video */}
+      <div className="absolute inset-0 w-full h-full z-0">
+        <div className="absolute inset-0 bg-gradient-to-b from-brand-blue/95 to-brand-blue/90 z-10"></div>
+        <video 
+          className="absolute min-w-full min-h-full object-cover" 
+          autoPlay 
+          loop 
+          muted 
+          playsInline
+          poster="https://images.unsplash.com/photo-1661956601030-fdfb9c7e9e2f?q=80&w=1342"
+        >
+          <source src="https://cdn.coverr.co/videos/coverr-aerial-shot-of-cargo-port-with-containers-8290/1080p.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
       </div>
       
       {/* Content */}
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-4 relative z-20">
         <div className="max-w-4xl mx-auto text-center">
-          <span className="inline-block px-4 py-1 rounded-full text-white text-sm bg-white/15 backdrop-blur-sm mb-4 animate-fade-in shadow-premium border border-white/20">
+          <span className="inline-block px-4 py-1.5 rounded-full text-white text-sm bg-white/15 backdrop-blur-sm mb-6 animate-fade-in shadow-premium border border-white/20">
             Trusted by businesses in 20+ countries
           </span>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-on-dark mb-6 leading-tight animate-fade-in">
@@ -66,12 +50,12 @@ const Hero = () => {
         </div>
         
         {/* Trust indicators */}
-        <div className="mt-16 flex items-center justify-center space-x-8 animate-fade-in animate-delay-300 px-4">
-          <div className="hidden md:flex items-center space-x-2 text-white/90 hover:text-white transition-colors">
+        <div className="mt-16 flex flex-wrap items-center justify-center gap-6 md:gap-8 animate-fade-in animate-delay-300 px-4">
+          <div className="flex items-center space-x-2 text-white/90 hover:text-white transition-colors">
             <Shield className="h-5 w-5" />
             <span className="text-sm">Verified Suppliers</span>
           </div>
-          <div className="hidden md:flex items-center space-x-2 text-white/90 hover:text-white transition-colors">
+          <div className="flex items-center space-x-2 text-white/90 hover:text-white transition-colors">
             <Package className="h-5 w-5" />
             <span className="text-sm">Quality Assured</span>
           </div>
@@ -87,7 +71,7 @@ const Hero = () => {
       </div>
       
       {/* Bottom wave */}
-      <div className="absolute bottom-0 left-0 right-0">
+      <div className="absolute bottom-0 left-0 right-0 z-10">
         <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
           <path d="M0 120L48 105C96 90 192 60 288 55C384 50 480 70 576 75C672 80 768 70 864 65C960 60 1056 60 1152 70C1248 80 1344 100 1392 110L1440 120V120H0V120Z" fill="white"/>
         </svg>
