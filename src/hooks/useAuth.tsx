@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 // Auth context type
@@ -8,6 +8,9 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<void>;
   loading: boolean;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  signInWithGoogle: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -15,6 +18,9 @@ const AuthContext = createContext<AuthContextType>({
   signIn: async () => {},
   signOut: async () => {},
   loading: true,
+  isAuthenticated: false,
+  isAdmin: false,
+  signInWithGoogle: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -22,6 +28,8 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const isAuthenticated = !!user;
+  const isAdmin = !!user?.app_metadata?.isAdmin;
 
   // Sign in function
   const signIn = async (email: string, password: string) => {
@@ -50,8 +58,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Google sign in
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error signing in with Google:', error);
+      throw error;
+    }
+  };
+
   // Auth state listener
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchUser = async () => {
       try {
         const { data } = await supabase.auth.getUser();
@@ -80,7 +104,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signOut, loading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      signIn, 
+      signOut, 
+      loading,
+      isAuthenticated,
+      isAdmin,
+      signInWithGoogle 
+    }}>
       {children}
     </AuthContext.Provider>
   );

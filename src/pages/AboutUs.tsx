@@ -248,12 +248,12 @@ const AboutUs: React.FC = () => {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* CTA with improved HEARTFELT text highlight */}
       <section className="py-16 bg-gradient-to-r from-[#1a365d] to-[#2d5a8c] text-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-6">Ready to Explore Global Opportunities?</h2>
-          <p className="text-lg text-white/90 max-w-2xl mx-auto mb-8">
-            Whether you're looking to export your products or source quality goods from India, our team is ready to assist you at every step.
+          <p className="text-lg text-white max-w-2xl mx-auto mb-8">
+            Whether you're looking to export your products or source quality goods from India, our team is ready to assist you with a <span className="font-bold px-2 py-1 rounded bg-white text-[#1a365d]">HEARTFELT</span> commitment to your success.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <a href="/contact" className="bg-white text-[#1a365d] px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors">
