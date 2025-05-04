@@ -3,6 +3,7 @@ import React from 'react';
 import Hero from '@/components/home/Hero';
 import FeaturedCategories from '@/components/home/FeaturedCategories';
 import Testimonials from '@/components/home/Testimonials';
+import { GlobalPresence } from '@/components/home/GlobalPresence';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Check } from 'lucide-react';
@@ -53,6 +54,8 @@ const Index: React.FC = () => {
           </div>
         </div>
       </section>
+      
+      <GlobalPresence />
       
       <Testimonials />
       
