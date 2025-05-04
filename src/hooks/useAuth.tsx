@@ -43,13 +43,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         if (currentSession?.user) {
           // Fetch the user profile data
-          const { data: profileData } = await supabase
+          const { data: profileData, error } = await supabase
             .from('profiles')
             .select('is_admin, user_type, gstin')
             .eq('id', currentSession.user.id)
             .single();
           
-          setProfile(profileData);
+          if (error) {
+            console.error('Error fetching profile:', error);
+            setProfile(null);
+          } else {
+            setProfile(profileData as Profile);
+          }
         } else {
           setProfile(null);
         }
@@ -70,12 +75,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           .select('is_admin, user_type, gstin')
           .eq('id', currentSession.user.id)
           .single()
-          .then(({ data: profileData }) => {
-            setProfile(profileData);
+          .then(({ data: profileData, error }) => {
+            if (error) {
+              console.error('Error fetching profile:', error);
+              setProfile(null);
+            } else {
+              setProfile(profileData as Profile);
+            }
+            setLoading(false);
           });
+      } else {
+        setProfile(null);
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
     
     return () => subscription.unsubscribe();
