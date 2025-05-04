@@ -8,7 +8,8 @@ import {
   Briefcase,
   LogOut,
   Settings,
-  User
+  User,
+  MessageSquare
 } from 'lucide-react';
 
 const AdminSidebar: React.FC = () => {
@@ -18,6 +19,7 @@ const AdminSidebar: React.FC = () => {
   const menuItems = [
     { path: '/admin', label: 'Dashboard', icon: <Home className="w-5 h-5" /> },
     { path: '/admin/products', label: 'Products', icon: <Package className="w-5 h-5" /> },
+    { path: '/admin/quote-requests', label: 'Quote Requests', icon: <MessageSquare className="w-5 h-5" /> },
     { path: '/admin/careers', label: 'Careers', icon: <Briefcase className="w-5 h-5" /> },
     { path: '/admin/settings', label: 'Settings', icon: <Settings className="w-5 h-5" /> },
   ];

@@ -17,6 +17,7 @@ import SubCategories from "./pages/categories/SubCategories";
 import CatalogRequest from "./pages/CatalogRequest";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
+import ProductDetails from "./pages/products/ProductDetails";
 
 import { AuthProvider } from "./hooks/useAuth";
 import Login from "./pages/admin/Login";
@@ -25,6 +26,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import ProductsManager from "./pages/admin/ProductsManager";
 import CareersManager from "./pages/admin/CareersManager";
 import Settings from "./pages/admin/Settings";
+import QuoteRequests from "./pages/admin/QuoteRequests";
 
 // Manufacturer pages
 import ManufacturerLayout from "./components/manufacturer/ManufacturerLayout";
@@ -50,6 +52,7 @@ const App = () => {
                   <Route path="products" element={<ProductsManager />} />
                   <Route path="careers" element={<CareersManager />} />
                   <Route path="settings" element={<Settings />} />
+                  <Route path="quote-requests" element={<QuoteRequests />} />
                 </Route>
                 
                 {/* Manufacturer Routes */}
@@ -77,6 +80,7 @@ const App = () => {
                           <Route path="/categories" element={<Categories />} />
                           <Route path="/categories/:categoryId" element={<SubCategories />} />
                           <Route path="/categories/:categoryId/:subcategoryId" element={<SubCategories />} />
+                          <Route path="/product/:id" element={<ProductDetails />} />
                           <Route path="/catalog-request" element={<CatalogRequest />} />
                           <Route path="/careers" element={<Careers />} />
                           <Route path="*" element={<NotFound />} />
