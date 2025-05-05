@@ -23,6 +23,7 @@ type AuthContextType = {
   isManufacturer: boolean;
   isClient: boolean;
   loading: boolean;
+  resendConfirmationEmail: (email: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -101,6 +102,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       
       if (error) {
+        if (error.message === "Email not confirmed") {
+          toast.error("Please check your email to confirm your account before signing in.");
+          return false;
+        }
         toast.error(error.message);
         return false;
       }
@@ -143,6 +148,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     toast.info('You have been logged out');
   };
 
+  const resendConfirmationEmail = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email
+      });
+      
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('Confirmation email has been sent. Please check your inbox.');
+      }
+    } catch (error) {
+      toast.error('An error occurred while sending the confirmation email.');
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -156,7 +178,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isAdmin: profile?.is_admin || false,
         isManufacturer: profile?.user_type === 'manufacturer',
         isClient: profile?.user_type === 'client',
-        loading
+        loading,
+        resendConfirmationEmail
       }}
     >
       {children}

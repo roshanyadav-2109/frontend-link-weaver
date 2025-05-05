@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Separator } from '@/components/ui/separator';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -35,8 +37,10 @@ const registerSchema = z.object({
 const ManufacturerAuth = () => {
   const [searchParams] = useSearchParams();
   const [isRegister, setIsRegister] = useState(searchParams.get('register') === 'true');
-  const { signInWithGoogle, isAuthenticated, isAdmin, loading } = useAuth();
+  const { signInWithGoogle, isAuthenticated, isAdmin, loading, resendConfirmationEmail } = useAuth();
   const navigate = useNavigate();
+  const [emailForConfirmation, setEmailForConfirmation] = useState<string | null>(null);
+  const [showConfirmationMessage, setShowConfirmationMessage] = useState(false);
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
@@ -72,25 +76,27 @@ const ManufacturerAuth = () => {
   });
 
   async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
-    const success = await loginForm.handleSubmit(async () => {
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: values.email,
-          password: values.password
-        });
-        
-        if (error) {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password
+      });
+      
+      if (error) {
+        if (error.message === "Email not confirmed") {
+          setEmailForConfirmation(values.email);
+          setShowConfirmationMessage(true);
+          toast.error("Please confirm your email before signing in.");
+        } else {
           toast.error(error.message);
-          return false;
         }
-        
-        toast.success('Successfully logged in! Welcome back.');
-        return true;
-      } catch (error) {
-        toast.error('An error occurred during login');
-        return false;
+        return;
       }
-    })();
+      
+      toast.success('Successfully logged in! Welcome back.');
+    } catch (error) {
+      toast.error('An error occurred during login');
+    }
   }
 
   async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
@@ -117,13 +123,20 @@ const ManufacturerAuth = () => {
       }
       
       if (data.user) {
+        setEmailForConfirmation(values.email);
+        setShowConfirmationMessage(true);
         toast.success('Registration submitted! Please check your email to confirm your account.');
-        setIsRegister(false);
       }
     } catch (error) {
       toast.error('An error occurred during registration');
     }
   }
+
+  const handleResendConfirmation = async () => {
+    if (emailForConfirmation) {
+      await resendConfirmationEmail(emailForConfirmation);
+    }
+  };
 
   const productCategories = [
     'Agriculture & Food Products',
@@ -164,6 +177,24 @@ const ManufacturerAuth = () => {
             </div>
             
             <div className="p-8">
+              {showConfirmationMessage && (
+                <Alert className="mb-6 border-amber-300 bg-amber-50">
+                  <AlertCircle className="h-4 w-4 text-amber-700" />
+                  <AlertTitle className="text-amber-700">Email confirmation required</AlertTitle>
+                  <AlertDescription className="text-amber-700">
+                    Please check your inbox for the confirmation email. If you didn't receive it, you can 
+                    <Button 
+                      variant="link" 
+                      onClick={handleResendConfirmation}
+                      className="p-0 h-auto text-amber-700 font-semibold mx-1 underline"
+                    >
+                      resend the confirmation email
+                    </Button>
+                    to {emailForConfirmation}.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {isRegister ? (
                 <Form {...registerForm}>
                   <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
