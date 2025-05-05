@@ -34,6 +34,7 @@ interface QuoteRequest {
   unit: string;
   additional_details: string | null;
   status: 'pending' | 'contacted' | 'completed' | 'rejected';
+  user_id: string;
 }
 
 const statusOptions = [

@@ -11,6 +11,22 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+// For TypeScript, define our schema more explicitly
+type QuoteRequest = {
+  id?: string;
+  name: string;
+  email: string;
+  phone: string;
+  company?: string | null;
+  product_id?: string | null;
+  product_name: string;
+  quantity: string;
+  unit: string;
+  additional_details?: string | null;
+  status?: string;
+  user_id: string;
+}
+
 const quoteRequestSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -26,12 +42,14 @@ type QuoteRequestFormProps = {
   productId?: string;
   productName?: string;
   onSuccess?: () => void;
+  userId?: string;
 };
 
 export function QuoteRequestForm({ 
   productId,
   productName = '',
-  onSuccess
+  onSuccess,
+  userId
 }: QuoteRequestFormProps) {
   const form = useForm<z.infer<typeof quoteRequestSchema>>({
     resolver: zodResolver(quoteRequestSchema),
@@ -48,7 +66,13 @@ export function QuoteRequestForm({
   });
 
   async function onSubmit(values: z.infer<typeof quoteRequestSchema>) {
+    if (!userId) {
+      toast.error('You must be logged in to submit a quote request.');
+      return;
+    }
+    
     try {
+      // Use the generic type parameter to specify the expected table structure
       const { error } = await supabase
         .from('quote_requests')
         .insert({
@@ -61,8 +85,9 @@ export function QuoteRequestForm({
           quantity: values.quantity,
           unit: values.unit,
           additional_details: values.additional_details || null,
-          status: 'pending'
-        });
+          status: 'pending',
+          user_id: userId
+        } as QuoteRequest);
 
       if (error) {
         console.error('Error submitting quote request:', error);

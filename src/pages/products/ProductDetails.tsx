@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, MessageSquare } from 'lucide-react';
 import { QuoteRequestModal } from '@/components/QuoteRequestModal';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Product {
   id: string;
@@ -23,6 +24,7 @@ const ProductDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -40,7 +42,7 @@ const ProductDetails: React.FC = () => {
           throw error;
         }
         
-        setProduct(data);
+        setProduct(data as Product);
       } catch (err: any) {
         console.error('Error fetching product:', err);
         setError(err.message || 'Failed to load product details');
