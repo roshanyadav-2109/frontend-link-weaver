@@ -72,22 +72,24 @@ export function QuoteRequestForm({
     }
     
     try {
-      // Use the generic type parameter to specify the expected table structure
+      // Create a properly typed request object
+      const quoteRequest: QuoteRequest = {
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        company: values.company || null,
+        product_id: productId || null,
+        product_name: values.product_name,
+        quantity: values.quantity,
+        unit: values.unit,
+        additional_details: values.additional_details || null,
+        status: 'pending',
+        user_id: userId
+      };
+
       const { error } = await supabase
         .from('quote_requests')
-        .insert({
-          name: values.name,
-          email: values.email,
-          phone: values.phone,
-          company: values.company || null,
-          product_id: productId || null,
-          product_name: values.product_name,
-          quantity: values.quantity,
-          unit: values.unit,
-          additional_details: values.additional_details || null,
-          status: 'pending',
-          user_id: userId
-        } as QuoteRequest);
+        .insert(quoteRequest);
 
       if (error) {
         console.error('Error submitting quote request:', error);
