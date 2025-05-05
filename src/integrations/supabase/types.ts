@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      products: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          name: string
+          price: string
+          status: string | null
+          subcategory: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          name: string
+          price: string
+          status?: string | null
+          subcategory: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          name?: string
+          price?: string
+          status?: string | null
+          subcategory?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -38,6 +77,62 @@ export type Database = {
           user_type?: string | null
         }
         Relationships: []
+      }
+      quote_requests: {
+        Row: {
+          additional_details: string | null
+          company: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string
+          product_id: string | null
+          product_name: string
+          quantity: string
+          status: string | null
+          unit: string
+          user_id: string
+        }
+        Insert: {
+          additional_details?: string | null
+          company?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          phone: string
+          product_id?: string | null
+          product_name: string
+          quantity: string
+          status?: string | null
+          unit: string
+          user_id: string
+        }
+        Update: {
+          additional_details?: string | null
+          company?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string
+          product_id?: string | null
+          product_name?: string
+          quantity?: string
+          status?: string | null
+          unit?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_requests_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
