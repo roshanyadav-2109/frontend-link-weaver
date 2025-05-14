@@ -103,7 +103,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (error) {
         if (error.message === "Email not confirmed") {
-          toast.error("Please check your email to confirm your account before signing in.");
+          toast.error("Please check your email to confirm your account before signing in.", {
+            description: "Need a new confirmation email? Use the resend option below.",
+            action: {
+              label: "Resend",
+              onClick: () => resendConfirmationEmail(email)
+            },
+            duration: 8000,
+          });
           return false;
         }
         toast.error(error.message);
@@ -111,7 +118,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       
       if (data.user) {
-        toast.success('Welcome back!');
+        toast.success('Welcome back!', {
+          description: "You've successfully signed in.",
+        });
         return true;
       }
       
@@ -145,7 +154,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setProfile(null);
     setSession(null);
     navigate('/');
-    toast.info('You have been logged out');
+    toast('You have been logged out', {
+      description: 'Successfully signed out of your account'
+    });
   };
 
   const resendConfirmationEmail = async (email: string) => {
@@ -158,7 +169,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success('Confirmation email has been sent. Please check your inbox.');
+        toast.success('Confirmation email has been sent. Please check your inbox.', {
+          description: "Didn't receive it? Check your spam folder or try again in a few minutes."
+        });
       }
     } catch (error) {
       toast.error('An error occurred while sending the confirmation email.');

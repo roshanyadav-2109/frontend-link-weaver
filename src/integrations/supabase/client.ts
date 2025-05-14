@@ -19,4 +19,11 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   }
 });
 
+// Extend the supabase client with table-specific typed methods for better DX
+export const tables = {
+  profiles: () => supabase.from('profiles'),
+  products: () => supabase.from('products'),
+  quote_requests: () => supabase.from('quote_requests'),
+}
+
 // Google OAuth provider is already implemented in useAuth.tsx

@@ -1,6 +1,5 @@
 
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -33,7 +32,15 @@ import ManufacturerLayout from "./components/manufacturer/ManufacturerLayout";
 import ManufacturerDashboard from "./pages/manufacturer/Dashboard";
 import CatalogRequests from "./pages/manufacturer/CatalogRequests";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  },
+});
 
 const App = () => {
   return (
@@ -43,7 +50,6 @@ const App = () => {
           <TooltipProvider>
             <div className="flex flex-col min-h-screen">
               <Toaster />
-              <Sonner />
               <Routes>
                 {/* Admin Routes */}
                 <Route path="/admin/login" element={<Login />} />
