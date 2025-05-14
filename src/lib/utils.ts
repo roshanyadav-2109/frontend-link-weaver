@@ -1,7 +1,7 @@
 
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import React from "react"
+import * as React from "react"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -18,19 +18,35 @@ export function formatDate(date: string | Date): string {
 
 // Helper to create premium gradient text
 export function createGradientText(text: string, className?: string): React.ReactNode {
-  return (
-    <span className={`bg-clip-text text-transparent bg-gradient-to-r from-brand-blue to-brand-teal ${className || ''}`}>
-      {text}
-    </span>
+  return React.createElement(
+    "span",
+    { 
+      className: `bg-clip-text text-transparent bg-gradient-to-r from-brand-blue to-brand-teal ${className || ''}` 
+    },
+    text
   );
 }
 
 // Helper to add blur effect to elements behind main content
 export function createPremiumBackground(): React.ReactNode {
-  return (
-    <div className="absolute inset-0 -z-10 overflow-hidden">
-      <div className="absolute left-[50%] top-[20%] h-[30rem] w-[30rem] rounded-full bg-brand-blue/20 blur-[10rem]" />
-      <div className="absolute right-[25%] top-[25%] h-[20rem] w-[20rem] rounded-full bg-brand-teal/20 blur-[10rem]" />
-    </div>
+  return React.createElement(
+    "div",
+    { className: "absolute inset-0 -z-10 overflow-hidden" },
+    [
+      React.createElement(
+        "div",
+        { 
+          key: "blue-blur",
+          className: "absolute left-[50%] top-[20%] h-[30rem] w-[30rem] rounded-full bg-brand-blue/20 blur-[10rem]" 
+        }
+      ),
+      React.createElement(
+        "div",
+        { 
+          key: "teal-blur",
+          className: "absolute right-[25%] top-[25%] h-[20rem] w-[20rem] rounded-full bg-brand-teal/20 blur-[10rem]" 
+        }
+      )
+    ]
   );
 }
