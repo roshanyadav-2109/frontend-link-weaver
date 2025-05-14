@@ -2,7 +2,8 @@
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Contact from "./pages/Contact";
@@ -15,6 +16,7 @@ import Categories from "./pages/categories/Categories";
 import SubCategories from "./pages/categories/SubCategories";
 import CatalogRequest from "./pages/CatalogRequest";
 import Navbar from "./components/layout/Navbar";
+import AuthenticatedNavbar from "./components/layout/AuthenticatedNavbar";
 import Footer from "./components/layout/Footer";
 import ProductDetails from "./pages/products/ProductDetails";
 
@@ -26,6 +28,11 @@ import ProductsManager from "./pages/admin/ProductsManager";
 import CareersManager from "./pages/admin/CareersManager";
 import Settings from "./pages/admin/Settings";
 import QuoteRequests from "./pages/admin/QuoteRequests";
+import QuoteRequestsManager from "./pages/admin/QuoteRequestsManager";
+
+// New pages
+import RequestQuotePage from "./pages/RequestQuotePage";
+import UserDashboard from "./pages/UserDashboard";
 
 // Manufacturer pages
 import ManufacturerLayout from "./components/manufacturer/ManufacturerLayout";
@@ -42,6 +49,44 @@ const queryClient = new QueryClient({
   },
 });
 
+// Protected Route component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-blue"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/auth/client" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Admin Route component
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAdmin, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-blue"></div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -53,16 +98,26 @@ const App = () => {
               <Routes>
                 {/* Admin Routes */}
                 <Route path="/admin/login" element={<Login />} />
-                <Route path="/admin" element={<AdminLayout />}>
+                <Route 
+                  path="/admin" 
+                  element={
+                    <AdminRoute>
+                      <AdminLayout />
+                    </AdminRoute>
+                  }
+                >
                   <Route index element={<Dashboard />} />
                   <Route path="products" element={<ProductsManager />} />
                   <Route path="careers" element={<CareersManager />} />
                   <Route path="settings" element={<Settings />} />
-                  <Route path="quote-requests" element={<QuoteRequests />} />
+                  <Route path="quote-requests" element={<QuoteRequestsManager />} />
                 </Route>
                 
                 {/* Manufacturer Routes */}
-                <Route path="/manufacturer" element={<ManufacturerLayout />}>
+                <Route 
+                  path="/manufacturer" 
+                  element={<ManufacturerLayout />}
+                >
                   <Route path="dashboard" element={<ManufacturerDashboard />} />
                   <Route path="catalog-requests" element={<CatalogRequests />} />
                 </Route>
@@ -70,6 +125,20 @@ const App = () => {
                 {/* Auth Callback Route */}
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 
+                {/* Protected Routes */}
+                <Route 
+                  path="/dashboard" 
+                  element={
+                    <ProtectedRoute>
+                      <AuthenticatedNavbar />
+                      <main className="flex-grow">
+                        <UserDashboard />
+                      </main>
+                      <Footer />
+                    </ProtectedRoute>
+                  } 
+                />
+
                 {/* Public Routes */}
                 <Route
                   path="*"
@@ -89,6 +158,7 @@ const App = () => {
                           <Route path="/product/:id" element={<ProductDetails />} />
                           <Route path="/catalog-request" element={<CatalogRequest />} />
                           <Route path="/careers" element={<Careers />} />
+                          <Route path="/request-quote" element={<RequestQuotePage />} />
                           <Route path="*" element={<NotFound />} />
                         </Routes>
                       </main>
