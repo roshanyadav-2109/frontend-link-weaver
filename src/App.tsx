@@ -27,7 +27,6 @@ import Dashboard from "./pages/admin/Dashboard";
 import ProductsManager from "./pages/admin/ProductsManager";
 import CareersManager from "./pages/admin/CareersManager";
 import Settings from "./pages/admin/Settings";
-import QuoteRequests from "./pages/admin/QuoteRequests";
 import QuoteRequestsManager from "./pages/admin/QuoteRequestsManager";
 
 // New pages
@@ -87,7 +86,28 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Manufacturer Route component
+const ManufacturerRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isManufacturer, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-blue"></div>
+      </div>
+    );
+  }
+
+  if (!isManufacturer) {
+    return <Navigate to="/auth/manufacturer" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 const App = () => {
+  const { isAuthenticated, isAdmin, isManufacturer } = useAuth();
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -116,7 +136,11 @@ const App = () => {
                 {/* Manufacturer Routes */}
                 <Route 
                   path="/manufacturer" 
-                  element={<ManufacturerLayout />}
+                  element={
+                    <ManufacturerRoute>
+                      <ManufacturerLayout />
+                    </ManufacturerRoute>
+                  }
                 >
                   <Route path="dashboard" element={<ManufacturerDashboard />} />
                   <Route path="catalog-requests" element={<CatalogRequests />} />

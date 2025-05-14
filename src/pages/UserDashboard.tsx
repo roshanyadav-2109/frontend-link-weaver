@@ -201,7 +201,20 @@ const UserDashboard = () => {
                               {format(new Date(quote.created_at), 'MMM d, yyyy')}
                             </div>
                           </TableCell>
-                          <TableCell className="max-w-xs truncate">{quote.product_name}</TableCell>
+                          <TableCell className="max-w-xs truncate">
+                            {(() => {
+                              // Convert product_name values to readable format
+                              const serviceMap: {[key: string]: string} = {
+                                'textile-manufacturing': 'Textile Manufacturing',
+                                'handicrafts': 'Handicrafts & Artisan Products',
+                                'organic-products': 'Organic & Natural Products',
+                                'leather-goods': 'Leather Goods',
+                                'jewelry': 'Jewelry & Accessories',
+                                'other': 'Other Services'
+                              };
+                              return serviceMap[quote.product_name] || quote.product_name;
+                            })()}
+                          </TableCell>
                           <TableCell>
                             <Badge variant="outline" className={`uppercase text-xs font-semibold px-2 py-0.5 ${getStatusColor(quote.status)}`}>
                               {quote.status}
@@ -249,7 +262,20 @@ const UserDashboard = () => {
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-gray-500">Service</h4>
-                  <p className="mt-1">{selectedQuote.product_name}</p>
+                  <p className="mt-1">
+                    {(() => {
+                      // Convert product_name values to readable format
+                      const serviceMap: {[key: string]: string} = {
+                        'textile-manufacturing': 'Textile Manufacturing',
+                        'handicrafts': 'Handicrafts & Artisan Products',
+                        'organic-products': 'Organic & Natural Products',
+                        'leather-goods': 'Leather Goods',
+                        'jewelry': 'Jewelry & Accessories',
+                        'other': 'Other Services'
+                      };
+                      return serviceMap[selectedQuote.product_name] || selectedQuote.product_name;
+                    })()}
+                  </p>
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-gray-500">Name</h4>

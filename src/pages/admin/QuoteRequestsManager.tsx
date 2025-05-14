@@ -5,12 +5,13 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-import { Archive, Check, Clock, Eye, Filter, RefreshCw, Search, X } from 'lucide-react';
+import { Archive, Check, Clock, Eye, Filter, RefreshCw, Search, X, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
@@ -28,6 +29,7 @@ interface QuoteRequest {
   product_name: string;
   status: string;
   additional_details: string;
+  admin_response?: string | null;
   company: string | null;
   name: string;
   email: string;
@@ -62,6 +64,20 @@ const statusOptions = [
   { value: 'rejected', label: 'Rejected' },
 ];
 
+const serviceOptions = [
+  { value: 'textile-manufacturing', label: 'Textile Manufacturing' },
+  { value: 'handicrafts', label: 'Handicrafts & Artisan Products' },
+  { value: 'organic-products', label: 'Organic & Natural Products' },
+  { value: 'leather-goods', label: 'Leather Goods' },
+  { value: 'jewelry', label: 'Jewelry & Accessories' },
+  { value: 'other', label: 'Other Services' }
+];
+
+const getServiceLabel = (value: string) => {
+  const service = serviceOptions.find(s => s.value === value);
+  return service ? service.label : value;
+};
+
 const QuoteRequestsManager: React.FC = () => {
   const { isAdmin, loading } = useAuth();
   const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
@@ -69,9 +85,12 @@ const QuoteRequestsManager: React.FC = () => {
   const [selectedQuote, setSelectedQuote] = useState<QuoteRequest | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isUpdateStatusOpen, setIsUpdateStatusOpen] = useState(false);
+  const [isResponseOpen, setIsResponseOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [adminResponse, setAdminResponse] = useState('');
+  const [serviceFilter, setServiceFilter] = useState('all');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -117,19 +136,24 @@ const QuoteRequestsManager: React.FC = () => {
       results = results.filter(quote => quote.status.toLowerCase() === statusFilter.toLowerCase());
     }
     
+    // Apply service filter
+    if (serviceFilter !== 'all') {
+      results = results.filter(quote => quote.product_name === serviceFilter);
+    }
+    
     // Apply search filter
     if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
       results = results.filter(quote => 
         quote.name.toLowerCase().includes(query) ||
         quote.email.toLowerCase().includes(query) ||
-        quote.product_name.toLowerCase().includes(query) ||
+        getServiceLabel(quote.product_name).toLowerCase().includes(query) ||
         (quote.company && quote.company.toLowerCase().includes(query))
       );
     }
     
     setFilteredRequests(results);
-  }, [quoteRequests, searchQuery, statusFilter]);
+  }, [quoteRequests, searchQuery, statusFilter, serviceFilter]);
 
   const handleRefresh = async () => {
     try {
@@ -185,14 +209,60 @@ const QuoteRequestsManager: React.FC = () => {
     }
   };
 
+  const handleSendResponse = async () => {
+    if (!selectedQuote || !adminResponse.trim()) return;
+    
+    try {
+      const { error } = await supabase
+        .from('quote_requests')
+        .update({ admin_response: adminResponse })
+        .eq('id', selectedQuote.id);
+      
+      if (error) {
+        console.error('Error sending response:', error);
+        toast.error('Failed to send response');
+      } else {
+        toast.success('Response sent successfully');
+        
+        // Update local state
+        const updatedRequests = quoteRequests.map(quote => 
+          quote.id === selectedQuote.id ? { ...quote, admin_response: adminResponse } : quote
+        );
+        
+        setQuoteRequests(updatedRequests);
+        setSelectedQuote({ ...selectedQuote, admin_response: adminResponse });
+        setAdminResponse('');
+        setIsResponseOpen(false);
+      }
+    } catch (error) {
+      console.error('Exception sending response:', error);
+      toast.error('An unexpected error occurred');
+    }
+  };
+
   const viewQuoteDetails = (quote: QuoteRequest) => {
     setSelectedQuote(quote);
+    if (quote.admin_response) {
+      setAdminResponse(quote.admin_response);
+    } else {
+      setAdminResponse('');
+    }
     setIsDetailsOpen(true);
   };
 
   const openUpdateStatus = (quote: QuoteRequest) => {
     setSelectedQuote(quote);
     setIsUpdateStatusOpen(true);
+  };
+
+  const openResponseDialog = (quote: QuoteRequest) => {
+    setSelectedQuote(quote);
+    if (quote.admin_response) {
+      setAdminResponse(quote.admin_response);
+    } else {
+      setAdminResponse('');
+    }
+    setIsResponseOpen(true);
   };
 
   if (loading || !isAdmin) {
@@ -256,6 +326,24 @@ const QuoteRequestsManager: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
+            <div className="w-full sm:w-48">
+              <Select value={serviceFilter} onValueChange={setServiceFilter}>
+                <SelectTrigger className="w-full">
+                  <div className="flex items-center">
+                    <Filter className="mr-2 h-4 w-4 text-gray-400" />
+                    <SelectValue placeholder="Filter by service" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Services</SelectItem>
+                  {serviceOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {isLoading ? (
@@ -267,7 +355,7 @@ const QuoteRequestsManager: React.FC = () => {
               <Archive className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-4 text-lg font-medium text-gray-900">No quote requests found</h3>
               <p className="mt-2 text-gray-500">
-                {searchQuery || statusFilter !== 'all' 
+                {searchQuery || statusFilter !== 'all' || serviceFilter !== 'all'
                   ? 'Try changing your search or filter criteria.' 
                   : 'There are no quote requests in the system yet.'}
               </p>
@@ -297,7 +385,7 @@ const QuoteRequestsManager: React.FC = () => {
                         </div>
                       </TableCell>
                       <TableCell className="max-w-[200px] truncate">
-                        {quote.product_name}
+                        {getServiceLabel(quote.product_name)}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={`uppercase text-xs font-semibold ${getStatusColor(quote.status)}`}>
@@ -322,6 +410,10 @@ const QuoteRequestsManager: React.FC = () => {
                             <DropdownMenuItem onClick={() => openUpdateStatus(quote)}>
                               <Clock className="mr-2 h-4 w-4" />
                               Update Status
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openResponseDialog(quote)}>
+                              <MessageSquare className="mr-2 h-4 w-4" />
+                              {quote.admin_response ? 'Edit Response' : 'Send Response'}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -356,7 +448,7 @@ const QuoteRequestsManager: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-gray-500">Service</h4>
-                  <p className="mt-1">{selectedQuote.product_name}</p>
+                  <p className="mt-1">{getServiceLabel(selectedQuote.product_name)}</p>
                 </div>
                 <div>
                   <h4 className="text-sm font-semibold text-gray-500">Name</h4>
@@ -386,6 +478,13 @@ const QuoteRequestsManager: React.FC = () => {
                 <h4 className="text-sm font-semibold text-gray-500">Additional Details</h4>
                 <p className="mt-1 text-sm whitespace-pre-wrap">{selectedQuote.additional_details}</p>
               </div>
+
+              {selectedQuote.admin_response && (
+                <div className="bg-blue-50 p-3 rounded-md border border-blue-100">
+                  <h4 className="text-sm font-semibold text-blue-700">Admin Response</h4>
+                  <p className="mt-1 text-sm text-blue-800">{selectedQuote.admin_response}</p>
+                </div>
+              )}
             </div>
           )}
           
@@ -396,14 +495,26 @@ const QuoteRequestsManager: React.FC = () => {
             >
               Close
             </Button>
-            <Button
-              onClick={() => {
-                setIsDetailsOpen(false);
-                setIsUpdateStatusOpen(true);
-              }}
-            >
-              Update Status
-            </Button>
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsDetailsOpen(false);
+                  setIsResponseOpen(true);
+                }}
+              >
+                <MessageSquare className="mr-2 h-4 w-4" />
+                {selectedQuote?.admin_response ? 'Edit Response' : 'Send Response'}
+              </Button>
+              <Button
+                onClick={() => {
+                  setIsDetailsOpen(false);
+                  setIsUpdateStatusOpen(true);
+                }}
+              >
+                Update Status
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -492,6 +603,58 @@ const QuoteRequestsManager: React.FC = () => {
               onClick={() => setIsUpdateStatusOpen(false)}
             >
               Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Admin Response Dialog */}
+      <Dialog open={isResponseOpen} onOpenChange={setIsResponseOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedQuote?.admin_response ? 'Edit Response' : 'Send Response'}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedQuote?.admin_response 
+                ? 'Update your response to this quote request' 
+                : 'Send a response to this quote request'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedQuote && (
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Customer: {selectedQuote.name}</h4>
+                <h4 className="text-sm font-semibold mb-2">Service: {getServiceLabel(selectedQuote.product_name)}</h4>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="admin-response">Your Response</Label>
+                <Textarea 
+                  id="admin-response"
+                  value={adminResponse}
+                  onChange={(e) => setAdminResponse(e.target.value)}
+                  placeholder="Enter your response to the customer..."
+                  rows={5}
+                  className="resize-none"
+                />
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="flex justify-between">
+            <Button
+              variant="outline"
+              onClick={() => setIsResponseOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSendResponse}
+              disabled={!adminResponse.trim()}
+            >
+              {selectedQuote?.admin_response ? 'Update Response' : 'Send Response'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -16,15 +16,15 @@ const AuthCallback = () => {
         if (sessionError) {
           console.error('Session error:', sessionError);
           setError('Authentication failed. Please try again.');
-          setTimeout(() => navigate('/auth/manufacturer', { replace: true }), 3000);
+          setTimeout(() => navigate('/auth/client', { replace: true }), 3000);
           return;
         }
         
         if (session) {
-          // Check if user is admin
+          // Check if user is admin or manufacturer
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('is_admin')
+            .select('is_admin, user_type')
             .eq('id', session.user.id)
             .single();
           
@@ -33,18 +33,23 @@ const AuthCallback = () => {
           }
           
           if (profile?.is_admin) {
+            // Redirect admin users to admin dashboard
             navigate('/admin', { replace: true });
+          } else if (profile?.user_type === 'manufacturer') {
+            // Redirect manufacturers to manufacturer dashboard
+            navigate('/manufacturer/dashboard', { replace: true });
           } else {
-            navigate('/', { replace: true });
+            // Redirect normal users to user dashboard
+            navigate('/dashboard', { replace: true });
           }
         } else {
           setError('No session found. Please try logging in again.');
-          setTimeout(() => navigate('/auth/manufacturer', { replace: true }), 3000);
+          setTimeout(() => navigate('/auth/client', { replace: true }), 3000);
         }
       } catch (err) {
         console.error('Auth callback error:', err);
         setError('An unexpected error occurred. Please try again.');
-        setTimeout(() => navigate('/auth/manufacturer', { replace: true }), 3000);
+        setTimeout(() => navigate('/auth/client', { replace: true }), 3000);
       }
     };
     
