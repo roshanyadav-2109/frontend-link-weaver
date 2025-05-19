@@ -29,7 +29,7 @@ interface QuoteRequest {
   product_name: string;
   status: string;
   additional_details: string;
-  admin_response?: string | null;
+  admin_response?: string | null; // Added admin_response property
   company: string | null;
   name: string;
   email: string;
