@@ -26,4 +26,22 @@ export const tables = {
   quote_requests: () => supabase.from('quote_requests'),
 }
 
+// Update the QuoteRequest interface to include admin_response
+export interface QuoteRequest {
+  id: string;
+  created_at: string;
+  product_id?: string | null;
+  user_id: string;
+  status?: string | null;
+  product_name: string;
+  quantity: string;
+  unit: string;
+  additional_details?: string | null;
+  name: string;
+  email: string;
+  phone: string;
+  company?: string | null;
+  admin_response?: string | null;
+}
+
 // Google OAuth provider is already implemented in useAuth.tsx

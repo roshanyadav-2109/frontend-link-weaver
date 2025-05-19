@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, QuoteRequest } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { Archive, Check, Clock, Eye, Filter, RefreshCw, Search, X, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,20 +23,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 
-interface QuoteRequest {
-  id: string;
-  created_at: string;
-  product_name: string;
-  status: string;
-  additional_details: string;
-  admin_response?: string | null; // Added admin_response property
-  company: string | null;
-  name: string;
-  email: string;
-  phone: string;
-  quantity: string;
-  user_id: string;
-}
+// Using the QuoteRequest interface imported from the client file
 
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {

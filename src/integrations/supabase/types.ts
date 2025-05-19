@@ -81,6 +81,7 @@ export type Database = {
       quote_requests: {
         Row: {
           additional_details: string | null
+          admin_response: string | null
           company: string | null
           created_at: string
           email: string
@@ -96,6 +97,7 @@ export type Database = {
         }
         Insert: {
           additional_details?: string | null
+          admin_response?: string | null
           company?: string | null
           created_at?: string
           email: string
@@ -111,6 +113,7 @@ export type Database = {
         }
         Update: {
           additional_details?: string | null
+          admin_response?: string | null
           company?: string | null
           created_at?: string
           email?: string
