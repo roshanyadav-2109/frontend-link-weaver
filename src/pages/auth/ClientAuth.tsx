@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -13,6 +12,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { Separator } from '@/components/ui/separator';
 import { AlertCircle, Mail } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -20,10 +21,17 @@ const loginSchema = z.object({
 });
 
 const registerSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
+  full_name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email address.' }),
-  company: z.string().min(2, { message: 'Company name must be at least 2 characters.' }),
+  phone: z.string().min(10, { message: 'Phone number must be at least 10 characters.' }),
+  company_name: z.string().min(2, { message: 'Company name must be at least 2 characters.' }),
+  address: z.string().min(10, { message: 'Address must be at least 10 characters.' }),
+  city: z.string().min(2, { message: 'City must be at least 2 characters.' }),
   country: z.string().min(2, { message: 'Country must be at least 2 characters.' }),
+  business_type: z.string().min(1, { message: 'Please select business type.' }),
+  industry_sector: z.string().min(1, { message: 'Please select industry sector.' }),
+  annual_import_volume: z.string().optional(),
+  import_experience: z.boolean().default(false),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
   confirmPassword: z.string().min(6, { message: 'Please confirm your password.' }),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -60,10 +68,17 @@ const ClientAuth = () => {
   const registerForm = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: '',
+      full_name: '',
       email: '',
-      company: '',
+      phone: '',
+      company_name: '',
+      address: '',
+      city: '',
       country: '',
+      business_type: '',
+      industry_sector: '',
+      annual_import_volume: '',
+      import_experience: false,
       password: '',
       confirmPassword: '',
     },
@@ -100,8 +115,11 @@ const ClientAuth = () => {
         password: values.password,
         options: {
           data: {
-            full_name: values.name,
-            company: values.company,
+            full_name: values.full_name,
+            phone: values.phone,
+            company_name: values.company_name,
+            address: values.address,
+            city: values.city,
             country: values.country,
             user_type: 'client'
           }
@@ -114,6 +132,21 @@ const ClientAuth = () => {
       }
       
       if (data.user) {
+        // Create client profile with additional business information
+        const { error: clientError } = await supabase
+          .from('clients')
+          .insert({
+            user_id: data.user.id,
+            business_type: values.business_type,
+            industry_sector: values.industry_sector,
+            annual_import_volume: values.annual_import_volume || null,
+            import_experience: values.import_experience
+          });
+
+        if (clientError) {
+          console.error('Error creating client profile:', clientError);
+        }
+
         setEmailForConfirmation(values.email);
         setShowConfirmationMessage(true);
         toast.success('Registration successful! Please check your email to confirm your account.');
@@ -128,6 +161,30 @@ const ClientAuth = () => {
       await resendConfirmationEmail(emailForConfirmation);
     }
   };
+
+  const businessTypes = [
+    'Import/Export Company',
+    'Trading Company',
+    'Manufacturing Company',
+    'Retail Business',
+    'Wholesale Business',
+    'E-commerce Business',
+    'Service Provider',
+    'Other'
+  ];
+
+  const industrySectors = [
+    'Textiles & Clothing',
+    'Electronics & Technology',
+    'Agriculture & Food',
+    'Chemicals & Pharmaceuticals',
+    'Automotive & Transport',
+    'Home & Garden',
+    'Health & Beauty',
+    'Industrial Machinery',
+    'Construction & Building',
+    'Other'
+  ];
 
   if (loading) {
     return (
@@ -179,89 +236,225 @@ const ClientAuth = () => {
               {isRegister ? (
                 <Form {...registerForm}>
                   <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={registerForm.control}
+                        name="full_name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-gray-700">Full Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="John Doe" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={registerForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-gray-700">Email Address</FormLabel>
+                            <FormControl>
+                              <Input type="email" placeholder="you@company.com" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={registerForm.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-gray-700">Phone Number</FormLabel>
+                            <FormControl>
+                              <Input placeholder="+1 234 567 8900" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={registerForm.control}
+                        name="company_name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-gray-700">Company Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Your Company Ltd." {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
                     <FormField
                       control={registerForm.control}
-                      name="name"
+                      name="address"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-gray-700">Full Name</FormLabel>
+                          <FormLabel className="text-gray-700">Business Address</FormLabel>
                           <FormControl>
-                            <Input placeholder="John Doe" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                            <Input placeholder="123 Business Street, Suite 100" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                     
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={registerForm.control}
+                        name="city"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-gray-700">City</FormLabel>
+                            <FormControl>
+                              <Input placeholder="New York" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={registerForm.control}
+                        name="country"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-gray-700">Country</FormLabel>
+                            <FormControl>
+                              <Input placeholder="United States" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={registerForm.control}
+                        name="business_type"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-gray-700">Business Type</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="border-gray-300 focus:border-blue-400 focus:ring-blue-300">
+                                  <SelectValue placeholder="Select business type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {businessTypes.map((type) => (
+                                  <SelectItem key={type} value={type}>
+                                    {type}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={registerForm.control}
+                        name="industry_sector"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-gray-700">Industry Sector</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="border-gray-300 focus:border-blue-400 focus:ring-blue-300">
+                                  <SelectValue placeholder="Select industry" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {industrySectors.map((sector) => (
+                                  <SelectItem key={sector} value={sector}>
+                                    {sector}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
                     <FormField
                       control={registerForm.control}
-                      name="email"
+                      name="annual_import_volume"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-gray-700">Email Address</FormLabel>
+                          <FormLabel className="text-gray-700">Annual Import Volume (Optional)</FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder="you@company.com" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                            <Input placeholder="e.g., $100,000 - $500,000" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
                           </FormControl>
                           <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={registerForm.control}
+                      name="import_experience"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="text-gray-700">
+                              I have previous import experience
+                            </FormLabel>
+                          </div>
                         </FormItem>
                       )}
                     />
                     
-                    <FormField
-                      control={registerForm.control}
-                      name="company"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-gray-700">Company Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Your Company Ltd." {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={registerForm.control}
-                      name="country"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-gray-700">Country</FormLabel>
-                          <FormControl>
-                            <Input placeholder="United States" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={registerForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-gray-700">Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={registerForm.control}
-                      name="confirmPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-gray-700">Confirm Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={registerForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-gray-700">Password</FormLabel>
+                            <FormControl>
+                              <Input type="password" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={registerForm.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-gray-700">Confirm Password</FormLabel>
+                            <FormControl>
+                              <Input type="password" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     
                     <Button type="submit" className="w-full bg-gradient-to-r from-[#1a365d] to-[#2d507a] hover:from-[#1a365d] hover:to-[#234069] text-white">
                       Create Account

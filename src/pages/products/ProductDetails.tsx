@@ -4,8 +4,8 @@ import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, MessageSquare } from 'lucide-react';
-import { QuoteRequestModal } from '@/components/QuoteRequestModal';
 import { useAuth } from '@/hooks/useAuth';
+import AdvancedQuoteForm from '@/components/AdvancedQuoteForm';
 
 interface Product {
   id: string;
@@ -23,7 +23,7 @@ const ProductDetails: React.FC = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [quoteModalOpen, setQuoteModalOpen] = useState(false);
+  const [showAdvancedQuote, setShowAdvancedQuote] = useState(false);
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -76,6 +76,10 @@ const ProductDetails: React.FC = () => {
     );
   }
 
+  const handleQuoteSuccess = () => {
+    setShowAdvancedQuote(false);
+  };
+
   return (
     <div className="container py-10">
       <div className="mb-6">
@@ -118,11 +122,12 @@ const ProductDetails: React.FC = () => {
           </div>
           
           <Button 
-            onClick={() => setQuoteModalOpen(true)}
+            onClick={() => setShowAdvancedQuote(true)}
             className="w-full bg-brand-teal hover:bg-brand-teal/90"
+            size="lg"
           >
             <MessageSquare className="mr-2 h-5 w-5" />
-            Get Quote
+            Get Detailed Quote
           </Button>
 
           <div className="mt-6 border-t pt-6">
@@ -149,12 +154,14 @@ const ProductDetails: React.FC = () => {
         </div>
       </div>
 
-      <QuoteRequestModal
-        isOpen={quoteModalOpen}
-        onClose={() => setQuoteModalOpen(false)}
-        productId={product.id}
-        productName={product.name}
-      />
+      {/* Advanced Quote Form Modal */}
+      {showAdvancedQuote && (
+        <AdvancedQuoteForm
+          product={product}
+          onClose={() => setShowAdvancedQuote(false)}
+          onSuccess={handleQuoteSuccess}
+        />
+      )}
     </div>
   );
 };

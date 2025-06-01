@@ -9,6 +9,235 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      clients: {
+        Row: {
+          annual_import_volume: string | null
+          business_type: string | null
+          created_at: string | null
+          id: string
+          import_experience: boolean | null
+          industry_sector: string | null
+          preferred_payment_terms: string[] | null
+          required_certifications: string[] | null
+          target_markets: string[] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          annual_import_volume?: string | null
+          business_type?: string | null
+          created_at?: string | null
+          id?: string
+          import_experience?: boolean | null
+          industry_sector?: string | null
+          preferred_payment_terms?: string[] | null
+          required_certifications?: string[] | null
+          target_markets?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          annual_import_volume?: string | null
+          business_type?: string | null
+          created_at?: string | null
+          id?: string
+          import_experience?: boolean | null
+          industry_sector?: string | null
+          preferred_payment_terms?: string[] | null
+          required_certifications?: string[] | null
+          target_markets?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manufacturers: {
+        Row: {
+          annual_turnover: string | null
+          business_type: string | null
+          certifications: string[] | null
+          created_at: string | null
+          export_countries: string[] | null
+          export_experience: boolean | null
+          id: string
+          manufacturing_capacity: string | null
+          product_categories: string[] | null
+          quality_certifications: string[] | null
+          updated_at: string | null
+          user_id: string | null
+          years_in_business: number | null
+        }
+        Insert: {
+          annual_turnover?: string | null
+          business_type?: string | null
+          certifications?: string[] | null
+          created_at?: string | null
+          export_countries?: string[] | null
+          export_experience?: boolean | null
+          id?: string
+          manufacturing_capacity?: string | null
+          product_categories?: string[] | null
+          quality_certifications?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+          years_in_business?: number | null
+        }
+        Update: {
+          annual_turnover?: string | null
+          business_type?: string | null
+          certifications?: string[] | null
+          created_at?: string | null
+          export_countries?: string[] | null
+          export_experience?: boolean | null
+          id?: string
+          manufacturing_capacity?: string | null
+          product_categories?: string[] | null
+          quality_certifications?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+          years_in_business?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manufacturers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          related_quote_id: string | null
+          title: string
+          type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          related_quote_id?: string | null
+          title: string
+          type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          related_quote_id?: string | null
+          title?: string
+          type?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_related_quote_id_fkey"
+            columns: ["related_quote_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_inquiries: {
+        Row: {
+          admin_notes: string | null
+          compliance_requirements: string | null
+          created_at: string | null
+          customization_requirements: string | null
+          frequency_of_orders: string | null
+          id: string
+          inquiry_type: string | null
+          product_id: string | null
+          sample_requirements: string | null
+          specifications: Json | null
+          status: string | null
+          target_price_range: string | null
+          technical_requirements: string | null
+          testing_requirements: string | null
+          updated_at: string | null
+          user_id: string | null
+          volume_requirements: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          compliance_requirements?: string | null
+          created_at?: string | null
+          customization_requirements?: string | null
+          frequency_of_orders?: string | null
+          id?: string
+          inquiry_type?: string | null
+          product_id?: string | null
+          sample_requirements?: string | null
+          specifications?: Json | null
+          status?: string | null
+          target_price_range?: string | null
+          technical_requirements?: string | null
+          testing_requirements?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          volume_requirements?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          compliance_requirements?: string | null
+          created_at?: string | null
+          customization_requirements?: string | null
+          frequency_of_orders?: string | null
+          id?: string
+          inquiry_type?: string | null
+          product_id?: string | null
+          sample_requirements?: string | null
+          specifications?: Json | null
+          status?: string | null
+          target_price_range?: string | null
+          technical_requirements?: string | null
+          testing_requirements?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          volume_requirements?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_inquiries_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_inquiries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category: string
@@ -50,31 +279,52 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
+          city: string | null
+          company_name: string | null
+          country: string | null
           created_at: string
           email: string
+          full_name: string | null
           gstin: string | null
           id: string
           is_admin: boolean | null
+          phone: string | null
           updated_at: string
           user_type: string | null
+          verification_status: string | null
         }
         Insert: {
+          address?: string | null
+          city?: string | null
+          company_name?: string | null
+          country?: string | null
           created_at?: string
           email: string
+          full_name?: string | null
           gstin?: string | null
           id: string
           is_admin?: boolean | null
+          phone?: string | null
           updated_at?: string
           user_type?: string | null
+          verification_status?: string | null
         }
         Update: {
+          address?: string | null
+          city?: string | null
+          company_name?: string | null
+          country?: string | null
           created_at?: string
           email?: string
+          full_name?: string | null
           gstin?: string | null
           id?: string
           is_admin?: boolean | null
+          phone?: string | null
           updated_at?: string
           user_type?: string | null
+          verification_status?: string | null
         }
         Relationships: []
       }
@@ -82,15 +332,26 @@ export type Database = {
         Row: {
           additional_details: string | null
           admin_response: string | null
+          attachments: string[] | null
           company: string | null
           created_at: string
+          delivery_address: string | null
+          delivery_country: string | null
+          delivery_timeline: string | null
           email: string
+          estimated_budget: string | null
           id: string
           name: string
+          packaging_requirements: string | null
+          payment_terms: string | null
           phone: string
+          priority_level: string | null
           product_id: string | null
           product_name: string
+          quality_standards: string | null
           quantity: string
+          sample_required: boolean | null
+          shipping_terms: string | null
           status: string | null
           unit: string
           user_id: string
@@ -98,15 +359,26 @@ export type Database = {
         Insert: {
           additional_details?: string | null
           admin_response?: string | null
+          attachments?: string[] | null
           company?: string | null
           created_at?: string
+          delivery_address?: string | null
+          delivery_country?: string | null
+          delivery_timeline?: string | null
           email: string
+          estimated_budget?: string | null
           id?: string
           name: string
+          packaging_requirements?: string | null
+          payment_terms?: string | null
           phone: string
+          priority_level?: string | null
           product_id?: string | null
           product_name: string
+          quality_standards?: string | null
           quantity: string
+          sample_required?: boolean | null
+          shipping_terms?: string | null
           status?: string | null
           unit: string
           user_id: string
@@ -114,15 +386,26 @@ export type Database = {
         Update: {
           additional_details?: string | null
           admin_response?: string | null
+          attachments?: string[] | null
           company?: string | null
           created_at?: string
+          delivery_address?: string | null
+          delivery_country?: string | null
+          delivery_timeline?: string | null
           email?: string
+          estimated_budget?: string | null
           id?: string
           name?: string
+          packaging_requirements?: string | null
+          payment_terms?: string | null
           phone?: string
+          priority_level?: string | null
           product_id?: string | null
           product_name?: string
+          quality_standards?: string | null
           quantity?: string
+          sample_required?: boolean | null
+          shipping_terms?: string | null
           status?: string | null
           unit?: string
           user_id?: string

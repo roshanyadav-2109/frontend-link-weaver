@@ -6,10 +6,6 @@ import type { Database } from './types';
 const SUPABASE_URL = "https://lusfthgqlkgktplplqnv.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1c2Z0aGdxbGtna3RwbHBscW52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxNTg2ODAsImV4cCI6MjA2MTczNDY4MH0.rGF7pOjYLtFNK9sOG2MXH8M5wBOMG18w3F1YMoVUQoQ";
 
-// Import the supabase client like this:
-// import { supabase } from "@/integrations/supabase/client";
-
-// Using Database type to ensure type safety
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     storage: localStorage,
@@ -24,9 +20,13 @@ export const tables = {
   profiles: () => supabase.from('profiles'),
   products: () => supabase.from('products'),
   quote_requests: () => supabase.from('quote_requests'),
+  manufacturers: () => supabase.from('manufacturers'),
+  clients: () => supabase.from('clients'),
+  notifications: () => supabase.from('notifications'),
+  product_inquiries: () => supabase.from('product_inquiries'),
 }
 
-// Update the QuoteRequest interface to include admin_response
+// Enhanced QuoteRequest interface with all new fields
 export interface QuoteRequest {
   id: string;
   created_at: string;
@@ -42,6 +42,86 @@ export interface QuoteRequest {
   phone: string;
   company?: string | null;
   admin_response?: string | null;
+  delivery_address?: string | null;
+  delivery_country?: string | null;
+  delivery_timeline?: string | null;
+  payment_terms?: string | null;
+  packaging_requirements?: string | null;
+  quality_standards?: string | null;
+  sample_required?: boolean | null;
+  estimated_budget?: string | null;
+  shipping_terms?: string | null;
+  priority_level?: string | null;
+  attachments?: string[] | null;
 }
 
-// Google OAuth provider is already implemented in useAuth.tsx
+// Product Inquiry interface for detailed quotes
+export interface ProductInquiry {
+  id: string;
+  user_id: string;
+  product_id: string;
+  inquiry_type: string;
+  specifications?: any;
+  customization_requirements?: string | null;
+  technical_requirements?: string | null;
+  compliance_requirements?: string | null;
+  volume_requirements?: string | null;
+  frequency_of_orders?: string | null;
+  target_price_range?: string | null;
+  sample_requirements?: string | null;
+  testing_requirements?: string | null;
+  status: string;
+  admin_notes?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Enhanced Profile interface
+export interface Profile {
+  id: string;
+  email: string;
+  full_name?: string | null;
+  phone?: string | null;
+  company_name?: string | null;
+  address?: string | null;
+  city?: string | null;
+  country?: string | null;
+  user_type?: string | null;
+  is_admin?: boolean;
+  verification_status?: string | null;
+  gstin?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Manufacturer interface
+export interface Manufacturer {
+  id: string;
+  user_id: string;
+  business_type?: string | null;
+  years_in_business?: number | null;
+  annual_turnover?: string | null;
+  export_experience?: boolean;
+  certifications?: string[];
+  product_categories?: string[];
+  manufacturing_capacity?: string | null;
+  quality_certifications?: string[];
+  export_countries?: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+// Client interface
+export interface Client {
+  id: string;
+  user_id: string;
+  business_type?: string | null;
+  industry_sector?: string | null;
+  import_experience?: boolean;
+  annual_import_volume?: string | null;
+  preferred_payment_terms?: string[];
+  required_certifications?: string[];
+  target_markets?: string[];
+  created_at: string;
+  updated_at: string;
+}
