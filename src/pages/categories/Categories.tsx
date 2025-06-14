@@ -62,7 +62,9 @@ const Categories = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Enhanced Hero Section */}
       <div className="relative bg-gradient-to-br from-brand-blue via-brand-blue/95 to-brand-teal py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z" fill="%23ffffff" fill-opacity="0.1"/%3E%3C/svg%3E')] opacity-30"></div>
+        <div className="absolute inset-0 opacity-30">
+          <div className="h-full w-full bg-pattern"></div>
+        </div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm rounded-full mb-8 animate-fade-in">
@@ -152,7 +154,7 @@ const Categories = () => {
           {/* Enhanced CTA Section */}
           <div className="mt-20 text-center">
             <div className="bg-gradient-to-r from-brand-blue to-brand-teal rounded-3xl p-12 text-white relative overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.1),transparent_50%)]"></div>
+              <div className="absolute inset-0 bg-gradient-radial opacity-30"></div>
               <div className="relative z-10">
                 <h3 className="text-3xl font-bold mb-4">Need Something Specific?</h3>
                 <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
