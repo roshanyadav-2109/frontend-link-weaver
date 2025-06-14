@@ -6,48 +6,61 @@ import Testimonials from '@/components/home/Testimonials';
 import { GlobalPresence } from '@/components/home/GlobalPresence';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight, Check, Star, Shield, Globe, TrendingUp } from 'lucide-react';
 
 const Index: React.FC = () => {
   return (
-    <div>
+    <div className="overflow-hidden">
       <Hero />
       <FeaturedCategories />
       
-      <section className="bg-white section py-16">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center gap-10">
-            <div className="md:w-1/2">
-              <img 
-                src="https://images.unsplash.com/photo-1578575437130-527eed3df6b6?auto=format&fit=crop&w=600&h=400" 
-                alt="Global Trade Partners" 
-                className="w-full h-auto rounded-lg shadow-lg"
-              />
+      {/* Trust Section with Enhanced Design */}
+      <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-gray-50 relative">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(26,54,93,0.05),transparent_50%)]"></div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            <div className="lg:w-1/2 animate-fade-in">
+              <div className="relative">
+                <div className="absolute -inset-4 bg-gradient-to-r from-brand-blue/20 to-brand-teal/20 rounded-3xl blur-xl"></div>
+                <img 
+                  src="https://images.unsplash.com/photo-1578575437130-527eed3df6b6?auto=format&fit=crop&w=800&h=600" 
+                  alt="Global Trade Partners" 
+                  className="relative w-full h-auto rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-500"
+                />
+              </div>
             </div>
-            <div className="md:w-1/2">
-              <h2 className="text-3xl font-bold text-brand-blue mb-4">
-                Your Trusted Partner in Global Trade
+            <div className="lg:w-1/2 animate-fade-in animate-delay-200">
+              <div className="inline-flex items-center px-4 py-2 bg-brand-teal/10 rounded-full mb-6">
+                <Star className="h-5 w-5 text-brand-teal mr-2" />
+                <span className="text-brand-teal font-medium">Trusted Worldwide</span>
+              </div>
+              <h2 className="text-4xl lg:text-5xl font-bold text-brand-blue mb-6 leading-tight">
+                Your Trusted Partner in 
+                <span className="bg-gradient-to-r from-brand-teal to-brand-blue bg-clip-text text-transparent"> Global Trade</span>
               </h2>
-              <p className="text-gray-700 mb-6">
+              <p className="text-xl text-gray-700 mb-8 leading-relaxed">
                 Whether you're a manufacturer looking to showcase your products globally or a buyer seeking reliable Indian suppliers, 
                 Anantya Overseas provides the connections and support you need to succeed.
               </p>
-              <ul className="space-y-3 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
                 {[
-                  'Curated, export-quality product catalogues',
-                  'Direct connections with verified manufacturers',
-                  'End-to-end logistics support',
-                  'Custom sourcing solutions'
+                  { icon: Shield, text: 'Curated, export-quality product catalogues' },
+                  { icon: Globe, text: 'Direct connections with verified manufacturers' },
+                  { icon: TrendingUp, text: 'End-to-end logistics support' },
+                  { icon: Check, text: 'Custom sourcing solutions' }
                 ].map((item, index) => (
-                  <li key={index} className="flex items-center">
-                    <Check className="h-5 w-5 text-brand-teal mr-2" />
-                    <span>{item}</span>
-                  </li>
+                  <div key={index} className="flex items-center group hover:bg-white hover:shadow-lg p-4 rounded-xl transition-all duration-300">
+                    <div className="bg-brand-teal/10 p-2 rounded-lg mr-4 group-hover:bg-brand-teal group-hover:text-white transition-all duration-300">
+                      <item.icon className="h-5 w-5 text-brand-teal group-hover:text-white" />
+                    </div>
+                    <span className="font-medium text-gray-700">{item.text}</span>
+                  </div>
                 ))}
-              </ul>
+              </div>
               <Link to="/catalog-request">
-                <Button className="bg-brand-teal hover:bg-brand-teal/90">
-                  Request Full Catalogue <ArrowRight className="ml-2 h-5 w-5" />
+                <Button className="bg-gradient-to-r from-brand-teal to-brand-blue hover:from-brand-blue hover:to-brand-teal text-white px-8 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                  Request Full Catalogue 
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             </div>
@@ -59,25 +72,35 @@ const Index: React.FC = () => {
       
       <Testimonials />
       
-      <section className="bg-white section py-16">
-        <div className="container text-center">
-          <h2 className="text-3xl font-bold text-brand-blue mb-4">
-            Ready to Start Your Global Trade Journey?
-          </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto mb-8">
-            Join hundreds of businesses already using Anantya Overseas to connect, discover products, and grow internationally.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link to="/auth/client">
-              <Button className="bg-brand-blue hover:bg-brand-blue/90 px-6">
-                Sign Up as Buyer
-              </Button>
-            </Link>
-            <Link to="/auth/manufacturer">
-              <Button className="bg-brand-teal hover:bg-brand-teal/90 px-6">
-                Sign Up as Manufacturer
-              </Button>
-            </Link>
+      {/* Enhanced CTA Section */}
+      <section className="py-20 bg-gradient-to-r from-brand-blue via-brand-blue to-brand-teal relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="1"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <div className="max-w-4xl mx-auto">
+            <div className="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm rounded-full mb-8 animate-fade-in">
+              <Globe className="h-5 w-5 text-white mr-2" />
+              <span className="text-white font-medium">Join 500+ Global Businesses</span>
+            </div>
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6 animate-fade-in animate-delay-100">
+              Ready to Start Your Global Trade Journey?
+            </h2>
+            <p className="text-xl text-white/90 max-w-3xl mx-auto mb-12 animate-fade-in animate-delay-200">
+              Join hundreds of businesses already using Anantya Overseas to connect, discover products, and grow internationally.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-6 animate-fade-in animate-delay-300">
+              <Link to="/auth/client">
+                <Button className="bg-white text-brand-blue hover:bg-gray-100 px-8 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 min-w-[200px]">
+                  <Shield className="mr-2 h-5 w-5" />
+                  Sign Up as Buyer
+                </Button>
+              </Link>
+              <Link to="/auth/manufacturer">
+                <Button className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-brand-blue px-8 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 min-w-[200px]">
+                  <TrendingUp className="mr-2 h-5 w-5" />
+                  Sign Up as Manufacturer
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
