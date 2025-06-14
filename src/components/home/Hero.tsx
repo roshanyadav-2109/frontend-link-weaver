@@ -4,12 +4,10 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Globe, Package, Shield, Star } from 'lucide-react';
 
-// Updated text content for a fresher, more direct message
+// Concise and professional text for hero
 const Hero = () => {
   return (
     <div className="relative pt-28 pb-20 md:py-32 lg:py-40 overflow-hidden min-h-screen flex items-center bg-gradient-to-br from-brand-blue/95 via-brand-blue/90 to-brand-teal/85">
-      {/* Removed background video and overlay, direct use of gradient */}
-
       {/* Floating Elements */}
       <div className="absolute top-20 left-10 w-20 h-20 bg-white/10 rounded-full backdrop-blur-sm animate-float z-20 hidden lg:block"></div>
       <div className="absolute bottom-32 right-16 w-16 h-16 bg-brand-teal/20 rounded-full backdrop-blur-sm animate-float z-20 hidden lg:block" style={{animationDelay: '2s'}}></div>
@@ -24,16 +22,14 @@ const Hero = () => {
           </div>
           
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-8 leading-tight animate-fade-in animate-delay-100">
-            Trade Globally with Confidence
+            Seamless Global Trade
             <span className="block bg-gradient-to-r from-brand-teal via-yellow-200 to-white bg-clip-text text-transparent">
               Connect. Source. Succeed.
             </span>
           </h1>
           
           <p className="text-xl md:text-2xl lg:text-3xl text-white/95 mb-12 animate-fade-in animate-delay-200 max-w-4xl mx-auto leading-relaxed font-light">
-            Discover a world of opportunities with Anantya Overseas. 
-            Our platform connects you directly with verified manufacturers worldwide, 
-            offers unmatched logistics support, and helps you expand beyond borders with ease.
+            Expand your reach with verified suppliers and world-class support. Trade confidently, anywhere.
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center gap-6 mb-16 animate-fade-in animate-delay-300">
@@ -87,3 +83,4 @@ const Hero = () => {
 };
 
 export default Hero;
+
