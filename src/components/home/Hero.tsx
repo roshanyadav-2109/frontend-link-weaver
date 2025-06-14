@@ -40,12 +40,12 @@ const Hero = () => {
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-8 leading-tight animate-fade-in animate-delay-100">
             Global Trade, 
             <span className="block bg-gradient-to-r from-white via-yellow-200 to-brand-teal bg-clip-text text-transparent">
-              Heartfelt Partnerships
+              Simplified
             </span>
           </h1>
           
           <p className="text-xl md:text-2xl lg:text-3xl text-white/95 mb-12 animate-fade-in animate-delay-200 max-w-4xl mx-auto leading-relaxed font-light">
-            Welcome to <span className="font-bold text-yellow-200">Anantya Overseas</span>, where exporters and buyers from across the world meet under one trusted roof. We help you source, ship, and scale—seamlessly.
+            Where exporters and buyers from across the world meet under one trusted roof. We help you source, ship, and scale—seamlessly.
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center gap-6 mb-16 animate-fade-in animate-delay-300">
