@@ -493,9 +493,6 @@ export const SignInPage = ({ className }: SignInPageProps) => {
   const [step, setStep] = useState<"email" | "code" | "success">("email");
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const codeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
-  const [initialCanvasVisible, setInitialCanvasVisible] = useState(true);
-  const [reverseCanvasVisible, setReverseCanvasVisible] = useState(false);
 
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -528,18 +525,7 @@ export const SignInPage = ({ className }: SignInPageProps) => {
       if (index === 5 && value) {
         const isComplete = newCode.every(digit => digit.length === 1);
         if (isComplete) {
-          // First show the new reverse canvas
-          setReverseCanvasVisible(true);
-          
-          // Then hide the original canvas after a small delay
-          setTimeout(() => {
-            setInitialCanvasVisible(false);
-          }, 50);
-          
-          // Transition to success screen after animation
-          setTimeout(() => {
-            setStep("success");
-          }, 2000);
+          setStep("success");
         }
       }
     }
@@ -554,46 +540,11 @@ export const SignInPage = ({ className }: SignInPageProps) => {
   const handleBackClick = () => {
     setStep("email");
     setCode(["", "", "", "", "", ""]);
-    // Reset animations if going back
-    setReverseCanvasVisible(false);
-    setInitialCanvasVisible(true);
   };
 
   return (
     <div className={cn("flex w-[100%] flex-col min-h-screen bg-black relative", className)}>
       <div className="absolute inset-0 z-0">
-        {/* Initial canvas (forward animation) */}
-        {initialCanvasVisible && (
-          <div className="absolute inset-0">
-            <CanvasRevealEffect
-              animationSpeed={3}
-              containerClassName="bg-black"
-              colors={[
-                [255, 255, 255],
-                [255, 255, 255],
-              ]}
-              dotSize={6}
-              reverse={false}
-            />
-          </div>
-        )}
-        
-        {/* Reverse canvas (appears when code is complete) */}
-        {reverseCanvasVisible && (
-          <div className="absolute inset-0">
-            <CanvasRevealEffect
-              animationSpeed={4}
-              containerClassName="bg-black"
-              colors={[
-                [255, 255, 255],
-                [255, 255, 255],
-              ]}
-              dotSize={6}
-              reverse={true}
-            />
-          </div>
-        )}
-        
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,0,0,1)_0%,_transparent_100%)]" />
         <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-black to-transparent" />
       </div>
