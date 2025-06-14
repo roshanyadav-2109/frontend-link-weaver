@@ -4,26 +4,12 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Globe, Package, Shield, Star } from 'lucide-react';
 
+// Updated text content for a fresher, more direct message
 const Hero = () => {
   return (
-    <div className="relative pt-28 pb-20 md:py-32 lg:py-40 overflow-hidden min-h-screen flex items-center">
-      {/* Enhanced Background with Gradient Overlay */}
-      <div className="absolute inset-0 w-full h-full z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/95 via-brand-blue/90 to-brand-teal/85 z-10"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(44,122,123,0.3),transparent_50%)] z-10"></div>
-        <video 
-          className="absolute min-w-full min-h-full object-cover" 
-          autoPlay 
-          loop 
-          muted 
-          playsInline
-          poster="https://images.unsplash.com/photo-1661956601030-fdfb9c7e9e2f?q=80&w=1342"
-        >
-          <source src="https://cdn.coverr.co/videos/coverr-aerial-shot-of-cargo-port-with-containers-8290/1080p.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-      </div>
-      
+    <div className="relative pt-28 pb-20 md:py-32 lg:py-40 overflow-hidden min-h-screen flex items-center bg-gradient-to-br from-brand-blue/95 via-brand-blue/90 to-brand-teal/85">
+      {/* Removed background video and overlay, direct use of gradient */}
+
       {/* Floating Elements */}
       <div className="absolute top-20 left-10 w-20 h-20 bg-white/10 rounded-full backdrop-blur-sm animate-float z-20 hidden lg:block"></div>
       <div className="absolute bottom-32 right-16 w-16 h-16 bg-brand-teal/20 rounded-full backdrop-blur-sm animate-float z-20 hidden lg:block" style={{animationDelay: '2s'}}></div>
@@ -38,14 +24,16 @@ const Hero = () => {
           </div>
           
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-8 leading-tight animate-fade-in animate-delay-100">
-            Global Trade, 
-            <span className="block bg-gradient-to-r from-white via-yellow-200 to-brand-teal bg-clip-text text-transparent">
-              Simplified
+            Trade Globally with Confidence
+            <span className="block bg-gradient-to-r from-brand-teal via-yellow-200 to-white bg-clip-text text-transparent">
+              Connect. Source. Succeed.
             </span>
           </h1>
           
           <p className="text-xl md:text-2xl lg:text-3xl text-white/95 mb-12 animate-fade-in animate-delay-200 max-w-4xl mx-auto leading-relaxed font-light">
-            Where exporters and buyers from across the world meet under one trusted roof. We help you source, ship, and scale—seamlessly.
+            Discover a world of opportunities with Anantya Overseas. 
+            Our platform connects you directly with verified manufacturers worldwide, 
+            offers unmatched logistics support, and helps you expand beyond borders with ease.
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center gap-6 mb-16 animate-fade-in animate-delay-300">
