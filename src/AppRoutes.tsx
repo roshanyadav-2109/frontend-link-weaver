@@ -10,6 +10,7 @@ import Contact from "./pages/Contact";
 import AboutUs from "./pages/AboutUs";
 import ManufacturerAuth from "./pages/auth/ManufacturerAuth";
 import ClientAuth from "./pages/auth/ClientAuth";
+import NewClientAuth from "./pages/auth/NewClientAuth";
 import AuthCallback from "./pages/auth/AuthCallback";
 import Careers from "./pages/Careers";
 import Categories from "./pages/categories/Categories";
@@ -136,6 +137,9 @@ const AppRoutes = () => {
       
       {/* Auth Callback Route */}
       <Route path="/auth/callback" element={<AuthCallback />} />
+      
+      {/* New Auth Route */}
+      <Route path="/auth/client-new" element={<NewClientAuth />} />
       
       {/* Protected Routes */}
       <Route 
