@@ -1,8 +1,9 @@
-
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import { QuoteRequestModal } from '@/components/QuoteRequestModal';
+import { useState } from 'react';
 
 // Define categories and their subcategories
 const categoryData = {
@@ -89,6 +90,13 @@ const SubCategories = () => {
   const { categoryId, subcategoryId } = useParams();
   const category = categoryId ? categoryData[categoryId as keyof typeof categoryData] : null;
   
+  // Modal state for opening QuoteRequestModal with correct product
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<{
+    id?: string;
+    name?: string;
+  }>({});
+
   if (!category) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
@@ -152,7 +160,16 @@ const SubCategories = () => {
                     <div className="mt-4 flex justify-between items-center">
                       <span className="text-brand-teal font-medium">{product.price}</span>
                       <div className="space-x-2">
-                        <Button size="sm" variant="outline">Request Quote</Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedProduct({ id: product.id, name: product.name });
+                            setModalOpen(true);
+                          }}
+                        >
+                          Request Quote
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -170,6 +187,13 @@ const SubCategories = () => {
             </div>
           </div>
         </div>
+
+        <QuoteRequestModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          productId={selectedProduct.id}
+          productName={selectedProduct.name}
+        />
       </div>
     );
   }
