@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -5,130 +6,145 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Separator } from '@/components/ui/separator';
-import { AlertCircle, Mail } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 
-const loginSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+const clientRegisterSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+  confirmPassword: z.string().min(6),
+  companyType: z.enum(['registered', 'non-registered']),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ['confirmPassword']
 });
 
-const registerSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
-  confirmPassword: z.string().min(6, { message: 'Please confirm your password.' }),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+
+const forgotSchema = z.object({
+  email: z.string().email()
 });
 
 const ClientAuth = () => {
   const [searchParams] = useSearchParams();
   const [isRegister, setIsRegister] = useState(searchParams.get('register') === 'true');
-  const { signInWithGoogle, isAuthenticated, isAdmin, loading, resendConfirmationEmail } = useAuth();
+  const [showForgot, setShowForgot] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState('');
+  const { signInWithGoogle, isAuthenticated, loading, resendConfirmationEmail } = useAuth();
   const navigate = useNavigate();
-  const [emailForConfirmation, setEmailForConfirmation] = useState<string | null>(null);
-  const [showConfirmationMessage, setShowConfirmationMessage] = useState(false);
 
   useEffect(() => {
-    if (!loading && isAuthenticated) {
-      if (isAdmin) {
-        navigate('/admin');
-      } else {
-        navigate('/');
-      }
+    if (isAuthenticated) {
+      navigate("/");
     }
-  }, [isAuthenticated, isAdmin, loading, navigate]);
+  }, [isAuthenticated, navigate]);
+
+  const registerForm = useForm<z.infer<typeof clientRegisterSchema>>({
+    resolver: zodResolver(clientRegisterSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      confirmPassword: '',
+      companyType: 'registered'
+    }
+  });
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: {
+      email: '',
+      password: ''
+    }
   });
 
-  const registerForm = useForm<z.infer<typeof registerSchema>>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: { email: '', password: '', confirmPassword: '' },
+  const forgotForm = useForm<z.infer<typeof forgotSchema>>({
+    resolver: zodResolver(forgotSchema),
+    defaultValues: { email: '' }
   });
 
-  async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
+  // Registration handler
+  async function onRegister(values: z.infer<typeof clientRegisterSchema>) {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: {
+          data: { user_type: 'client', company_type: values.companyType },
+          emailRedirectTo: `${window.location.origin}/auth/client`
+        }
+      });
+      if (error) return toast.error(error.message);
+      if (data.user) {
+        setShowConfirmation(true);
+        setConfirmationEmail(values.email);
+        toast.success('Check your email to confirm!');
+      }
+    } catch {
+      toast.error('Registration failed.');
+    }
+  }
+
+  // Login handler
+  async function onLogin(values: z.infer<typeof loginSchema>) {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: values.email,
-        password: values.password,
+        password: values.password
       });
       if (error) {
         if (error.message === "Email not confirmed") {
-          setEmailForConfirmation(values.email);
-          setShowConfirmationMessage(true);
+          setShowConfirmation(true);
+          setConfirmationEmail(values.email);
           toast.error("Please confirm your email.");
         } else {
           toast.error(error.message);
         }
         return;
       }
-      toast.success('Successfully logged in!');
+      toast.success('Logged in!');
     } catch {
-      toast.error('An error occurred during login');
+      toast.error('Login failed.');
     }
   }
 
-  async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email: values.email,
-        password: values.password,
-        options: {
-          data: { user_type: 'client' }
-        }
-      });
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
-      if (data.user) {
-        setEmailForConfirmation(values.email);
-        setShowConfirmationMessage(true);
-        toast.success('Registration successful! Check your email to confirm.');
-      }
-    } catch {
-      toast.error('Error during registration');
+  // Forgot password handler
+  async function onForgot(values: z.infer<typeof forgotSchema>) {
+    const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
+      redirectTo: `${window.location.origin}/auth/client`
+    });
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Password reset email sent!");
+      setShowForgot(false);
     }
   }
 
-  const handleResendConfirmation = async () => {
-    if (emailForConfirmation) await resendConfirmationEmail(emailForConfirmation);
+  const handleResend = async () => {
+    if (confirmationEmail) await resendConfirmationEmail(confirmationEmail);
   };
 
-  if (loading) {
-    return <div className="flex items-center justify-center h-screen"><span>Loading...</span></div>;
-  }
+  if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm mx-auto bg-white shadow-md p-6 rounded-lg">
-        <h1 className="text-xl font-semibold text-center mb-6">{isRegister ? "Sign Up" : "Sign In"}</h1>
-        {showConfirmationMessage && (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="w-full max-w-sm mx-auto bg-white p-6 shadow rounded">
+        <h1 className="text-lg font-bold mb-5 text-center">{isRegister ? 'Sign Up (Client)' : (showForgot ? "Reset Password" : 'Sign In (Client)')}</h1>
+        {showConfirmation && (
           <div className="mb-4 text-sm bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-3 rounded">
-            Please check your inbox for a confirmation email.
-            <Button
-              variant="link"
-              onClick={handleResendConfirmation}
-              className="ml-1 text-yellow-900"
-              >
-              Resend
-            </Button>
+            Please check your inbox for a confirmation link.
+            <Button variant="link" onClick={handleResend} className="ml-1 p-0 h-auto align-middle text-yellow-900">Resend</Button>
           </div>
         )}
         {isRegister ? (
           <Form {...registerForm}>
-            <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+            <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-3">
               <FormField
                 control={registerForm.control}
                 name="email"
@@ -136,44 +152,78 @@ const ClientAuth = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" autoFocus placeholder="you@example.com" {...field} />
+                      <Input type="email" autoFocus {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+              <div className="flex gap-3">
+                <FormField
+                  control={registerForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem className="flex-grow">
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem className="flex-grow">
+                      <FormLabel>Confirm</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={registerForm.control}
-                name="password"
+                name="companyType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="Password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={registerForm.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="Repeat password" {...field} />
-                    </FormControl>
-                    <FormMessage />
+                    <FormLabel>Company Type</FormLabel>
+                    <select {...field} className="block w-full rounded border border-input py-2 px-3 bg-background text-sm">
+                      <option value="registered">Registered Company</option>
+                      <option value="non-registered">Non-Registered Company</option>
+                    </select>
                   </FormItem>
                 )}
               />
               <Button type="submit" className="w-full">Sign Up</Button>
             </form>
           </Form>
+        ) : showForgot ? (
+          <Form {...forgotForm}>
+            <form onSubmit={forgotForm.handleSubmit(onForgot)} className="space-y-3">
+              <FormField
+                control={forgotForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" autoFocus {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full">Send reset link</Button>
+            </form>
+          </Form>
         ) : (
           <Form {...loginForm}>
-            <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+            <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-3">
               <FormField
                 control={loginForm.control}
                 name="email"
@@ -181,7 +231,7 @@ const ClientAuth = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" autoFocus placeholder="you@example.com" {...field} />
+                      <Input type="email" autoFocus {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -194,7 +244,7 @@ const ClientAuth = () => {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Password" {...field} />
+                      <Input type="password" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -204,15 +254,22 @@ const ClientAuth = () => {
             </form>
           </Form>
         )}
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => setIsRegister((r) => !r)}
-            className="text-sm text-gray-600 hover:underline"
-          >
-            {isRegister
-              ? "Already have an account? Sign In"
-              : "Don't have an account? Sign Up"}
-          </button>
+        <div className="mt-4 flex flex-col items-center gap-2">
+          {!showForgot && (
+            <button onClick={() => setShowForgot(true)} className="text-xs text-gray-500 hover:underline focus:outline-none">
+              Forgot password?
+            </button>
+          )}
+          {!showForgot && (
+            <button onClick={() => setIsRegister((r) => !r)} className="text-xs text-gray-600 hover:underline mt-1">
+              {isRegister ? "Already have an account? Sign In" : "No account? Sign Up"}
+            </button>
+          )}
+          {showForgot && (
+            <button onClick={() => setShowForgot(false)} className="text-xs text-gray-600 hover:underline mt-1">
+              Back to sign in
+            </button>
+          )}
         </div>
       </div>
     </div>
