@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -41,9 +40,16 @@ const Hero = () => {
               </Button>
             </Link>
             <Link to="/catalog-request">
-              <Button size="lg" variant="outline" className="border-2 border-white/80 text-white hover:bg-white/10 backdrop-blur-sm px-10 py-8 text-xl font-semibold shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-2 rounded-2xl min-w-[220px] group">
+              <Button 
+                size="lg"
+                className="bg-gradient-to-r from-brand-teal to-brand-blue text-white px-10 py-8 text-xl font-semibold shadow-2xl hover:shadow-3xl hover:from-brand-blue hover:to-brand-teal transition-all duration-300 transform hover:-translate-y-2 rounded-2xl min-w-[220px] group border-2 border-white/80 focus-visible:ring-4 focus-visible:ring-brand-blue/40"
+                style={{
+                  textShadow: "0 1px 10px rgba(0,0,0,0.35)",
+                }}
+              >
                 <Globe className="mr-3 h-6 w-6" />
                 Request Catalogue
+                <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
           </div>
@@ -83,4 +89,3 @@ const Hero = () => {
 };
 
 export default Hero;
-
