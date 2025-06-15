@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -189,7 +188,6 @@ const Contact = () => {
               <Card className="border-0 shadow-xl bg-white">
                 <CardContent className="p-8">
                   <h3 className="text-2xl font-bold text-brand-blue mb-6">Contact Information</h3>
-                  
                   <div className="space-y-6">
                     <div className="flex items-start space-x-4 group hover:bg-gray-50 p-4 rounded-xl transition-colors">
                       <div className="bg-brand-blue/10 p-3 rounded-xl group-hover:bg-brand-blue group-hover:text-white transition-colors">
@@ -198,8 +196,8 @@ const Contact = () => {
                       <div>
                         <h4 className="font-semibold text-lg mb-1">Our Office</h4>
                         <p className="text-gray-600">
-                          123 Export Avenue, Business District<br />
-                          Mumbai, 400001<br />
+                          501, Silver Business Point, Opp. Vodafone House<br />
+                          S. G. Highway, Ahmedabad, Gujarat 380054<br />
                           India
                         </p>
                       </div>
@@ -226,9 +224,9 @@ const Contact = () => {
                       <div>
                         <h4 className="font-semibold text-lg mb-1">Email Us</h4>
                         <p className="text-gray-600">
-                          <a href="mailto:info@anantyaoverseas.com" className="hover:text-brand-teal transition-colors">info@anantyaoverseas.com</a>
+                          <a href="mailto:anantyaoverseas@gmail.com" className="hover:text-brand-teal transition-colors">anantyaoverseas@gmail.com</a>
                           <br />
-                          <a href="mailto:sales@anantyaoverseas.com" className="hover:text-brand-teal transition-colors">sales@anantyaoverseas.com</a>
+                          <a href="mailto:anantyaoverseas@gmail.com" className="hover:text-brand-teal transition-colors">anantyaoverseas@gmail.com</a>
                         </p>
                       </div>
                     </div>
