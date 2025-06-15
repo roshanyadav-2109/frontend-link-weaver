@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
@@ -58,6 +59,16 @@ const Navbar: React.FC = () => {
                 About Us
               </Link>
               <Link 
+                to="/products" 
+                className={`font-medium transition-colors relative ${isScrolled ? (isActive('/products') ? 'text-brand-blue' : 'text-brand-dark') : (isActive('/products') ? 'text-white font-semibold' : 'text-white/90 hover:text-white')} ${!isScrolled && 'text-shadow-sm'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
+                onClick={e => {
+                  e.preventDefault();
+                  window.location.href = '/categories';
+                }}
+              >
+                Products
+              </Link>
+              <Link 
                 to="/careers" 
                 className={`font-medium transition-colors relative ${isScrolled ? (isActive('/careers') ? 'text-brand-blue' : 'text-brand-dark') : (isActive('/careers') ? 'text-white font-semibold' : 'text-white/90 hover:text-white')} ${!isScrolled && 'text-shadow-sm'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
               >
@@ -115,6 +126,17 @@ const Navbar: React.FC = () => {
               About Us
             </Link>
             <Link 
+              to="/products"
+              className="block px-3 py-2 text-base font-medium text-brand-dark hover:text-brand-blue hover:bg-gray-50 rounded-md"
+              onClick={e => {
+                e.preventDefault();
+                setIsOpen(false);
+                window.location.href = '/categories';
+              }}
+            >
+              Products
+            </Link>
+            <Link 
               to="/careers" 
               className="block px-3 py-2 text-base font-medium text-brand-dark hover:text-brand-blue hover:bg-gray-50 rounded-md"
               onClick={() => setIsOpen(false)}
@@ -148,3 +170,4 @@ const Navbar: React.FC = () => {
 };
 
 export default Navbar;
+
