@@ -57,30 +57,6 @@ const Navbar: React.FC = () => {
               >
                 About Us
               </Link>
-              <HoverCard>
-                <HoverCardTrigger asChild>
-                  <Link 
-                    to="/categories" 
-                    className={`font-medium transition-colors relative ${isScrolled ? (isActive('/categories') ? 'text-brand-blue' : 'text-brand-dark') : (isActive('/categories') ? 'text-white font-semibold' : 'text-white/90 hover:text-white')} ${!isScrolled && 'text-shadow-sm'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
-                  >
-                    Products
-                  </Link>
-                </HoverCardTrigger>
-                <HoverCardContent className="w-80 p-0 shadow-premium-blue premium-glass-card border-white/20">
-                  <div className="grid grid-cols-2 gap-2 p-4">
-                    {['Agriculture', 'Textiles', 'Electronics', 'Handicrafts'].map((cat) => (
-                      <Link 
-                        key={cat} 
-                        to={`/categories/${cat.toLowerCase()}`}
-                        className="p-2 hover:bg-brand-blue/5 rounded-md transition-colors"
-                      >
-                        <div className="font-medium text-brand-blue">{cat}</div>
-                        <div className="text-xs text-gray-500">Explore {cat.toLowerCase()} products</div>
-                      </Link>
-                    ))}
-                  </div>
-                </HoverCardContent>
-              </HoverCard>
               <Link 
                 to="/careers" 
                 className={`font-medium transition-colors relative ${isScrolled ? (isActive('/careers') ? 'text-brand-blue' : 'text-brand-dark') : (isActive('/careers') ? 'text-white font-semibold' : 'text-white/90 hover:text-white')} ${!isScrolled && 'text-shadow-sm'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
@@ -137,13 +113,6 @@ const Navbar: React.FC = () => {
               onClick={() => setIsOpen(false)}
             >
               About Us
-            </Link>
-            <Link 
-              to="/categories" 
-              className="block px-3 py-2 text-base font-medium text-brand-dark hover:text-brand-blue hover:bg-gray-50 rounded-md"
-              onClick={() => setIsOpen(false)}
-            >
-              Products
             </Link>
             <Link 
               to="/careers" 

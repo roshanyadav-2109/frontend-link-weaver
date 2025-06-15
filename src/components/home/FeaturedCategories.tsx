@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
@@ -64,14 +63,7 @@ const FeaturedCategories: React.FC = () => {
           ))}
         </div>
         
-        <div className="mt-12 text-center">
-          <Link to="/categories">
-            <button className="inline-flex items-center px-6 py-3 border border-brand-teal rounded-md text-brand-teal hover:bg-brand-teal hover:text-white transition-colors shadow-sm hover:shadow-md">
-              View All Categories
-              <ArrowRight size={16} className="ml-2" />
-            </button>
-          </Link>
-        </div>
+        {/* Remove "View All Categories" button */}
       </div>
     </section>
   );
