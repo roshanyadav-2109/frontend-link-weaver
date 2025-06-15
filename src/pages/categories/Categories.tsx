@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star, Verified } from 'lucide-react';
@@ -8,16 +7,8 @@ import { Badge } from '@/components/ui/badge';
 
 const allCategories = [
   {
-    id: 'agriculture',
-    name: 'Agriculture & Food Products',
-    description: 'Premium grains, spices, vegetables, fruits, and processed foods with authentic Indian flavors.',
-    image: 'https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?auto=format&fit=crop&w=600&q=80',
-    productCount: '200+',
-    rating: 4.8
-  },
-  {
     id: 'textiles',
-    name: 'Textiles & Fabrics',
+    name: 'Textile Clothing',
     description: 'Handcrafted fabrics, garments, and home textiles with traditional artistry and modern quality.',
     image: 'https://images.unsplash.com/photo-1618520422828-41a3e03f7ee0?auto=format&fit=crop&w=600&q=80',
     productCount: '150+',
@@ -25,36 +16,12 @@ const allCategories = [
   },
   {
     id: 'electronics',
-    name: 'Electronics & Components',
-    description: 'Modern technology and electronic components meeting global standards and certifications.',
+    name: 'Electronic Audios',
+    description: 'Modern technology and electronic audio products meeting global standards and certifications.',
     image: 'https://images.unsplash.com/photo-1526406915894-7bcd65f60845?auto=format&fit=crop&w=600&q=80',
     productCount: '120+',
     rating: 4.7
   },
-  {
-    id: 'handicrafts',
-    name: 'Handicrafts & Decor',
-    description: 'Authentic handmade crafts, décor items, and artisanal products showcasing Indian heritage.',
-    image: 'https://images.unsplash.com/photo-1503455637927-730bce8583c0?auto=format&fit=crop&w=600&q=80',
-    productCount: '180+',
-    rating: 4.9
-  },
-  {
-    id: 'leather',
-    name: 'Leather Products',
-    description: 'Premium leather goods, footwear, and accessories crafted with traditional techniques.',
-    image: 'https://images.unsplash.com/photo-1585457288043-7f871a128428?auto=format&fit=crop&w=600&q=80',
-    productCount: '90+',
-    rating: 4.8
-  },
-  {
-    id: 'chemicals',
-    name: 'Chemicals & Pharmaceuticals',
-    description: 'Industrial chemicals, pharmaceutical ingredients, and formulations with quality certifications.',
-    image: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=600&q=80',
-    productCount: '80+',
-    rating: 4.6
-  }
 ];
 
 const Categories = () => {

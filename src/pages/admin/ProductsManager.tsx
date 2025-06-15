@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,52 +76,23 @@ const initialProducts: Product[] = [
 
 // Categories from our existing data
 const categories = [
-  { id: 'agriculture', name: 'Agriculture & Food Products' },
-  { id: 'textiles', name: 'Textiles & Fabrics' },
-  { id: 'electronics', name: 'Electronics & Components' },
-  { id: 'handicrafts', name: 'Handicrafts & Decor' },
-  { id: 'leather', name: 'Leather Products' },
-  { id: 'chemicals', name: 'Chemicals & Pharmaceuticals' },
+  { id: 'textiles', name: 'Textile Clothing' },
+  { id: 'electronics', name: 'Electronic Audios' },
 ];
 
 const subcategories: Record<string, Array<{id: string, name: string}>> = {
-  agriculture: [
-    { id: 'grains', name: 'Grains & Pulses' },
-    { id: 'spices', name: 'Spices & Herbs' },
-    { id: 'fruits', name: 'Fresh & Dried Fruits' },
-    { id: 'processed', name: 'Processed Foods' }
-  ],
   textiles: [
     { id: 'cotton', name: 'Cotton Products' },
     { id: 'silk', name: 'Silk & Luxury Fabrics' },
     { id: 'garments', name: 'Ready-made Garments' },
     { id: 'home', name: 'Home Textiles' }
   ],
-  // Add other subcategories as well
-  leather: [
-    { id: 'footwear', name: 'Footwear' },
-    { id: 'bags', name: 'Bags & Luggage' },
-    { id: 'accessories', name: 'Fashion Accessories' },
-    { id: 'furniture', name: 'Leather Furniture' }
-  ],
   electronics: [
-    { id: 'consumer', name: 'Consumer Electronics' },
-    { id: 'components', name: 'Electronic Components' },
+    { id: 'consumer', name: 'Consumer Audio Devices' },
+    { id: 'components', name: 'Audio Components' },
     { id: 'accessories', name: 'Accessories & Peripherals' },
-    { id: 'industrial', name: 'Industrial Electronics' }
+    { id: 'industrial', name: 'Professional Audio Equipment' }
   ],
-  handicrafts: [
-    { id: 'wooden', name: 'Wooden Handicrafts' },
-    { id: 'metal', name: 'Metal Crafts' },
-    { id: 'pottery', name: 'Pottery & Ceramics' },
-    { id: 'decor', name: 'Home Decor Items' }
-  ],
-  chemicals: [
-    { id: 'industrial', name: 'Industrial Chemicals' },
-    { id: 'pharma', name: 'Pharmaceutical Products' },
-    { id: 'cosmetic', name: 'Cosmetic Chemicals' },
-    { id: 'agro', name: 'Agro Chemicals' }
-  ]
 };
 
 const ProductsManager: React.FC = () => {

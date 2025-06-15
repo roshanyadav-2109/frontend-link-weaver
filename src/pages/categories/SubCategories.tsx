@@ -7,19 +7,8 @@ import { useState } from 'react';
 
 // Define categories and their subcategories
 const categoryData = {
-  agriculture: {
-    name: 'Agriculture & Food Products',
-    description: "Premium grains, spices, vegetables, fruits, and processed foods from India's fertile lands.",
-    image: 'https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?auto=format&fit=crop&w=1200&q=80',
-    subcategories: [
-      { id: 'grains', name: 'Grains & Pulses' },
-      { id: 'spices', name: 'Spices & Herbs' },
-      { id: 'fruits', name: 'Fresh & Dried Fruits' },
-      { id: 'processed', name: 'Processed Foods' }
-    ]
-  },
   textiles: {
-    name: 'Textiles & Fabrics',
+    name: 'Textile Clothing',
     description: 'Handcrafted fabrics, garments, and home textiles with traditional artistry and modern precision.',
     image: 'https://images.unsplash.com/photo-1618520422828-41a3e03f7ee0?auto=format&fit=crop&w=1200&q=80',
     subcategories: [
@@ -30,47 +19,14 @@ const categoryData = {
     ]
   },
   electronics: {
-    name: 'Electronics & Components',
-    description: 'Modern technology and electronic components meeting global standards for quality and reliability.',
+    name: 'Electronic Audios',
+    description: 'Modern technology and electronic audio products meeting global standards for quality and reliability.',
     image: 'https://images.unsplash.com/photo-1526406915894-7bcd65f60845?auto=format&fit=crop&w=1200&q=80',
     subcategories: [
-      { id: 'consumer', name: 'Consumer Electronics' },
-      { id: 'components', name: 'Electronic Components' },
+      { id: 'consumer', name: 'Consumer Audio Devices' },
+      { id: 'components', name: 'Audio Components' },
       { id: 'accessories', name: 'Accessories & Peripherals' },
-      { id: 'industrial', name: 'Industrial Electronics' }
-    ]
-  },
-  handicrafts: {
-    name: 'Handicrafts & Decor',
-    description: "Authentic handmade crafts, décor items, and artisanal products representing India's rich heritage.",
-    image: 'https://images.unsplash.com/photo-1503455637927-730bce8583c0?auto=format&fit=crop&w=1200&q=80',
-    subcategories: [
-      { id: 'wooden', name: 'Wooden Handicrafts' },
-      { id: 'metal', name: 'Metal Crafts' },
-      { id: 'pottery', name: 'Pottery & Ceramics' },
-      { id: 'decor', name: 'Home Decor Items' }
-    ]
-  },
-  leather: {
-    name: 'Leather Products',
-    description: 'Premium leather goods, footwear, and accessories crafted with precision and durability.',
-    image: 'https://images.unsplash.com/photo-1585457288043-7f871a128428?auto=format&fit=crop&w=1200&q=80',
-    subcategories: [
-      { id: 'footwear', name: 'Footwear' },
-      { id: 'bags', name: 'Bags & Luggage' },
-      { id: 'accessories', name: 'Fashion Accessories' },
-      { id: 'furniture', name: 'Leather Furniture' }
-    ]
-  },
-  chemicals: {
-    name: 'Chemicals & Pharmaceuticals',
-    description: 'Industrial chemicals, pharmaceutical ingredients, and formulations meeting international standards.',
-    image: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1200&q=80',
-    subcategories: [
-      { id: 'industrial', name: 'Industrial Chemicals' },
-      { id: 'pharma', name: 'Pharmaceutical Products' },
-      { id: 'cosmetic', name: 'Cosmetic Chemicals' },
-      { id: 'agro', name: 'Agro Chemicals' }
+      { id: 'industrial', name: 'Professional Audio Equipment' }
     ]
   }
 };
