@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
@@ -6,7 +7,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/h
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
+  // Remove isScrolled state since we always want a solid navbar
   const location = useLocation();
 
   const toggleMenu = () => {
@@ -18,26 +19,15 @@ const Navbar: React.FC = () => {
     return location.pathname === path;
   };
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // Remove useEffect for scroll detection
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-premium py-2' : 'bg-transparent py-4'}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 bg-white shadow-premium py-2 transition-all duration-300`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-row items-center justify-between h-16 gap-4">
           <div className="flex items-center h-16">
             <Link to="/" className="flex-shrink-0 flex items-center h-16">
-              <span className={`text-xl font-bold transition-colors duration-300 ${isScrolled ? 'text-brand-blue' : 'text-white text-shadow-sm'}`}>
+              <span className={`text-xl font-bold transition-colors duration-300 text-brand-blue`}>
                 Anantya<span className="text-brand-teal">Overseas</span>
               </span>
             </Link>
@@ -47,25 +37,25 @@ const Navbar: React.FC = () => {
             <div className="ml-10 flex items-center space-x-8 h-16">
               <Link 
                 to="/" 
-                className={`font-medium transition-colors relative ${isScrolled ? (isActive('/') ? 'text-brand-blue' : 'text-brand-dark') : (isActive('/') ? 'text-white font-semibold' : 'text-white/90 hover:text-white')} ${!isScrolled && 'text-shadow-sm'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
+                className={`font-medium transition-colors relative ${isActive('/') ? 'text-brand-blue' : 'text-brand-dark'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
               >
                 Home
               </Link>
               <Link 
                 to="/about" 
-                className={`font-medium transition-colors relative ${isScrolled ? (isActive('/about') ? 'text-brand-blue' : 'text-brand-dark') : (isActive('/about') ? 'text-white font-semibold' : 'text-white/90 hover:text-white')} ${!isScrolled && 'text-shadow-sm'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
+                className={`font-medium transition-colors relative ${isActive('/about') ? 'text-brand-blue' : 'text-brand-dark'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
               >
                 About Us
               </Link>
               <Link 
                 to="/careers" 
-                className={`font-medium transition-colors relative ${isScrolled ? (isActive('/careers') ? 'text-brand-blue' : 'text-brand-dark') : (isActive('/careers') ? 'text-white font-semibold' : 'text-white/90 hover:text-white')} ${!isScrolled && 'text-shadow-sm'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
+                className={`font-medium transition-colors relative ${isActive('/careers') ? 'text-brand-blue' : 'text-brand-dark'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
               >
                 Careers
               </Link>
               <Link 
                 to="/contact" 
-                className={`font-medium transition-colors relative ${isScrolled ? (isActive('/contact') ? 'text-brand-blue' : 'text-brand-dark') : (isActive('/contact') ? 'text-white font-semibold' : 'text-white/90 hover:text-white')} ${!isScrolled && 'text-shadow-sm'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
+                className={`font-medium transition-colors relative ${isActive('/contact') ? 'text-brand-blue' : 'text-brand-dark'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
               >
                 Contact
               </Link>
@@ -74,12 +64,12 @@ const Navbar: React.FC = () => {
 
           <div className="hidden md:flex items-center gap-3 h-16">
             <Link to="/auth/client">
-              <Button variant="outline" className={`${isScrolled ? 'border-brand-blue text-brand-blue hover:bg-brand-blue/5' : 'border-white text-white border-opacity-70 hover:border-opacity-100 text-shadow-sm hover:bg-white/10'} premium-btn`}>
+              <Button variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue/5 premium-btn">
                 Client Sign In
               </Button>
             </Link>
             <Link to="/auth/manufacturer">
-              <Button className={`bg-brand-teal hover:bg-brand-teal/90 shadow-md hover:shadow-lg premium-btn ${!isScrolled && 'text-shadow-sm'}`}>
+              <Button className="bg-brand-teal hover:bg-brand-teal/90 shadow-md hover:shadow-lg premium-btn">
                 Manufacturer Sign In
               </Button>
             </Link>
@@ -88,7 +78,7 @@ const Navbar: React.FC = () => {
           <div className="md:hidden">
             <button
               onClick={toggleMenu}
-              className={`inline-flex items-center justify-center p-2 rounded-md ${isScrolled ? 'text-brand-dark' : 'text-white'} hover:${isScrolled ? 'text-brand-blue' : 'text-white/80'} focus:outline-none`}
+              className="inline-flex items-center justify-center p-2 rounded-md text-brand-dark hover:text-brand-blue focus:outline-none"
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -98,7 +88,7 @@ const Navbar: React.FC = () => {
 
       {/* Mobile menu */}
       {isOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-premium-blue">
+        <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-premium-blue z-50">
           <div className="px-4 pt-2 pb-3 space-y-1 sm:px-3">
             <Link 
               to="/" 
@@ -148,3 +138,4 @@ const Navbar: React.FC = () => {
 };
 
 export default Navbar;
+
