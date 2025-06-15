@@ -80,12 +80,6 @@ const AuthenticatedNavbar: React.FC = () => {
                 Products
               </Link>
               <Link 
-                to="/request-quote" 
-                className={`font-medium transition-colors relative ${isScrolled ? (isActive('/request-quote') ? 'text-brand-blue' : 'text-brand-dark') : (isActive('/request-quote') ? 'text-white font-semibold' : 'text-white/90 hover:text-white')}  after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
-              >
-                Request Quote
-              </Link>
-              <Link 
                 to="/dashboard" 
                 className={`font-medium transition-colors relative ${isScrolled ? (isActive('/dashboard') ? 'text-brand-blue' : 'text-brand-dark') : (isActive('/dashboard') ? 'text-white font-semibold' : 'text-white/90 hover:text-white')} ${!isScrolled && 'text-shadow-sm'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
               >
@@ -164,13 +158,6 @@ const AuthenticatedNavbar: React.FC = () => {
               onClick={() => setIsOpen(false)}
             >
               Products
-            </Link>
-            <Link 
-              to="/request-quote" 
-              className="block px-3 py-2 text-base font-medium text-brand-dark hover:text-brand-blue hover:bg-gray-50 rounded-md"
-              onClick={() => setIsOpen(false)}
-            >
-              Request Quote
             </Link>
             <Link 
               to="/dashboard" 

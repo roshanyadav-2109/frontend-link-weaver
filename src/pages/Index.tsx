@@ -60,9 +60,13 @@ const Index: React.FC = () => {
                   ))}
                 </div>
                 <Link to="/catalog-request">
-                  <Button className="bg-gradient-to-r from-brand-teal to-brand-blue hover:from-brand-blue hover:to-brand-teal text-white px-8 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                  <Button className="bg-gradient-to-r from-brand-blue to-brand-teal text-white px-8 py-6 text-lg font-semibold rounded-xl shadow-2xl hover:from-brand-teal hover:to-brand-blue focus-visible:ring-4 focus-visible:ring-brand-blue/40 border-2 border-white/80 hover:border-brand-blue transition-all duration-300"
+                    style={{
+                      textShadow: "0 1px 10px rgba(0,0,0,0.35)",
+                    }}
+                  >
                     Request Full Catalogue 
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
               </div>
