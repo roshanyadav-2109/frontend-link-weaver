@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -39,6 +38,8 @@ type CatalogRequestFormProps = {
   onSuccess?: () => void;
 };
 
+const EMAIL_ENDPOINT = "https://lusfthgqlkgktplplqnv.functions.supabase.co/send-form-email";
+
 const CatalogRequestForm = ({ preselectedProducts = [], onSuccess }: CatalogRequestFormProps) => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,18 +78,26 @@ const CatalogRequestForm = ({ preselectedProducts = [], onSuccess }: CatalogRequ
     setIsSubmitting(true);
     
     try {
-      // Here you would typically send this data to your backend
-      // For now, we'll simulate a successful submission
-      console.log('Form submitted:', values);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      toast.success('Catalog request submitted successfully! Our team will contact you shortly.');
-      form.reset();
-      
-      if (onSuccess) {
-        onSuccess();
+      // Compose minimal payload for email
+      const payload = {
+        ...values,
+        selectedProductNames: preselectedProducts.map(p => p.name).join(", "),
+        type: "catalog"
+      };
+      const response = await fetch(EMAIL_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (response.ok) {
+        toast.success('Catalog request submitted and sent via email!');
+        form.reset();
+        if (onSuccess) {
+          onSuccess();
+        }
+      } else {
+        toast.error("Failed to send email: " + (result?.error || ""));
       }
     } catch (error) {
       toast.error('Failed to submit request. Please try again.');

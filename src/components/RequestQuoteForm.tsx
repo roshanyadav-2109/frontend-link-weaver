@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -13,6 +12,8 @@ interface FormData {
   quantity: string;
   details: string;
 }
+
+const EMAIL_ENDPOINT = "https://lusfthgqlkgktplplqnv.functions.supabase.co/send-form-email";
 
 export default function RequestQuoteForm() {
   const [form, setForm] = useState<FormData>({
@@ -38,30 +39,31 @@ export default function RequestQuoteForm() {
       setSubmitting(false);
       return;
     }
-    const { error } = await supabase.from("quote_requests").insert([
-      {
-        name: form.name,
-        email: form.email,
-        product_name: form.product_name,
-        quantity: form.quantity,
-        additional_details: form.details,
-        status: "pending",
-        phone: "(not provided)",
-        unit: "units",
-        user_id: "guest"
-      },
-    ]);
-    if (error) {
-      toast.error("Could not submit quote request.");
-    } else {
-      toast.success("Quote request submitted!");
-      setForm({
-        name: "",
-        email: "",
-        product_name: "",
-        quantity: "",
-        details: "",
+
+    // Send to edge function, as well as Supabase for persistence
+    try {
+      const response = await fetch(EMAIL_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "quote", ...form }),
       });
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success("Quote request submitted and sent via email!");
+        setForm({
+          name: "",
+          email: "",
+          product_name: "",
+          quantity: "",
+          details: "",
+        });
+      } else {
+        toast.error("Failed to send email: " + (data?.error || ""));
+      }
+    } catch (err: any) {
+      toast.error("Could not send email request.");
+      console.error(err);
     }
     setSubmitting(false);
   };
