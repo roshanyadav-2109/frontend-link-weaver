@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, User, LogOut } from 'lucide-react';
@@ -51,17 +50,17 @@ const AuthenticatedNavbar: React.FC = () => {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-premium py-2' : 'bg-transparent py-4'}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center">
+        <div className="flex flex-row items-center justify-between h-16 gap-4">
+          <div className="flex items-center h-16">
+            <Link to="/" className="flex-shrink-0 flex items-center h-16">
               <span className={`text-xl font-bold transition-colors duration-300 ${isScrolled ? 'text-brand-blue' : 'text-white text-shadow-sm'}`}>
                 Anantya<span className="text-brand-teal">Overseas</span>
               </span>
             </Link>
           </div>
           
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-center space-x-8">
+          <div className="hidden md:block flex-1">
+            <div className="ml-10 flex items-center space-x-8 h-16">
               <Link 
                 to="/" 
                 className={`font-medium transition-colors relative ${isScrolled ? (isActive('/') ? 'text-brand-blue' : 'text-brand-dark') : (isActive('/') ? 'text-white font-semibold' : 'text-white/90 hover:text-white')} ${!isScrolled && 'text-shadow-sm'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
@@ -82,7 +81,7 @@ const AuthenticatedNavbar: React.FC = () => {
               </Link>
               <Link 
                 to="/request-quote" 
-                className={`font-medium transition-colors relative ${isScrolled ? (isActive('/request-quote') ? 'text-brand-blue' : 'text-brand-dark') : (isActive('/request-quote') ? 'text-white font-semibold' : 'text-white/90 hover:text-white')} ${!isScrolled && 'text-shadow-sm'} after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
+                className={`font-medium transition-colors relative ${isScrolled ? (isActive('/request-quote') ? 'text-brand-blue' : 'text-brand-dark') : (isActive('/request-quote') ? 'text-white font-semibold' : 'text-white/90 hover:text-white')}  after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-brand-teal after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left`}
               >
                 Request Quote
               </Link>
@@ -103,36 +102,33 @@ const AuthenticatedNavbar: React.FC = () => {
             </div>
           </div>
 
-          <div className="hidden md:block">
-            <div className="ml-4 flex items-center md:ml-6 space-x-3">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-brand-teal text-white">
-                        {getUserInitials()}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <Link to="/dashboard" className="flex items-center w-full">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Dashboard</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={signOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+          <div className="hidden md:flex items-center gap-3 h-16">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-brand-teal text-white">
+                      {getUserInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Link to="/dashboard" className="flex items-center w-full">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Dashboard</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={signOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-
           <div className="md:hidden">
             <button
               onClick={toggleMenu}
