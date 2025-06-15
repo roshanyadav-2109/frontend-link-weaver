@@ -1,14 +1,9 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
 const categories = [
-  {
-    id: 'agriculture',
-    name: 'Agriculture',
-    description: "Premium grains, spices, and processed foods from India's fertile lands.",
-    image: 'https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?auto=format&fit=crop&w=600&q=80',
-  },
   {
     id: 'textiles',
     name: 'Textiles',
@@ -34,7 +29,7 @@ const FeaturedCategories: React.FC = () => {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {categories.map((category) => (
             <Link 
               to={`/categories/${category.id}`} 
