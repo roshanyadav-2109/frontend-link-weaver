@@ -1,52 +1,57 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
-const jobOpenings = [
-  {
-    id: 1,
-    title: 'International Business Developer',
-    department: 'Sales & Marketing',
-    location: 'Mumbai, India',
-    type: 'Full-time',
-    description: "We're looking for an experienced International Business Developer to expand our global network of buyers and sellers.",
-  },
-  {
-    id: 2,
-    title: 'Supply Chain Specialist',
-    department: 'Operations',
-    location: 'Delhi, India',
-    type: 'Full-time',
-    description: 'Join our logistics team to ensure smooth operations between manufacturers and international buyers.',
-  },
-  {
-    id: 3,
-    title: 'Export Documentation Executive',
-    department: 'Operations',
-    location: 'Mumbai, India',
-    type: 'Full-time',
-    description: 'Manage export documentation and ensure compliance with international trade regulations.',
-  },
-  {
-    id: 4,
-    title: 'Digital Marketing Specialist',
-    department: 'Marketing',
-    location: 'Remote',
-    type: 'Full-time',
-    description: 'Drive our digital presence and help us reach more buyers and sellers through innovative marketing strategies.',
-  },
-  {
-    id: 5,
-    title: 'Customer Success Manager',
-    department: 'Customer Support',
-    location: 'Bangalore, India',
-    type: 'Full-time',
-    description: 'Ensure our clients have the best experience working with Anantya Overseas through proactive support.',
-  }
-];
+interface JobOpening {
+  id: string;
+  title: string;
+  department: string;
+  location: string;
+  type: string;
+  description: string;
+  status: string;
+}
 
 const Careers = () => {
+  const [jobs, setJobs] = useState<JobOpening[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch jobs from Supabase
+  const fetchJobs = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('careers')
+      .select('*')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+    if (!error) {
+      setJobs(data as JobOpening[]);
+    }
+    setLoading(false);
+  };
+
+  // Listen for real-time updates
+  useEffect(() => {
+    fetchJobs();
+    const channel = supabase
+      .channel('realtime-careers')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'careers',
+        },
+        () => fetchJobs()
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   return (
     <div>
       <div className="bg-brand-blue py-12">
@@ -67,26 +72,37 @@ const Careers = () => {
               <h2 className="text-2xl font-bold text-brand-blue mb-8">
                 Current Openings
               </h2>
-              
-              <div className="space-y-6">
-                {jobOpenings.map((job) => (
-                  <div key={job.id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                    <div className="p-6">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="text-xl font-semibold text-brand-blue">{job.title}</h3>
-                          <p className="text-gray-600 mt-1">{job.department} • {job.location} • {job.type}</p>
-                        </div>
-                        <Button variant="outline" className="text-brand-teal border-brand-teal hover:bg-brand-teal hover:text-white">
-                          Apply Now
-                        </Button>
-                      </div>
-                      <p className="mt-4 text-gray-700">{job.description}</p>
+              {loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="animate-spin w-8 h-8 mr-2 text-brand-blue" />
+                  <span>Loading jobs…</span>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {jobs.length === 0 ? (
+                    <div className="text-gray-500 text-center py-12">
+                      No active job openings found. Please check back later.
                     </div>
-                  </div>
-                ))}
-              </div>
-              
+                  ) : (
+                    jobs.map((job) => (
+                      <div key={job.id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div className="p-6">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="text-xl font-semibold text-brand-blue">{job.title}</h3>
+                              <p className="text-gray-600 mt-1">{job.department} • {job.location} • {job.type}</p>
+                            </div>
+                            <Button variant="outline" className="text-brand-teal border-brand-teal hover:bg-brand-teal hover:text-white">
+                              Apply Now
+                            </Button>
+                          </div>
+                          <p className="mt-4 text-gray-700">{job.description}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
               <div className="mt-10 bg-gray-50 p-6 rounded-lg border">
                 <h3 className="text-xl font-semibold text-brand-blue">Don't see the right role?</h3>
                 <p className="mt-2 text-gray-700">
@@ -98,13 +114,11 @@ const Careers = () => {
                 </Button>
               </div>
             </div>
-            
             <div>
               <div className="bg-gray-50 p-6 rounded-lg border sticky top-6">
                 <h2 className="text-xl font-bold text-brand-blue mb-4">
                   Why Work With Us?
                 </h2>
-                
                 <div className="space-y-4">
                   <div>
                     <h3 className="font-semibold">Global Impact</h3>
@@ -112,28 +126,24 @@ const Careers = () => {
                       Be part of a team that facilitates international trade and connects businesses across borders.
                     </p>
                   </div>
-                  
                   <div>
                     <h3 className="font-semibold">Growth Opportunities</h3>
                     <p className="text-gray-600 text-sm">
                       Develop your skills in a fast-growing company with opportunities for advancement.
                     </p>
                   </div>
-                  
                   <div>
                     <h3 className="font-semibold">Diverse Environment</h3>
                     <p className="text-gray-600 text-sm">
                       Work in a multicultural team with connections to businesses around the world.
                     </p>
                   </div>
-                  
                   <div>
                     <h3 className="font-semibold">Competitive Benefits</h3>
                     <p className="text-gray-600 text-sm">
                       Enjoy competitive salary, health benefits, and performance bonuses.
                     </p>
                   </div>
-                  
                   <div>
                     <h3 className="font-semibold">Work-Life Balance</h3>
                     <p className="text-gray-600 text-sm">
@@ -141,7 +151,6 @@ const Careers = () => {
                     </p>
                   </div>
                 </div>
-                
                 <div className="mt-6 pt-6 border-t">
                   <h3 className="font-semibold mb-2">Our Culture</h3>
                   <img
@@ -177,3 +186,4 @@ const Careers = () => {
 };
 
 export default Careers;
+
