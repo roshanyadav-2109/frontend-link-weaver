@@ -18,6 +18,8 @@ const formSchema = z.object({
   message: z.string().min(10, { message: 'Message must be at least 10 characters.' }),
 });
 
+const EMAIL_ENDPOINT = 'https://lusfthgqlkgktplplqnv.functions.supabase.co/send-form-email';
+
 const Contact = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -29,10 +31,27 @@ const Contact = () => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    toast.success('Message sent successfully! We will get back to you shortly.');
-    form.reset();
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const response = await fetch(EMAIL_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "contact",
+          ...values,
+        })
+      });
+      const data = await response.json();
+      if (response.ok && data.sent) {
+        toast.success('Message sent successfully! We will get back to you shortly.');
+        form.reset();
+      } else {
+        toast.error("Failed to send message. Please try again.");
+      }
+    } catch (err) {
+      toast.error("Could not send message. Please try again.");
+      console.error("Contact form error:", err);
+    }
   }
 
   return (
@@ -243,7 +262,6 @@ const Contact = () => {
           </div>
         </div>
       </div>
-      
       {/* Global Presence Section */}
       <div className="bg-white py-20">
         <div className="container mx-auto px-4 text-center">
