@@ -38,7 +38,7 @@ interface JobOpening {
   location: string;
   type: string;
   description: string;
-  status: 'active' | 'inactive';
+  status: string; // Changed from 'active' | 'inactive' to string to match Supabase
   created_at: string;
   updated_at: string;
 }
@@ -147,7 +147,7 @@ const CareersManager: React.FC = () => {
       location: (form.elements.namedItem('location') as HTMLInputElement).value,
       type: (form.elements.namedItem('type') as HTMLSelectElement).value,
       description: (form.elements.namedItem('description') as HTMLTextAreaElement).value,
-      status: (form.elements.namedItem('status') as HTMLSelectElement).value as 'active' | 'inactive',
+      status: (form.elements.namedItem('status') as HTMLSelectElement).value,
     };
     
     setLoading(true);
