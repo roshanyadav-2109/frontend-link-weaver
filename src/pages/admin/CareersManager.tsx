@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,6 +17,7 @@ import {
   Trash, 
   Search, 
   X,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { 
@@ -27,66 +28,20 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
 
-// Define job opening structure
+// Define job opening structure matching Supabase
 interface JobOpening {
-  id: number;
+  id: string;
   title: string;
   department: string;
   location: string;
   type: string;
   description: string;
   status: 'active' | 'inactive';
+  created_at: string;
+  updated_at: string;
 }
-
-// Sample data - using the existing data from Careers page
-const initialJobs: JobOpening[] = [
-  {
-    id: 1,
-    title: 'International Business Developer',
-    department: 'Sales & Marketing',
-    location: 'Mumbai, India',
-    type: 'Full-time',
-    description: "We're looking for an experienced International Business Developer to expand our global network of buyers and sellers.",
-    status: 'active',
-  },
-  {
-    id: 2,
-    title: 'Supply Chain Specialist',
-    department: 'Operations',
-    location: 'Delhi, India',
-    type: 'Full-time',
-    description: 'Join our logistics team to ensure smooth operations between manufacturers and international buyers.',
-    status: 'active',
-  },
-  {
-    id: 3,
-    title: 'Export Documentation Executive',
-    department: 'Operations',
-    location: 'Mumbai, India',
-    type: 'Full-time',
-    description: 'Manage export documentation and ensure compliance with international trade regulations.',
-    status: 'active',
-  },
-  {
-    id: 4,
-    title: 'Digital Marketing Specialist',
-    department: 'Marketing',
-    location: 'Remote',
-    type: 'Full-time',
-    description: 'Drive our digital presence and help us reach more buyers and sellers through innovative marketing strategies.',
-    status: 'active',
-  },
-  {
-    id: 5,
-    title: 'Customer Success Manager',
-    department: 'Customer Support',
-    location: 'Bangalore, India',
-    type: 'Full-time',
-    description: 'Ensure our clients have the best experience working with Anantya Overseas through proactive support.',
-    status: 'active',
-  }
-];
 
 // Department options
 const departments = [
@@ -110,10 +65,51 @@ const jobTypes = [
 ];
 
 const CareersManager: React.FC = () => {
-  const [jobs, setJobs] = useState<JobOpening[]>(initialJobs);
+  const [jobs, setJobs] = useState<JobOpening[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentJob, setCurrentJob] = useState<JobOpening | null>(null);
+  const [loading, setLoading] = useState(false);
+  
+  // Fetch jobs from Supabase
+  const fetchJobs = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('careers')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setJobs(data || []);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to load jobs');
+      setJobs([]);
+    }
+    setLoading(false);
+  };
+
+  // Listen for real-time updates
+  useEffect(() => {
+    fetchJobs();
+    
+    const channel = supabase
+      .channel('realtime-careers-admin')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'careers',
+        },
+        () => fetchJobs()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
   
   const handleAddJob = () => {
     setCurrentJob(null);
@@ -125,36 +121,60 @@ const CareersManager: React.FC = () => {
     setIsDialogOpen(true);
   };
   
-  const handleDeleteJob = (id: number) => {
-    if (confirm('Are you sure you want to delete this job opening?')) {
-      setJobs(jobs.filter(job => job.id !== id));
+  const handleDeleteJob = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this job opening?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('careers')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
       toast.success('Job opening deleted successfully.');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete job opening');
     }
   };
   
-  const handleSaveJob = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSaveJob = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     
-    const newJob = {
-      id: currentJob?.id || Math.floor(Math.random() * 10000),
+    const jobData = {
       title: (form.elements.namedItem('title') as HTMLInputElement).value,
       department: (form.elements.namedItem('department') as HTMLSelectElement).value,
       location: (form.elements.namedItem('location') as HTMLInputElement).value,
       type: (form.elements.namedItem('type') as HTMLSelectElement).value,
       description: (form.elements.namedItem('description') as HTMLTextAreaElement).value,
-      status: ((form.elements.namedItem('status') as HTMLSelectElement).value as 'active' | 'inactive'),
+      status: (form.elements.namedItem('status') as HTMLSelectElement).value as 'active' | 'inactive',
     };
     
-    if (currentJob) {
-      setJobs(jobs.map(job => job.id === currentJob.id ? newJob : job));
-      toast.success('Job opening updated successfully.');
-    } else {
-      setJobs([...jobs, newJob]);
-      toast.success('Job opening added successfully.');
+    setLoading(true);
+    try {
+      if (currentJob) {
+        // Update existing job
+        const { error } = await supabase
+          .from('careers')
+          .update(jobData)
+          .eq('id', currentJob.id);
+        
+        if (error) throw error;
+        toast.success('Job opening updated successfully.');
+      } else {
+        // Add new job
+        const { error } = await supabase
+          .from('careers')
+          .insert([jobData]);
+        
+        if (error) throw error;
+        toast.success('Job opening added successfully.');
+      }
+      setIsDialogOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save job opening');
     }
-    
-    setIsDialogOpen(false);
+    setLoading(false);
   };
   
   const filteredJobs = jobs.filter(job => 
@@ -196,66 +216,73 @@ const CareersManager: React.FC = () => {
         </div>
         
         <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Position</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredJobs.length > 0 ? (
-                filteredJobs.map((job) => (
-                  <TableRow key={job.id}>
-                    <TableCell className="font-medium">
-                      <div>
-                        <div className="font-medium">{job.title}</div>
-                        <div className="text-sm text-gray-500">{job.type}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{job.department}</TableCell>
-                    <TableCell>{job.location}</TableCell>
-                    <TableCell>
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        job.status === 'active' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {job.status === 'active' ? 'Active' : 'Inactive'}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleEditJob(job)}
-                        className="mr-1"
-                      >
-                        <Edit size={16} />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleDeleteJob(job.id)}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash size={16} />
-                      </Button>
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="animate-spin w-8 h-8 mr-2 text-brand-blue" />
+              <span>Loading jobs...</span>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Position</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredJobs.length > 0 ? (
+                  filteredJobs.map((job) => (
+                    <TableRow key={job.id}>
+                      <TableCell className="font-medium">
+                        <div>
+                          <div className="font-medium">{job.title}</div>
+                          <div className="text-sm text-gray-500">{job.type}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{job.department}</TableCell>
+                      <TableCell>{job.location}</TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          job.status === 'active' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {job.status === 'active' ? 'Active' : 'Inactive'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleEditJob(job)}
+                          className="mr-1"
+                        >
+                          <Edit size={16} />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleDeleteJob(job.id)}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash size={16} />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                      {searchTerm ? 'No jobs found matching your search.' : 'No job openings found. Add your first job opening.'}
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                    No job openings found. Try a different search term or add a new job opening.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                )}
+              </TableBody>
+            </Table>
+          )}
         </div>
       </div>
       
@@ -368,7 +395,7 @@ const CareersManager: React.FC = () => {
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit" className="bg-brand-blue hover:bg-brand-blue/90">
+              <Button type="submit" className="bg-brand-blue hover:bg-brand-blue/90" disabled={loading}>
                 {currentJob ? 'Update Job' : 'Add Job'}
               </Button>
             </DialogFooter>
