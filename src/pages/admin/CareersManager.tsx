@@ -75,24 +75,31 @@ const CareersManager: React.FC = () => {
   const fetchJobs = async () => {
     setLoading(true);
     try {
+      console.log('Fetching jobs from Supabase...');
       const { data, error } = await supabase
         .from('careers')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      console.log('Jobs fetched successfully:', data);
       setJobs(data || []);
     } catch (err: any) {
+      console.error('Error in fetchJobs:', err);
       toast.error(err.message || 'Failed to load jobs');
       setJobs([]);
     }
     setLoading(false);
   };
 
-  // Listen for real-time updates
+  // Listen for real-time updates with improved error handling
   useEffect(() => {
     fetchJobs();
     
+    console.log('Setting up real-time subscription for careers...');
     const channel = supabase
       .channel('realtime-careers-admin')
       .on(
@@ -102,11 +109,17 @@ const CareersManager: React.FC = () => {
           schema: 'public',
           table: 'careers',
         },
-        () => fetchJobs()
+        (payload) => {
+          console.log('Real-time careers update received:', payload);
+          fetchJobs(); // Re-fetch all data to ensure consistency
+        }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Careers subscription status:', status);
+      });
 
     return () => {
+      console.log('Cleaning up careers subscription...');
       supabase.removeChannel(channel);
     };
   }, []);
@@ -125,14 +138,20 @@ const CareersManager: React.FC = () => {
     if (!confirm('Are you sure you want to delete this job opening?')) return;
     
     try {
+      console.log('Deleting job with ID:', id);
       const { error } = await supabase
         .from('careers')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Delete error:', error);
+        throw error;
+      }
+      console.log('Job deleted successfully');
       toast.success('Job opening deleted successfully.');
     } catch (err: any) {
+      console.error('Error in handleDeleteJob:', err);
       toast.error(err.message || 'Failed to delete job opening');
     }
   };
@@ -154,24 +173,35 @@ const CareersManager: React.FC = () => {
     try {
       if (currentJob) {
         // Update existing job
+        console.log('Updating job:', currentJob.id, jobData);
         const { error } = await supabase
           .from('careers')
           .update(jobData)
           .eq('id', currentJob.id);
         
-        if (error) throw error;
+        if (error) {
+          console.error('Update error:', error);
+          throw error;
+        }
+        console.log('Job updated successfully');
         toast.success('Job opening updated successfully.');
       } else {
         // Add new job
+        console.log('Creating new job:', jobData);
         const { error } = await supabase
           .from('careers')
           .insert([jobData]);
         
-        if (error) throw error;
+        if (error) {
+          console.error('Insert error:', error);
+          throw error;
+        }
+        console.log('Job created successfully');
         toast.success('Job opening added successfully.');
       }
       setIsDialogOpen(false);
     } catch (err: any) {
+      console.error('Error in handleSaveJob:', err);
       toast.error(err.message || 'Failed to save job opening');
     }
     setLoading(false);

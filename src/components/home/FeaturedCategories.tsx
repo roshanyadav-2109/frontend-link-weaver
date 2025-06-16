@@ -58,7 +58,14 @@ const FeaturedCategories: React.FC = () => {
           ))}
         </div>
         
-        {/* Remove "View All Categories" button */}
+        <div className="text-center mt-10">
+          <Link to="/categories">
+            <button className="bg-brand-blue text-white px-8 py-3 rounded-lg hover:bg-brand-blue/90 transition-colors font-medium">
+              Explore All Products
+              <ArrowRight className="ml-2 h-5 w-5 inline" />
+            </button>
+          </Link>
+        </div>
       </div>
     </section>
   );

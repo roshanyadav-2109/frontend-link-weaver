@@ -18,25 +18,38 @@ const Careers = () => {
   const [jobs, setJobs] = useState<JobOpening[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch jobs from Supabase
+  // Fetch jobs from Supabase with improved error handling
   const fetchJobs = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('careers')
-      .select('*')
-      .eq('status', 'active')
-      .order('created_at', { ascending: false });
-    if (!error) {
+    try {
+      console.log('Fetching active careers...');
+      const { data, error } = await supabase
+        .from('careers')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching careers:', error);
+        throw error;
+      }
+      
+      console.log('Careers fetched successfully:', data);
       setJobs(data as JobOpening[]);
+    } catch (err: any) {
+      console.error('Error in fetchJobs:', err);
+      setJobs([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  // Listen for real-time updates
+  // Listen for real-time updates with improved subscription
   useEffect(() => {
     fetchJobs();
+    
+    console.log('Setting up real-time subscription for public careers...');
     const channel = supabase
-      .channel('realtime-careers')
+      .channel('realtime-careers-public')
       .on(
         'postgres_changes',
         {
@@ -44,10 +57,17 @@ const Careers = () => {
           schema: 'public',
           table: 'careers',
         },
-        () => fetchJobs()
+        (payload) => {
+          console.log('Real-time careers update received on public page:', payload);
+          fetchJobs(); // Re-fetch to ensure we only show active jobs
+        }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Public careers subscription status:', status);
+      });
+    
     return () => {
+      console.log('Cleaning up public careers subscription...');
       supabase.removeChannel(channel);
     };
   }, []);
@@ -114,6 +134,7 @@ const Careers = () => {
                 </Button>
               </div>
             </div>
+            
             <div>
               <div className="bg-gray-50 p-6 rounded-lg border sticky top-6">
                 <h2 className="text-xl font-bold text-brand-blue mb-4">
@@ -186,4 +207,3 @@ const Careers = () => {
 };
 
 export default Careers;
-

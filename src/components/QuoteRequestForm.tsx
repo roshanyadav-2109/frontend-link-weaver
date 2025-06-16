@@ -11,22 +11,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-// For TypeScript, define our schema more explicitly
-type QuoteRequest = {
-  id?: string;
-  name: string;
-  email: string;
-  phone: string;
-  company?: string | null;
-  product_id?: string | null;
-  product_name: string;
-  quantity: string;
-  unit: string;
-  additional_details?: string | null;
-  status?: string;
-  user_id: string;
-}
-
 const quoteRequestSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -72,8 +56,9 @@ export function QuoteRequestForm({
     }
     
     try {
-      // Create a properly typed request object
-      const quoteRequest: QuoteRequest = {
+      console.log('Submitting quote request:', values);
+      
+      const quoteRequestData = {
         name: values.name,
         email: values.email,
         phone: values.phone,
@@ -87,9 +72,10 @@ export function QuoteRequestForm({
         user_id: userId
       };
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('quote_requests')
-        .insert(quoteRequest);
+        .insert(quoteRequestData)
+        .select();
 
       if (error) {
         console.error('Error submitting quote request:', error);
@@ -97,11 +83,12 @@ export function QuoteRequestForm({
         return;
       }
 
-      toast.success('Quote request submitted successfully!');
+      console.log('Quote request submitted successfully:', data);
+      toast.success('Quote request submitted successfully! We will get back to you soon.');
       form.reset();
       if (onSuccess) onSuccess();
     } catch (err) {
-      console.error('Error:', err);
+      console.error('Unexpected error:', err);
       toast.error('An unexpected error occurred. Please try again.');
     }
   }
@@ -245,8 +232,12 @@ export function QuoteRequestForm({
           )}
         />
         
-        <Button type="submit" className="w-full bg-brand-teal hover:bg-brand-teal/90">
-          Request Quote
+        <Button 
+          type="submit" 
+          className="w-full bg-brand-teal hover:bg-brand-teal/90"
+          disabled={form.formState.isSubmitting}
+        >
+          {form.formState.isSubmitting ? 'Submitting...' : 'Request Quote'}
         </Button>
       </form>
     </Form>
