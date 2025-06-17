@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import GeneralApplicationForm from '@/components/GeneralApplicationForm';
 
@@ -12,6 +12,7 @@ interface JobOpening {
   type: string;
   description: string;
   status: string;
+  apply_link?: string | null;
 }
 
 const Careers = () => {
@@ -113,9 +114,26 @@ const Careers = () => {
                               <h3 className="text-xl font-semibold text-brand-blue">{job.title}</h3>
                               <p className="text-gray-600 mt-1">{job.department} • {job.location} • {job.type}</p>
                             </div>
-                            <Button variant="outline" className="text-brand-teal border-brand-teal hover:bg-brand-teal hover:text-white">
-                              Apply Now
-                            </Button>
+                            <div className="flex gap-2">
+                              {job.apply_link ? (
+                                <Button 
+                                  variant="outline" 
+                                  className="text-brand-teal border-brand-teal hover:bg-brand-teal hover:text-white"
+                                  onClick={() => window.open(job.apply_link!, '_blank')}
+                                >
+                                  Apply Now
+                                  <ExternalLink className="ml-2 h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button 
+                                  variant="outline" 
+                                  className="text-brand-teal border-brand-teal hover:bg-brand-teal hover:text-white"
+                                  onClick={() => setIsApplicationFormOpen(true)}
+                                >
+                                  Apply Now
+                                </Button>
+                              )}
+                            </div>
                           </div>
                           <p className="mt-4 text-gray-700">{job.description}</p>
                         </div>

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -300,6 +299,8 @@ const ProductsManager: React.FC = () => {
           )}
         </div>
       </div>
+      
+      {/* Dialog remains the same but with better subcategory handling */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -359,8 +360,7 @@ const ProductsManager: React.FC = () => {
                 <select 
                   id="subcategory" 
                   name="subcategory"
-                  value={currentProduct?.subcategory || ''}
-                  onChange={() => {}}
+                  defaultValue={currentProduct?.subcategory || ''}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                   required
                   disabled={!selectedCategory}
@@ -396,7 +396,6 @@ const ProductsManager: React.FC = () => {
                   name="image" 
                   defaultValue={currentProduct?.image || ''} 
                   placeholder="https://example.com/image.jpg" 
-                  required 
                   className="flex-1" 
                 />
                 <Button type="button" variant="outline" className="ml-2" disabled>

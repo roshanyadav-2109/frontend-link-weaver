@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       careers: {
         Row: {
+          apply_link: string | null
           created_at: string | null
           department: string
           description: string
@@ -22,6 +23,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          apply_link?: string | null
           created_at?: string | null
           department: string
           description: string
@@ -33,6 +35,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          apply_link?: string | null
           created_at?: string | null
           department?: string
           description?: string
