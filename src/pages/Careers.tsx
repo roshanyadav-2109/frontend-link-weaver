@@ -1,8 +1,8 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import GeneralApplicationForm from '@/components/GeneralApplicationForm';
 
 interface JobOpening {
   id: string;
@@ -17,6 +17,7 @@ interface JobOpening {
 const Careers = () => {
   const [jobs, setJobs] = useState<JobOpening[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isApplicationFormOpen, setIsApplicationFormOpen] = useState(false);
 
   // Fetch jobs from Supabase with improved error handling
   const fetchJobs = async () => {
@@ -128,7 +129,10 @@ const Careers = () => {
                 <p className="mt-2 text-gray-700">
                   We're always looking for talented individuals to join our team. Send us your resume and we'll keep you in mind for future opportunities.
                 </p>
-                <Button className="mt-4 bg-brand-teal hover:bg-brand-teal/90">
+                <Button 
+                  className="mt-4 bg-brand-teal hover:bg-brand-teal/90"
+                  onClick={() => setIsApplicationFormOpen(true)}
+                >
                   Submit General Application
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -202,6 +206,11 @@ const Careers = () => {
           </Button>
         </div>
       </div>
+      
+      <GeneralApplicationForm 
+        isOpen={isApplicationFormOpen}
+        onClose={() => setIsApplicationFormOpen(false)}
+      />
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -28,6 +27,8 @@ type QuoteRequestFormProps = {
   onSuccess?: () => void;
   userId?: string;
 };
+
+const EMAIL_ENDPOINT = "https://lusfthgqlkgktplplqnv.functions.supabase.co/send-form-email";
 
 export function QuoteRequestForm({ 
   productId,
@@ -72,19 +73,51 @@ export function QuoteRequestForm({
         user_id: userId
       };
 
+      // First save to database
       const { data, error } = await supabase
         .from('quote_requests')
         .insert(quoteRequestData)
         .select();
 
       if (error) {
-        console.error('Error submitting quote request:', error);
+        console.error('Error submitting quote request to database:', error);
         toast.error('Failed to submit quote request. Please try again.');
         return;
       }
 
-      console.log('Quote request submitted successfully:', data);
-      toast.success('Quote request submitted successfully! We will get back to you soon.');
+      console.log('Quote request saved to database:', data);
+
+      // Then send email notification
+      try {
+        const emailPayload = {
+          type: "quote",
+          ...values,
+          company: values.company || 'Not provided',
+          additional_details: values.additional_details || 'None provided'
+        };
+
+        console.log('Sending email with payload:', emailPayload);
+
+        const emailResponse = await fetch(EMAIL_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(emailPayload),
+        });
+
+        const emailResult = await emailResponse.json();
+        
+        if (emailResponse.ok) {
+          console.log('Email sent successfully:', emailResult);
+          toast.success('Quote request submitted successfully! We will get back to you soon.');
+        } else {
+          console.error('Email sending failed:', emailResult);
+          toast.warning('Quote request saved but email notification failed. We have received your request.');
+        }
+      } catch (emailError) {
+        console.error('Email sending error:', emailError);
+        toast.warning('Quote request saved but email notification failed. We have received your request.');
+      }
+
       form.reset();
       if (onSuccess) onSuccess();
     } catch (err) {
