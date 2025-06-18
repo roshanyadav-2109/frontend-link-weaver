@@ -210,25 +210,6 @@ const Careers = () => {
           </div>
         </div>
       </div>
-      
-      <div className="bg-brand-blue py-12">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Ready to Join Our Global Trade Mission?
-          </h2>
-          <p className="text-white/80 max-w-2xl mx-auto mb-6">
-            Apply for one of our open positions today and become part of a team that's connecting businesses around the world.
-          </p>
-          <Button size="lg" className="bg-white text-brand-blue hover:bg-white/90">
-            Explore Career Opportunities
-          </Button>
-        </div>
-      </div>
-      
-      <GeneralApplicationForm 
-        isOpen={isApplicationFormOpen}
-        onClose={() => setIsApplicationFormOpen(false)}
-      />
     </div>
   );
 };
