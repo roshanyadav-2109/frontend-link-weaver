@@ -60,11 +60,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.error('Error fetching profile:', error);
             setProfile(null);
           } else {
-            setProfile(profileData as Profile);
+            // Properly type the profile data to ensure user_type is the correct union type
+            const typedProfile: Profile = {
+              is_admin: profileData.is_admin || false,
+              user_type: profileData.user_type as 'manufacturer' | 'client' | undefined,
+              gstin: profileData.gstin || undefined,
+              full_name: profileData.full_name || undefined,
+              company_name: profileData.company_name || undefined,
+              phone: profileData.phone || undefined,
+              address: profileData.address || undefined,
+            };
+            setProfile(typedProfile);
             
             // Handle post-authentication navigation
             if (event === 'SIGNED_IN' && profileData) {
-              handlePostAuthNavigation(profileData);
+              handlePostAuthNavigation(typedProfile);
             }
           }
         } else {
@@ -92,7 +102,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               console.error('Error fetching profile:', error);
               setProfile(null);
             } else {
-              setProfile(profileData as Profile);
+              // Properly type the profile data
+              const typedProfile: Profile = {
+                is_admin: profileData.is_admin || false,
+                user_type: profileData.user_type as 'manufacturer' | 'client' | undefined,
+                gstin: profileData.gstin || undefined,
+                full_name: profileData.full_name || undefined,
+                company_name: profileData.company_name || undefined,
+                phone: profileData.phone || undefined,
+                address: profileData.address || undefined,
+              };
+              setProfile(typedProfile);
             }
             setLoading(false);
           });

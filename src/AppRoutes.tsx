@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
@@ -137,11 +136,12 @@ const AppRoutes = () => {
         <Route path="catalog-requests" element={<CatalogRequests />} />
       </Route>
       
-      {/* Auth Callback Route */}
+      {/* Auth Routes */}
+      <Route path="/auth/initial" element={<InitialAuth />} />
+      <Route path="/auth/client" element={<ClientAuth />} />
+      <Route path="/auth/manufacturer" element={<ManufacturerAuth />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
-      
-      {/* New Auth Route */}
-      <Route path="/auth/client-new" element={<NewClientAuth />} />
+      <Route path="/profile-completion" element={<ProfileCompletion />} />
       
       {/* Protected Routes */}
       <Route 
@@ -168,8 +168,6 @@ const AppRoutes = () => {
                 <Route path="/" element={<Index />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/about" element={<AboutUs />} />
-                <Route path="/auth/manufacturer" element={<ManufacturerAuth />} />
-                <Route path="/auth/client" element={<ClientAuth />} />
                 <Route path="/categories" element={<Categories />} />
                 <Route path="/categories/:categoryId" element={<SubCategories />} />
                 <Route path="/categories/:categoryId/:subcategoryId" element={<SubCategories />} />
@@ -177,6 +175,7 @@ const AppRoutes = () => {
                 <Route path="/catalog-request" element={<CatalogRequest />} />
                 <Route path="/careers" element={<Careers />} />
                 <Route path="/request-quote" element={<RequestQuotePage />} />
+                <Route path="/terms" element={<TermsAndConditions />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
