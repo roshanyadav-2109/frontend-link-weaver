@@ -21,11 +21,10 @@ interface Product {
   created_at: string;
 }
 
-interface CatalogRequest {
+interface QuoteRequest {
   id: string;
-  client_name: string;
-  company_name: string;
-  category: string;
+  product_name: string;
+  company: string;
   status: string;
   created_at: string;
 }
@@ -33,7 +32,7 @@ interface CatalogRequest {
 const Dashboard: React.FC = () => {
   const { user, profile } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
-  const [catalogRequests, setCatalogRequests] = useState<CatalogRequest[]>([]);
+  const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = async () => {
@@ -56,18 +55,18 @@ const Dashboard: React.FC = () => {
         setProducts(productsData || []);
       }
 
-      // Fetch catalog requests
-      const { data: catalogsData, error: catalogsError } = await supabase
-        .from('catalog_requests')
-        .select('id, client_name, company_name, category, status, created_at')
+      // Fetch quote requests (these are incoming requests to manufacturers)
+      const { data: quotesData, error: quotesError } = await supabase
+        .from('quote_requests')
+        .select('id, product_name, company, status, created_at')
         .order('created_at', { ascending: false })
         .limit(10);
 
-      if (catalogsError) {
-        console.error('Error fetching catalog requests:', catalogsError);
-        toast.error('Failed to load catalog requests');
+      if (quotesError) {
+        console.error('Error fetching quote requests:', quotesError);
+        toast.error('Failed to load quote requests');
       } else {
-        setCatalogRequests(catalogsData || []);
+        setQuoteRequests(quotesData || []);
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -96,14 +95,14 @@ const Dashboard: React.FC = () => {
       )
       .subscribe();
 
-    const catalogChannel = supabase
-      .channel('catalog_requests_changes')
+    const quotesChannel = supabase
+      .channel('quote_requests_changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'catalog_requests'
+          table: 'quote_requests'
         },
         () => {
           fetchDashboardData();
@@ -113,7 +112,7 @@ const Dashboard: React.FC = () => {
 
     return () => {
       supabase.removeChannel(productsChannel);
-      supabase.removeChannel(catalogChannel);
+      supabase.removeChannel(quotesChannel);
     };
   }, [user?.id]);
 
@@ -125,21 +124,21 @@ const Dashboard: React.FC = () => {
       icon: <Package className="h-8 w-8 text-brand-blue" />
     },
     {
-      title: 'Active Orders',
-      value: '8',
-      change: '3 awaiting shipment',
-      icon: <ShoppingCart className="h-8 w-8 text-green-500" />
-    },
-    {
-      title: 'Catalog Requests',
-      value: catalogRequests.length.toString(),
-      change: `${catalogRequests.filter(c => c.status === 'pending').length} new requests`,
+      title: 'Quote Requests',
+      value: quoteRequests.length.toString(),
+      change: `${quoteRequests.filter(q => q.status === 'pending').length} pending`,
       icon: <FileText className="h-8 w-8 text-orange-500" />
     },
     {
+      title: 'Active Orders',
+      value: quoteRequests.filter(q => q.status === 'approved').length.toString(),
+      change: 'Orders in progress',
+      icon: <ShoppingCart className="h-8 w-8 text-green-500" />
+    },
+    {
       title: 'Customer Inquiries',
-      value: catalogRequests.filter(c => c.status === 'pending').length.toString(),
-      change: `${catalogRequests.filter(c => c.status === 'pending').length} unread messages`,
+      value: quoteRequests.filter(q => q.status === 'pending').length.toString(),
+      change: `${quoteRequests.filter(q => q.status === 'pending').length} new requests`,
       icon: <MessageSquare className="h-8 w-8 text-purple-500" />
     }
   ];
@@ -163,7 +162,7 @@ const Dashboard: React.FC = () => {
       case 'rejected':
       case 'inactive':
         return 'bg-red-100 text-red-800';
-      case 'viewed':
+      case 'completed':
         return 'bg-blue-100 text-blue-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -212,16 +211,16 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card className="shadow-md">
           <CardHeader>
-            <CardTitle>Recent Catalog Requests</CardTitle>
+            <CardTitle>Recent Quote Requests</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {catalogRequests.length > 0 ? (
-                catalogRequests.slice(0, 4).map((request) => (
+              {quoteRequests.length > 0 ? (
+                quoteRequests.slice(0, 4).map((request) => (
                   <div key={request.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
                     <div>
-                      <p className="font-medium text-gray-800">{request.company_name || request.client_name}</p>
-                      <p className="text-sm text-gray-500">{request.category}</p>
+                      <p className="font-medium text-gray-800">{request.product_name}</p>
+                      <p className="text-sm text-gray-500">{request.company || 'Individual Client'}</p>
                     </div>
                     <div className="text-right">
                       <span className={`text-xs px-2 py-1 rounded ${getStatusColor(request.status)}`}>
@@ -234,12 +233,12 @@ const Dashboard: React.FC = () => {
               ) : (
                 <div className="text-center py-6 text-gray-500">
                   <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>No catalog requests yet</p>
+                  <p>No quote requests yet</p>
                 </div>
               )}
             </div>
             <div className="mt-4">
-              <a href="/manufacturer/catalog-requests" className="text-sm text-brand-blue hover:underline">View all catalog requests →</a>
+              <a href="/admin/quote-requests" className="text-sm text-brand-blue hover:underline">View all quote requests →</a>
             </div>
           </CardContent>
         </Card>

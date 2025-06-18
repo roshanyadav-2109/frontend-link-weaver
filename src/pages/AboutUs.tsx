@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Award, Globe, Users, TrendingUp, Target, Shield, Lightbulb, Heart, CheckCircle, ExternalLink } from 'lucide-react';
 
 const AboutUs = () => {

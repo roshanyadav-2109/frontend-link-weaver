@@ -16,15 +16,7 @@ import { toast } from 'sonner';
 interface QuoteRequest {
   id: string;
   product_name: string;
-  quantity: number;
-  status: string;
-  created_at: string;
-}
-
-interface CatalogRequest {
-  id: string;
-  company_name: string;
-  category: string;
+  quantity: string; // Keep as string since database stores it as text
   status: string;
   created_at: string;
 }
@@ -32,7 +24,6 @@ interface CatalogRequest {
 const UserDashboard: React.FC = () => {
   const { user, profile } = useAuth();
   const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
-  const [catalogRequests, setCatalogRequests] = useState<CatalogRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = async () => {
@@ -55,21 +46,6 @@ const UserDashboard: React.FC = () => {
       } else {
         setQuoteRequests(quotes || []);
       }
-
-      // Fetch catalog requests
-      const { data: catalogs, error: catalogsError } = await supabase
-        .from('catalog_requests')
-        .select('id, company_name, category, status, created_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (catalogsError) {
-        console.error('Error fetching catalog requests:', catalogsError);
-        toast.error('Failed to load catalog requests');
-      } else {
-        setCatalogRequests(catalogs || []);
-      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       toast.error('Failed to load dashboard data');
@@ -81,7 +57,7 @@ const UserDashboard: React.FC = () => {
   useEffect(() => {
     fetchDashboardData();
 
-    // Set up real-time subscriptions
+    // Set up real-time subscriptions for quote requests only
     const quoteChannel = supabase
       .channel('quote_requests_changes')
       .on(
@@ -98,25 +74,8 @@ const UserDashboard: React.FC = () => {
       )
       .subscribe();
 
-    const catalogChannel = supabase
-      .channel('catalog_requests_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'catalog_requests',
-          filter: `user_id=eq.${user?.id}`
-        },
-        () => {
-          fetchDashboardData();
-        }
-      )
-      .subscribe();
-
     return () => {
       supabase.removeChannel(quoteChannel);
-      supabase.removeChannel(catalogChannel);
     };
   }, [user?.id]);
 
@@ -128,20 +87,20 @@ const UserDashboard: React.FC = () => {
       icon: <FileText className="h-8 w-8 text-brand-blue" />
     },
     {
-      title: 'Catalog Requests',
-      value: catalogRequests.length.toString(),
-      change: `${catalogRequests.filter(c => c.status === 'pending').length} pending`,
-      icon: <Package className="h-8 w-8 text-green-500" />
-    },
-    {
       title: 'Active Orders',
       value: quoteRequests.filter(q => q.status === 'approved').length.toString(),
       change: 'Orders in progress',
       icon: <ShoppingCart className="h-8 w-8 text-orange-500" />
     },
     {
+      title: 'Completed Orders',
+      value: quoteRequests.filter(q => q.status === 'completed').length.toString(),
+      change: 'Successfully completed',
+      icon: <Package className="h-8 w-8 text-green-500" />
+    },
+    {
       title: 'Recent Activity',
-      value: (quoteRequests.length + catalogRequests.length).toString(),
+      value: quoteRequests.length.toString(),
       change: 'Total requests',
       icon: <MessageSquare className="h-8 w-8 text-purple-500" />
     }
@@ -164,6 +123,8 @@ const UserDashboard: React.FC = () => {
         return 'bg-green-100 text-green-800';
       case 'rejected':
         return 'bg-red-100 text-red-800';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -252,33 +213,32 @@ const UserDashboard: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5" />
-              Recent Catalog Requests
+              Quick Actions
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {catalogRequests.length > 0 ? (
-                catalogRequests.map((request) => (
-                  <div key={request.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
-                    <div>
-                      <p className="font-medium text-gray-800">{request.company_name}</p>
-                      <p className="text-sm text-gray-500">{request.category}</p>
-                    </div>
-                    <div className="text-right">
-                      <span className={`text-xs px-2 py-1 rounded ${getStatusColor(request.status)}`}>
-                        {request.status}
-                      </span>
-                      <p className="text-xs text-gray-500 mt-1">{formatDate(request.created_at)}</p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-6 text-gray-500">
-                  <Package className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>No catalog requests yet</p>
-                  <p className="text-sm">Request catalogs from manufacturers</p>
-                </div>
-              )}
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                <h3 className="font-medium text-gray-800 mb-2">Request a Quote</h3>
+                <p className="text-sm text-gray-600 mb-3">Get pricing for products you need</p>
+                <a href="/request-quote" className="text-sm text-brand-blue hover:underline">
+                  Start Quote Request →
+                </a>
+              </div>
+              <div className="p-4 bg-green-50 rounded-lg border border-green-100">
+                <h3 className="font-medium text-gray-800 mb-2">Browse Categories</h3>
+                <p className="text-sm text-gray-600 mb-3">Explore our product categories</p>
+                <a href="/categories" className="text-sm text-brand-blue hover:underline">
+                  View Categories →
+                </a>
+              </div>
+              <div className="p-4 bg-purple-50 rounded-lg border border-purple-100">
+                <h3 className="font-medium text-gray-800 mb-2">Contact Support</h3>
+                <p className="text-sm text-gray-600 mb-3">Get help with your orders</p>
+                <a href="/contact" className="text-sm text-brand-blue hover:underline">
+                  Contact Us →
+                </a>
+              </div>
             </div>
           </CardContent>
         </Card>
