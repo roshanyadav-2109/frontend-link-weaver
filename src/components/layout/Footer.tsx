@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Linkedin, Twitter, Facebook } from 'lucide-react';
+import { Mail, Phone, MapPin, Linkedin, Instagram } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -22,23 +22,15 @@ const Footer: React.FC = () => {
             </p>
             <div className="flex space-x-4">
               <a 
-                href="https://facebook.com" 
+                href="https://www.instagram.com/anantya_overseas/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-brand-blue transition-colors"
               >
-                <Facebook size={20} />
+                <Instagram size={20} />
               </a>
               <a 
-                href="https://twitter.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-brand-blue transition-colors"
-              >
-                <Twitter size={20} />
-              </a>
-              <a 
-                href="https://linkedin.com" 
+                href="https://www.linkedin.com/company/anantya-overseas" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-brand-blue transition-colors"
@@ -79,24 +71,15 @@ const Footer: React.FC = () => {
               <div className="flex items-center space-x-3">
                 <Mail size={18} className="text-brand-blue" />
                 <a 
-                  href="mailto:info@anantyaoverseas.com"
+                  href="mailto:anantyaoverseas@gmail.com"
                   className="text-gray-300 text-sm hover:text-white transition-colors"
                 >
-                  info@anantyaoverseas.com
-                </a>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Phone size={18} className="text-brand-blue" />
-                <a 
-                  href="tel:+919876543210"
-                  className="text-gray-300 text-sm hover:text-white transition-colors"
-                >
-                  +91 98765 43210
+                  anantyaoverseas@gmail.com
                 </a>
               </div>
               <div className="flex items-center space-x-3">
                 <MapPin size={18} className="text-brand-blue" />
-                <span className="text-gray-300 text-sm">Mumbai, Maharashtra, India</span>
+                <span className="text-gray-300 text-sm">Ahmedabad, Gujarat, India</span>
               </div>
             </div>
           </div>
@@ -105,7 +88,7 @@ const Footer: React.FC = () => {
         {/* Bottom Bar */}
         <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm">
-            © 2024 Anantya Overseas. All rights reserved.
+            © 2025 Anantya Overseas. All rights reserved.
           </p>
           <div className="mt-4 md:mt-0 flex space-x-6">
             <Link to="/terms" className="text-gray-400 hover:text-white text-sm transition-colors">
