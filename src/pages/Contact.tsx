@@ -64,9 +64,9 @@ const Contact = () => {
               <Globe className="h-5 w-5 text-white mr-2" />
               <span className="text-white font-medium">Connect Globally</span>
             </div>
-            <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-6 animate-fade-in animate-delay-100">
+            <h1 className="text-4xl md:text-6xl font-extrabold text-slate-200 mb-6 animate-fade-in animate-delay-100">
               Connect for 
-              <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 bg-clip-text text-transparent font-black">
+              <span className="block bg-gradient-to-r from-white via-gray-100 to-slate-200 bg-clip-text text-transparent font-black">
                 Business Inquiriers
               </span>
             </h1>
@@ -121,8 +121,7 @@ const Contact = () => {
                               <FormLabel className="text-lg font-semibold">Email Address</FormLabel>
                               <FormControl>
                                 <Input 
-                                  type="email" 
-                                  placeholder="you@company.com" 
+                                  type="email"                               
                                   className="h-12 text-lg border-2 focus:border-brand-teal"
                                   {...field} 
                                 />
@@ -195,27 +194,12 @@ const Contact = () => {
                       <div>
                         <h4 className="font-semibold text-lg mb-1">Our Office</h4>
                         <p className="text-gray-600">
-                          501, Silver Business Point, Opp. Vodafone House<br />
-                          S. G. Highway, Ahmedabad, Gujarat 380054<br />
+                          Ahmedabad, Gujarat 380054<br />
                           India
                         </p>
                       </div>
                     </div>
-                    
-                    <div className="flex items-start space-x-4 group hover:bg-gray-50 p-4 rounded-xl transition-colors">
-                      <div className="bg-brand-teal/10 p-3 rounded-xl group-hover:bg-brand-teal group-hover:text-white transition-colors">
-                        <Phone className="h-6 w-6 text-brand-teal group-hover:text-white" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-lg mb-1">Call Us</h4>
-                        <p className="text-gray-600">
-                          <a href="tel:+919012345678" className="hover:text-brand-teal transition-colors">+91 90123 45678</a>
-                          <br />
-                          <a href="tel:+912235671234" className="hover:text-brand-teal transition-colors">+91 22 3567 1234</a>
-                        </p>
-                      </div>
-                    </div>
-                    
+                           
                     <div className="flex items-start space-x-4 group hover:bg-gray-50 p-4 rounded-xl transition-colors">
                       <div className="bg-green-100 p-3 rounded-xl group-hover:bg-green-500 group-hover:text-white transition-colors">
                         <Mail className="h-6 w-6 text-green-600 group-hover:text-white" />
@@ -223,9 +207,7 @@ const Contact = () => {
                       <div>
                         <h4 className="font-semibold text-lg mb-1">Email Us</h4>
                         <p className="text-gray-600">
-                          <a href="mailto:anantyaoverseas@gmail.com" className="hover:text-brand-teal transition-colors">anantyaoverseas@gmail.com</a>
-                          <br />
-                          <a href="mailto:anantyaoverseas@gmail.com" className="hover:text-brand-teal transition-colors">anantyaoverseas@gmail.com</a>
+                          <a href="mailto:anantyaoverseas@gmail.com" className="hover:text-brand-teal transition-colors">anantyaoverseas@gmail.com</a>                   
                         </p>
                       </div>
                     </div>
@@ -241,15 +223,8 @@ const Contact = () => {
                   </div>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="font-medium">Monday - Friday:</span>
-                      <span>9:00 AM - 6:00 PM IST</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Saturday:</span>
-                      <span>10:00 AM - 2:00 PM IST</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Sunday:</span>
+                      <span className="font-medium">Monday - Sunday:</span>
+                      <span>24*7 HRS</span>
                       <span>Closed</span>
                     </div>
                   </div>
@@ -257,29 +232,6 @@ const Contact = () => {
               </Card>
             </div>
           </div>
-        </div>
-      </div>
-      {/* Global Presence Section */}
-      <div className="bg-white py-20">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold text-brand-blue mb-8">
-            Our Global Presence
-          </h2>
-          <p className="max-w-3xl mx-auto text-xl text-gray-600 mb-12 leading-relaxed">
-            With offices in India and distribution partners across the globe, we're equipped to serve your business needs anywhere in the world.
-          </p>
-          
-          <Card className="max-w-4xl mx-auto border-0 shadow-2xl">
-            <CardContent className="p-12">
-              <div className="bg-gradient-to-r from-gray-100 to-gray-200 h-[400px] rounded-2xl flex items-center justify-center">
-                <div className="text-center">
-                  <Globe className="h-20 w-20 text-brand-teal mx-auto mb-4" />
-                  <p className="text-2xl text-gray-600 font-medium">Interactive World Map</p>
-                  <p className="text-gray-500 mt-2">Connecting businesses across 20+ countries</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
