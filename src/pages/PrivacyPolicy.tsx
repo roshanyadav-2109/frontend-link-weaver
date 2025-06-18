@@ -12,140 +12,110 @@ const PrivacyPolicy: React.FC = () => {
             <section>
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">1. Information We Collect</h2>
               <p className="leading-relaxed mb-4">
-                We collect information you provide directly to us, such as when you:
+                At Anantya Overseas, we collect information you provide directly to us, such as when you:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>Create an account or profile</li>
-                <li>Request quotes or services</li>
-                <li>Contact us for support</li>
-                <li>Subscribe to our newsletters</li>
-                <li>Participate in surveys or feedback</li>
+                <li>Request quotes or product information</li>
+                <li>Contact us for support or inquiries</li>
+                <li>Subscribe to our newsletters or updates</li>
+                <li>Participate in surveys or feedback forms</li>
               </ul>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">2. Types of Information</h2>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Personal Information</h3>
-                  <p className="leading-relaxed">
-                    Name, email address, phone number, company information, billing address, and other contact details.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Business Information</h3>
-                  <p className="leading-relaxed">
-                    Company size, industry, procurement needs, product specifications, and business requirements.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Usage Information</h3>
-                  <p className="leading-relaxed">
-                    Website usage patterns, device information, IP address, browser type, and interaction data.
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">3. How We Use Your Information</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">2. How We Use Your Information</h2>
               <p className="leading-relaxed mb-4">
                 We use the information we collect to:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Provide and improve our sourcing services</li>
-                <li>Process quotes and fulfill service requests</li>
-                <li>Communicate with you about our services</li>
-                <li>Send marketing communications (with your consent)</li>
-                <li>Analyze usage patterns to improve user experience</li>
-                <li>Comply with legal obligations</li>
-                <li>Protect against fraud and security threats</li>
+                <li>Process and respond to your inquiries and quote requests</li>
+                <li>Provide customer support and technical assistance</li>
+                <li>Send you product updates and promotional materials (with your consent)</li>
+                <li>Improve our services and website functionality</li>
+                <li>Comply with legal obligations and resolve disputes</li>
               </ul>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">4. Information Sharing</h2>
-              <p className="leading-relaxed mb-4">
-                We may share your information in the following circumstances:
-              </p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li><strong>Service Providers:</strong> With trusted third-party vendors who assist in our operations</li>
-                <li><strong>Business Partners:</strong> With suppliers and manufacturers to fulfill your requests</li>
-                <li><strong>Legal Requirements:</strong> When required by law or to protect our legal rights</li>
-                <li><strong>Business Transfers:</strong> In connection with mergers, acquisitions, or asset sales</li>
-                <li><strong>Consent:</strong> With your explicit consent for specific purposes</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">5. Data Security</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">3. Information Sharing and Disclosure</h2>
               <p className="leading-relaxed">
-                We implement appropriate technical and organizational measures to protect your personal information against 
-                unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet 
-                or electronic storage is 100% secure.
+                We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, 
+                except as described in this policy. We may share your information with trusted partners who assist us in 
+                operating our website and conducting business, provided they agree to keep this information confidential.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">4. Data Security</h2>
+              <p className="leading-relaxed">
+                We implement appropriate security measures to protect your personal information against unauthorized access, 
+                alteration, disclosure, or destruction. This includes internal reviews of our data collection, storage, 
+                and processing practices and security measures.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">5. Cookies and Tracking Technologies</h2>
+              <p className="leading-relaxed">
+                Our website may use cookies and similar tracking technologies to enhance your browsing experience. 
+                You can control cookie settings through your browser preferences, though this may affect some website functionality.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">6. Data Retention</h2>
               <p className="leading-relaxed">
-                We retain your personal information for as long as necessary to fulfill the purposes outlined in this Privacy Policy, 
-                unless a longer retention period is required or permitted by law. Business records may be retained for accounting 
-                and legal compliance purposes.
+                We retain your personal information for as long as necessary to fulfill the purposes outlined in this policy, 
+                unless a longer retention period is required or permitted by law.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">7. Your Rights</h2>
               <p className="leading-relaxed mb-4">
-                Depending on your location, you may have the following rights regarding your personal information:
+                Depending on your location, you may have certain rights regarding your personal information, including:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Access and receive a copy of your personal information</li>
-                <li>Rectify inaccurate or incomplete information</li>
-                <li>Request deletion of your personal information</li>
-                <li>Object to or restrict processing of your information</li>
-                <li>Data portability (receive your data in a structured format)</li>
-                <li>Withdraw consent for processing based on consent</li>
+                <li>The right to access and receive a copy of your personal data</li>
+                <li>The right to rectify inaccurate personal data</li>
+                <li>The right to erase your personal data in certain circumstances</li>
+                <li>The right to restrict processing of your personal data</li>
+                <li>The right to data portability</li>
+                <li>The right to object to processing</li>
               </ul>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">8. International Transfers</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">8. International Data Transfers</h2>
               <p className="leading-relaxed">
-                As a global sourcing company, we may transfer your information to countries outside your residence. 
-                We ensure appropriate safeguards are in place to protect your information during such transfers.
+                Your information may be transferred to and processed in countries other than your own. We ensure that 
+                such transfers are conducted in accordance with applicable data protection laws and with appropriate safeguards in place.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">9. Cookies and Tracking</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">9. Children's Privacy</h2>
               <p className="leading-relaxed">
-                We use cookies and similar tracking technologies to enhance your browsing experience, analyze site traffic, 
-                and understand user preferences. You can control cookie settings through your browser preferences.
+                Our services are not intended for children under 13 years of age. We do not knowingly collect personal 
+                information from children under 13. If we become aware that we have collected personal information from 
+                a child under 13, we will take steps to delete such information.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">10. Children's Privacy</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">10. Changes to This Privacy Policy</h2>
               <p className="leading-relaxed">
-                Our services are not intended for individuals under the age of 16. We do not knowingly collect personal 
-                information from children under 16. If we become aware of such collection, we will take steps to delete the information.
+                We may update this Privacy Policy from time to time. We will notify you of any changes by posting the 
+                new Privacy Policy on this page and updating the "Last updated" date. You are advised to review this 
+                Privacy Policy periodically for any changes.
               </p>
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">11. Changes to This Policy</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">11. Contact Us</h2>
               <p className="leading-relaxed">
-                We may update this Privacy Policy from time to time. We will notify you of any material changes by posting 
-                the new Privacy Policy on our website and updating the "Last Updated" date.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">12. Contact Us</h2>
-              <p className="leading-relaxed">
-                If you have any questions about this Privacy Policy or our data practices, please contact us at:
+                If you have any questions about this Privacy Policy or our privacy practices, please contact us at:
               </p>
               <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                 <p><strong>Email:</strong> privacy@anantyaoverseas.com</p>

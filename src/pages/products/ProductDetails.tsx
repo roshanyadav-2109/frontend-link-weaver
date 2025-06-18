@@ -3,11 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, MessageSquare, Star, Shield, Truck, Award, Globe } from 'lucide-react';
+import { Loader2, ArrowLeft, MessageSquare, Star, Shield, Truck, Award, Globe, Filter } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import AdvancedQuoteForm from '@/components/AdvancedQuoteForm';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Product {
   id: string;
@@ -38,6 +40,7 @@ const ProductDetails: React.FC = () => {
           .from('products')
           .select('*')
           .eq('id', id)
+          .eq('status', 'active')
           .single();
         
         if (error) {
@@ -58,7 +61,7 @@ const ProductDetails: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[500px] bg-gray-50">
+      <div className="flex items-center justify-center min-h-[500px] bg-gray-50 pt-24">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-brand-blue mx-auto mb-4" />
           <p className="text-gray-600">Loading product details...</p>
@@ -69,7 +72,7 @@ const ProductDetails: React.FC = () => {
 
   if (error || !product) {
     return (
-      <div className="container py-20 text-center bg-gray-50 min-h-screen flex items-center justify-center">
+      <div className="container py-20 text-center bg-gray-50 min-h-screen flex items-center justify-center pt-24">
         <div>
           <h1 className="text-3xl font-bold mb-4 text-gray-900">Product Not Found</h1>
           <p className="text-gray-600 mb-8">{error || 'The product you are looking for does not exist'}</p>
@@ -88,7 +91,7 @@ const ProductDetails: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pt-20">
       {/* Breadcrumb */}
       <div className="bg-white border-b">
         <div className="container py-4">
@@ -163,7 +166,7 @@ const ProductDetails: React.FC = () => {
               size="lg"
             >
               <MessageSquare className="mr-3 h-6 w-6" />
-              Get Detailed Quote
+              Request Quote
             </Button>
 
             {/* Features Grid */}

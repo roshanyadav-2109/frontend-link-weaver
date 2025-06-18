@@ -21,13 +21,28 @@ const Footer: React.FC = () => {
               Connecting global markets through innovative sourcing solutions and strategic partnerships.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-brand-blue transition-colors">
+              <a 
+                href="https://facebook.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-brand-blue transition-colors"
+              >
                 <Facebook size={20} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-brand-blue transition-colors">
+              <a 
+                href="https://twitter.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-brand-blue transition-colors"
+              >
                 <Twitter size={20} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-brand-blue transition-colors">
+              <a 
+                href="https://linkedin.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-brand-blue transition-colors"
+              >
                 <Linkedin size={20} />
               </a>
             </div>
@@ -63,11 +78,21 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <Mail size={18} className="text-brand-blue" />
-                <span className="text-gray-300 text-sm">info@anantyaoverseas.com</span>
+                <a 
+                  href="mailto:info@anantyaoverseas.com"
+                  className="text-gray-300 text-sm hover:text-white transition-colors"
+                >
+                  info@anantyaoverseas.com
+                </a>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone size={18} className="text-brand-blue" />
-                <span className="text-gray-300 text-sm">+91 98765 43210</span>
+                <a 
+                  href="tel:+919876543210"
+                  className="text-gray-300 text-sm hover:text-white transition-colors"
+                >
+                  +91 98765 43210
+                </a>
               </div>
               <div className="flex items-center space-x-3">
                 <MapPin size={18} className="text-brand-blue" />

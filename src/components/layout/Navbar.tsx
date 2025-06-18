@@ -1,12 +1,23 @@
 
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { isAuthenticated, user, signOut, isAdmin, isManufacturer } = useAuth();
 
   const isActiveRoute = (path: string) => {
     return location.pathname === path;
@@ -20,6 +31,14 @@ const Navbar: React.FC = () => {
     { path: '/contact', label: 'Contact' },
   ];
 
+  const getUserInitials = () => user?.email?.charAt(0).toUpperCase() || "U";
+
+  const getDashboardPath = () => {
+    if (isAdmin) return '/admin';
+    if (isManufacturer) return '/manufacturer/dashboard';
+    return '/dashboard';
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-lg transition-all duration-300">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -30,7 +49,7 @@ const Navbar: React.FC = () => {
               <img 
                 src="/lovable-uploads/24c42267-8e02-494f-95c1-2c9dd3307076.png" 
                 alt="Anantya Overseas" 
-                className="h-14 w-auto"
+                className="h-16 w-auto"
               />
             </Link>
           </div>
@@ -54,18 +73,60 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Desktop Auth Buttons */}
+          {/* Desktop Auth Section */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/auth/initial">
-              <Button variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
-                Sign In
-              </Button>
-            </Link>
-            <Link to="/request-quote">
-              <Button className="bg-brand-teal hover:bg-brand-teal/90 text-white">
-                Get Started
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-4">
+                <Link to={getDashboardPath()}>
+                  <Button variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
+                    Dashboard
+                  </Button>
+                </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="bg-brand-teal text-white">
+                          {getUserInitials()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium">My Account</p>
+                        <p className="text-xs text-gray-500">{user?.email}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to={getDashboardPath()} className="flex items-center w-full">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={signOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ) : (
+              <>
+                <Link to="/auth/initial">
+                  <Button variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/request-quote">
+                  <Button className="bg-brand-teal hover:bg-brand-teal/90 text-white">
+                    Get Started
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -99,20 +160,55 @@ const Navbar: React.FC = () => {
               </Link>
             ))}
             <div className="pt-4 pb-2 border-t border-gray-200 space-y-2">
-              <Link
-                to="/auth/initial"
-                className="block px-3 py-2 text-base font-medium text-brand-blue hover:bg-blue-50"
-                onClick={() => setIsOpen(false)}
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/request-quote"
-                className="block px-3 py-2 text-base font-medium bg-brand-teal text-white rounded-md hover:bg-brand-teal/90 mx-3"
-                onClick={() => setIsOpen(false)}
-              >
-                Get Started
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  <div className="px-3 py-2">
+                    <div className="flex items-center">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-brand-teal text-white text-sm">
+                          {getUserInitials()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="ml-3">
+                        <div className="text-sm font-medium text-gray-800">{user?.email}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <Link
+                    to={getDashboardPath()}
+                    className="block px-3 py-2 text-base font-medium text-brand-blue hover:bg-blue-50"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={() => {
+                      signOut();
+                      setIsOpen(false);
+                    }}
+                    className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-brand-blue hover:bg-gray-50"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/auth/initial"
+                    className="block px-3 py-2 text-base font-medium text-brand-blue hover:bg-blue-50"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/request-quote"
+                    className="block px-3 py-2 text-base font-medium bg-brand-teal text-white rounded-md hover:bg-brand-teal/90 mx-3"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

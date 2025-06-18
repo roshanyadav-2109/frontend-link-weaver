@@ -28,6 +28,7 @@ import UserDashboard from "./pages/UserDashboard";
 import ManufacturerDashboard from "./pages/manufacturer/Dashboard";
 import CatalogRequests from "./pages/manufacturer/CatalogRequests";
 import TermsAndConditions from "./pages/TermsAndConditions";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 // Components
 import Navbar from "./components/layout/Navbar";
@@ -148,7 +149,7 @@ const AppRoutes = () => {
         path="/dashboard" 
         element={
           <ProtectedRoute>
-            <AuthenticatedNavbar />
+            {isAuthenticated ? <AuthenticatedNavbar /> : <Navbar />}
             <main className="flex-grow">
               <UserDashboard />
             </main>
@@ -162,7 +163,7 @@ const AppRoutes = () => {
         path="*"
         element={
           <>
-            <Navbar />
+            {isAuthenticated ? <AuthenticatedNavbar /> : <Navbar />}
             <main className="flex-grow">
               <Routes>
                 <Route path="/" element={<Index />} />
@@ -176,6 +177,7 @@ const AppRoutes = () => {
                 <Route path="/careers" element={<Careers />} />
                 <Route path="/request-quote" element={<RequestQuotePage />} />
                 <Route path="/terms" element={<TermsAndConditions />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
