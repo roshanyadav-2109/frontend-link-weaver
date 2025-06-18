@@ -14,7 +14,7 @@ const Footer: React.FC = () => {
               <img 
                 src="/lovable-uploads/24c42267-8e02-494f-95c1-2c9dd3307076.png" 
                 alt="Anantya Overseas" 
-                className="h-10 w-auto filter brightness-0 invert"
+                className="h-12 w-auto filter brightness-0 invert"
               />
             </div>
             <p className="text-gray-300 text-sm leading-relaxed">
@@ -41,6 +41,7 @@ const Footer: React.FC = () => {
               <li><Link to="/categories" className="text-gray-300 hover:text-white transition-colors">Products</Link></li>
               <li><Link to="/careers" className="text-gray-300 hover:text-white transition-colors">Careers</Link></li>
               <li><Link to="/contact" className="text-gray-300 hover:text-white transition-colors">Contact</Link></li>
+              <li><Link to="/request-quote" className="text-gray-300 hover:text-white transition-colors">Request Quote</Link></li>
             </ul>
           </div>
 
@@ -48,10 +49,11 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Services</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Global Sourcing</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">B2B Wholesale</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Quality Assurance</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white transition-colors">Export Solutions</a></li>
+              <li><span className="text-gray-300">Global Sourcing</span></li>
+              <li><span className="text-gray-300">B2B Wholesale</span></li>
+              <li><span className="text-gray-300">Quality Assurance</span></li>
+              <li><span className="text-gray-300">Export Solutions</span></li>
+              <li><span className="text-gray-300">Startup Support</span></li>
             </ul>
           </div>
 
@@ -82,11 +84,11 @@ const Footer: React.FC = () => {
           </p>
           <div className="mt-4 md:mt-0 flex space-x-6">
             <Link to="/terms" className="text-gray-400 hover:text-white text-sm transition-colors">
-              Terms & Conditions
+              Terms of Service
             </Link>
-            <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">
+            <Link to="/privacy" className="text-gray-400 hover:text-white text-sm transition-colors">
               Privacy Policy
-            </a>
+            </Link>
           </div>
         </div>
       </div>

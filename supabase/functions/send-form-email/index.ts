@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
-// The recipient email; change it if you want all notifications somewhere else
+// The recipient email
 const RECIPIENT = "info@anantyaoverseas.com";
 
 const corsHeaders = {
@@ -34,6 +34,54 @@ function makeHtmlBody(type: string, payload: Record<string, any>) {
         <div style="background:white;padding:15px;border-radius:4px;border-left:4px solid #22446d;">
           ${payload.coverLetter.replace(/\n/g, '<br>')}
         </div>
+      </div>
+    `;
+  } else if (type === "New Quote Request") {
+    // Special formatting for quote requests
+    html += `
+      <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0;">
+        <h3 style="color:#22446d;margin-top:0;">Quote Request Details</h3>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr><td style="padding:8px;font-weight:600;border-bottom:1px solid #ddd;">Customer Name:</td><td style="padding:8px;border-bottom:1px solid #ddd;">${payload.name}</td></tr>
+          <tr><td style="padding:8px;font-weight:600;border-bottom:1px solid #ddd;">Email:</td><td style="padding:8px;border-bottom:1px solid #ddd;">${payload.email}</td></tr>
+          <tr><td style="padding:8px;font-weight:600;border-bottom:1px solid #ddd;">Phone:</td><td style="padding:8px;border-bottom:1px solid #ddd;">${payload.phone}</td></tr>
+          <tr><td style="padding:8px;font-weight:600;border-bottom:1px solid #ddd;">Company:</td><td style="padding:8px;border-bottom:1px solid #ddd;">${payload.company || 'Not provided'}</td></tr>
+          <tr><td style="padding:8px;font-weight:600;border-bottom:1px solid #ddd;">Product:</td><td style="padding:8px;border-bottom:1px solid #ddd;">${payload.product_name}</td></tr>
+          <tr><td style="padding:8px;font-weight:600;border-bottom:1px solid #ddd;">Quantity:</td><td style="padding:8px;border-bottom:1px solid #ddd;">${payload.quantity} ${payload.unit || ''}</td></tr>
+        </table>
+        ${payload.additional_details ? `
+          <h4 style="color:#22446d;margin-top:20px;">Additional Details:</h4>
+          <div style="background:white;padding:15px;border-radius:4px;border-left:4px solid #22446d;">
+            ${payload.additional_details.replace(/\n/g, '<br>')}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  } else if (type === "New Catalog Request") {
+    // Special formatting for catalog requests
+    html += `
+      <div style="background:#f8f9fa;padding:20px;border-radius:8px;margin:20px 0;">
+        <h3 style="color:#22446d;margin-top:0;">Catalog Request Details</h3>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr><td style="padding:8px;font-weight:600;border-bottom:1px solid #ddd;">Customer Name:</td><td style="padding:8px;border-bottom:1px solid #ddd;">${payload.name}</td></tr>
+          <tr><td style="padding:8px;font-weight:600;border-bottom:1px solid #ddd;">Email:</td><td style="padding:8px;border-bottom:1px solid #ddd;">${payload.email}</td></tr>
+          <tr><td style="padding:8px;font-weight:600;border-bottom:1px solid #ddd;">Company:</td><td style="padding:8px;border-bottom:1px solid #ddd;">${payload.company}</td></tr>
+          <tr><td style="padding:8px;font-weight:600;border-bottom:1px solid #ddd;">Phone:</td><td style="padding:8px;border-bottom:1px solid #ddd;">${payload.phone}</td></tr>
+          <tr><td style="padding:8px;font-weight:600;border-bottom:1px solid #ddd;">Country:</td><td style="padding:8px;border-bottom:1px solid #ddd;">${payload.country}</td></tr>
+          <tr><td style="padding:8px;font-weight:600;border-bottom:1px solid #ddd;">Custom Catalog:</td><td style="padding:8px;border-bottom:1px solid #ddd;">${payload.customCatalog ? 'Yes' : 'No'}</td></tr>
+        </table>
+        ${payload.selectedProductNames ? `
+          <h4 style="color:#22446d;margin-top:20px;">Selected Products:</h4>
+          <div style="background:white;padding:15px;border-radius:4px;border-left:4px solid #22446d;">
+            ${payload.selectedProductNames}
+          </div>
+        ` : ''}
+        ${payload.message ? `
+          <h4 style="color:#22446d;margin-top:20px;">Additional Requirements:</h4>
+          <div style="background:white;padding:15px;border-radius:4px;border-left:4px solid #22446d;">
+            ${payload.message.replace(/\n/g, '<br>')}
+          </div>
+        ` : ''}
       </div>
     `;
   } else {
@@ -68,7 +116,6 @@ serve(async (req: Request) => {
     // Handle different form types
     if (requestData.type === "quote") {
       subject = "New Quote Request";
-      // Remove the type field from email data
       const { type, ...quoteData } = requestData;
       emailData = quoteData;
     } else if (requestData.type === "catalog") {

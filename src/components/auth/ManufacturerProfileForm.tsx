@@ -1,231 +1,278 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
-
-const productTypes = [
-  'Electronics',
-  'Textiles',
-  'Automotive Parts',
-  'Pharmaceuticals',
-  'Food & Beverages',
-  'Chemicals',
-  'Machinery',
-  'Other'
-];
+import { Textarea } from '@/components/ui/textarea';
 
 const manufacturerProfileSchema = z.object({
-  companyName: z.string().min(2, "Company name is required"),
+  fullName: z.string().min(2, 'Full name is required'),
+  companyName: z.string().min(2, 'Company name is required'),
   gstin: z.string().optional(),
-  location: z.string().min(2, "Location is required"),
-  representativeName: z.string().min(2, "Representative name is required"),
-  contactNumber: z.string().min(10, "Valid contact number is required").max(15),
-  productType: z.string().min(1, "Product type is required"),
-  otherProductType: z.string().optional(),
+  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
+  address: z.string().min(5, 'Address is required'),
+  city: z.string().min(2, 'City is required'),
+  country: z.string().min(2, 'Country is required'),
+  businessType: z.string().optional(),
+  productCategories: z.string().optional(),
+  certifications: z.string().optional(),
 });
 
 const ManufacturerProfileForm = () => {
-  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof manufacturerProfileSchema>>({
     resolver: zodResolver(manufacturerProfileSchema),
     defaultValues: {
+      fullName: '',
       companyName: '',
       gstin: '',
-      location: '',
-      representativeName: '',
-      contactNumber: '',
-      productType: '',
-      otherProductType: '',
-    }
+      phone: '',
+      address: '',
+      city: '',
+      country: 'India',
+      businessType: '',
+      productCategories: '',
+      certifications: '',
+    },
   });
-
-  const watchProductType = form.watch('productType');
 
   const onSubmit = async (values: z.infer<typeof manufacturerProfileSchema>) => {
     if (!user) {
-      toast.error("You must be signed in");
+      toast.error('You must be signed in to complete your profile');
       return;
     }
 
-    setLoading(true);
     try {
-      const productCategories = values.productType === 'Other' && values.otherProductType 
-        ? [values.otherProductType] 
-        : [values.productType];
-
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          full_name: values.representativeName,
+          full_name: values.fullName,
           company_name: values.companyName,
-          phone: values.contactNumber,
-          address: values.location,
+          gstin: values.gstin,
+          phone: values.phone,
+          address: values.address,
+          city: values.city,
+          country: values.country,
           user_type: 'manufacturer',
-          gstin: values.gstin || null,
         })
         .eq('id', user.id);
 
       if (profileError) {
-        toast.error(profileError.message);
+        console.error('Profile update error:', profileError);
+        toast.error('Failed to update profile');
         return;
       }
 
+      // Create manufacturer-specific record
       const { error: manufacturerError } = await supabase
         .from('manufacturers')
         .insert({
           user_id: user.id,
-          business_type: 'Manufacturing',
-          product_categories: productCategories,
+          business_type: values.businessType,
+          product_categories: values.productCategories ? values.productCategories.split(',').map(cat => cat.trim()) : [],
+          certifications: values.certifications ? values.certifications.split(',').map(cert => cert.trim()) : [],
+          export_experience: true,
         });
 
       if (manufacturerError) {
-        toast.error(manufacturerError.message);
-        return;
+        console.error('Manufacturer record error:', manufacturerError);
+        // Don't fail the whole process if this fails
       }
 
-      toast.success("Profile completed successfully!");
+      toast.success('Profile completed successfully!');
       navigate('/manufacturer/dashboard');
     } catch (error) {
-      toast.error('An error occurred while updating your profile');
-    } finally {
-      setLoading(false);
+      console.error('Error completing profile:', error);
+      toast.error('An error occurred while completing your profile');
     }
   };
 
   return (
-    <div className="w-full max-w-md mx-auto bg-white p-6 shadow rounded-lg">
-      <h1 className="text-xl font-bold mb-6 text-center">Complete Your Manufacturer Profile</h1>
-      
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="companyName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Company Name *</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="Enter company name" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+    <div className="w-full max-w-2xl mx-auto">
+      <Card className="shadow-2xl border-0">
+        <CardHeader className="text-center pb-6">
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-brand-blue to-brand-teal bg-clip-text text-transparent">
+            Complete Your Manufacturer Profile
+          </CardTitle>
+          <p className="text-gray-600 mt-2">
+            Help us understand your business better to provide tailored solutions
+          </p>
+        </CardHeader>
+        
+        <CardContent className="space-y-6">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="fullName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="John Doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="companyName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Your Manufacturing Company" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-          <FormField
-            control={form.control}
-            name="gstin"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>GSTIN Number</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="15AADCT1234C1Z5 (Optional)" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="gstin"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>GSTIN</FormLabel>
+                      <FormControl>
+                        <Input placeholder="22AAAAA0000A1Z5" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+91 9876543210" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-          <FormField
-            control={form.control}
-            name="location"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Location *</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="City, State" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business Address *</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Complete business address"
+                        className="min-h-[80px]"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <FormField
-            control={form.control}
-            name="representativeName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Representative Name *</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="Enter representative name" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>City *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Mumbai" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="India" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-          <FormField
-            control={form.control}
-            name="contactNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Contact Number *</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="+91 XXXXX XXXXX" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <FormField
+                control={form.control}
+                name="businessType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business Type</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Manufacturing, Trading, Export" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <FormField
-            control={form.control}
-            name="productType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Primary Product Type *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select product type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {productTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <FormField
+                control={form.control}
+                name="productCategories"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Product Categories</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Textiles, Electronics, Chemical (comma separated)" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {watchProductType === 'Other' && (
-            <FormField
-              control={form.control}
-              name="otherProductType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Specify Product Type *</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Enter your product type" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+              <FormField
+                control={form.control}
+                name="certifications"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Certifications</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., ISO 9001, CE, FDA (comma separated)" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Updating...' : 'Complete Profile'}
-          </Button>
-        </form>
-      </Form>
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-brand-blue to-brand-teal hover:from-brand-blue/90 hover:to-brand-teal/90 text-white py-3 text-lg font-semibold"
+                disabled={form.formState.isSubmitting}
+              >
+                {form.formState.isSubmitting ? 'Completing Profile...' : 'Complete Profile'}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
     </div>
   );
 };

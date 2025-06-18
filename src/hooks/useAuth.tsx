@@ -41,9 +41,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
   
   useEffect(() => {
+    let mounted = true;
+
     // Set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
+        if (!mounted) return;
+        
         console.log('Auth state change:', event, currentSession?.user?.email);
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
@@ -60,7 +64,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.error('Error fetching profile:', error);
             setProfile(null);
           } else {
-            // Properly type the profile data to ensure user_type is the correct union type
             const typedProfile: Profile = {
               is_admin: profileData.is_admin || false,
               user_type: profileData.user_type as 'manufacturer' | 'client' | undefined,
@@ -74,7 +77,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             
             // Handle post-authentication navigation
             if (event === 'SIGNED_IN' && profileData) {
-              handlePostAuthNavigation(typedProfile);
+              setTimeout(() => {
+                handlePostAuthNavigation(typedProfile);
+              }, 100);
             }
           }
         } else {
@@ -87,22 +92,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      if (!mounted) return;
+      
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       
       if (currentSession?.user) {
-        // Fetch the user profile data
         supabase
           .from('profiles')
           .select('is_admin, user_type, gstin, full_name, company_name, phone, address')
           .eq('id', currentSession.user.id)
           .single()
           .then(({ data: profileData, error }) => {
+            if (!mounted) return;
+            
             if (error) {
               console.error('Error fetching profile:', error);
               setProfile(null);
             } else {
-              // Properly type the profile data
               const typedProfile: Profile = {
                 is_admin: profileData.is_admin || false,
                 user_type: profileData.user_type as 'manufacturer' | 'client' | undefined,
@@ -122,7 +129,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     });
     
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handlePostAuthNavigation = (profileData: Profile) => {
@@ -151,6 +161,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -183,6 +194,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       toast.error('An error occurred during login');
       return false;
+    } finally {
+      setLoading(false);
     }
   };
   
