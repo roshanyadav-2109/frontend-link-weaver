@@ -64,14 +64,14 @@ const Contact = () => {
               <Globe className="h-5 w-5 text-white mr-2" />
               <span className="text-white font-medium">Connect Globally</span>
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 animate-fade-in animate-delay-100">
-              Let's Connect & 
-              <span className="block bg-gradient-to-r from-yellow-200 to-white bg-clip-text text-transparent">
-                Build Together
+            <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-6 animate-fade-in animate-delay-100">
+              Connect for 
+              <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 bg-clip-text text-transparent font-black">
+                Business Inquiriers
               </span>
             </h1>
             <p className="text-xl text-white/90 max-w-3xl mx-auto animate-fade-in animate-delay-200">
-              Whether you're ready to place a bulk order or just want to understand how we work, our team is here to help you succeed.
+              Whether you are prepared to proceed with a bulk order or explore a manufacturing partnership, we invite you to contact our team to discuss how we can support your business objectives.
             </p>
           </div>
         </div>
@@ -103,8 +103,7 @@ const Contact = () => {
                             <FormItem>
                               <FormLabel className="text-lg font-semibold">Your Name</FormLabel>
                               <FormControl>
-                                <Input 
-                                  placeholder="John Doe" 
+                                <Input                                    
                                   className="h-12 text-lg border-2 focus:border-brand-teal"
                                   {...field} 
                                 />
