@@ -1,23 +1,127 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Package, 
   TrendingUp,
   FileText,
   MessageSquare,
-  ShoppingCart
+  ShoppingCart,
+  Users
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface Product {
+  id: string;
+  name: string;
+  category: string;
+  status: string;
+  created_at: string;
+}
+
+interface CatalogRequest {
+  id: string;
+  client_name: string;
+  company_name: string;
+  category: string;
+  status: string;
+  created_at: string;
+}
 
 const Dashboard: React.FC = () => {
   const { user, profile } = useAuth();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [catalogRequests, setCatalogRequests] = useState<CatalogRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDashboardData = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+
+      // Fetch products
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select('id, name, category, status, created_at')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (productsError) {
+        console.error('Error fetching products:', productsError);
+        toast.error('Failed to load products');
+      } else {
+        setProducts(productsData || []);
+      }
+
+      // Fetch catalog requests
+      const { data: catalogsData, error: catalogsError } = await supabase
+        .from('catalog_requests')
+        .select('id, client_name, company_name, category, status, created_at')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (catalogsError) {
+        console.error('Error fetching catalog requests:', catalogsError);
+        toast.error('Failed to load catalog requests');
+      } else {
+        setCatalogRequests(catalogsData || []);
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+
+    // Set up real-time subscriptions
+    const productsChannel = supabase
+      .channel('products_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'products'
+        },
+        () => {
+          fetchDashboardData();
+        }
+      )
+      .subscribe();
+
+    const catalogChannel = supabase
+      .channel('catalog_requests_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'catalog_requests'
+        },
+        () => {
+          fetchDashboardData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(productsChannel);
+      supabase.removeChannel(catalogChannel);
+    };
+  }, [user?.id]);
 
   const statCards = [
     {
       title: 'Products',
-      value: '24',
-      change: '+3 this month',
+      value: products.length.toString(),
+      change: `${products.filter(p => p.status === 'active').length} active`,
       icon: <Package className="h-8 w-8 text-brand-blue" />
     },
     {
@@ -28,28 +132,62 @@ const Dashboard: React.FC = () => {
     },
     {
       title: 'Catalog Requests',
-      value: '12',
-      change: '5 new requests',
+      value: catalogRequests.length.toString(),
+      change: `${catalogRequests.filter(c => c.status === 'pending').length} new requests`,
       icon: <FileText className="h-8 w-8 text-orange-500" />
     },
     {
       title: 'Customer Inquiries',
-      value: '16',
-      change: '4 unread messages',
+      value: catalogRequests.filter(c => c.status === 'pending').length.toString(),
+      change: `${catalogRequests.filter(c => c.status === 'pending').length} unread messages`,
       icon: <MessageSquare className="h-8 w-8 text-purple-500" />
     }
   ];
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'approved':
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'rejected':
+      case 'inactive':
+        return 'bg-red-100 text-red-800';
+      case 'viewed':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-blue"></div>
+      </div>
+    );
+  }
 
   return (
     <div>
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Manufacturer Dashboard</h1>
-          <p className="text-gray-600">Welcome back, {user?.user_metadata?.full_name || user?.email}</p>
+          <p className="text-gray-600">Welcome back, {profile?.full_name || user?.email?.split('@')[0]}</p>
         </div>
         <div className="mt-4 md:mt-0 bg-white p-3 rounded-lg shadow-sm border border-gray-200">
           <p className="text-sm text-gray-600">GSTIN</p>
-          <p className="font-semibold text-gray-800">{profile?.gstin || user?.user_metadata?.gstin || 'Not provided'}</p>
+          <p className="font-semibold text-gray-800">{profile?.gstin || 'Not provided'}</p>
         </div>
       </div>
 
@@ -78,31 +216,27 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { client: 'Global Imports Inc.', date: '2023-04-28', category: 'Textiles & Fabrics', status: 'New' },
-                { client: 'European Trade LLC', date: '2023-04-26', category: 'Leather Products', status: 'Viewed' },
-                { client: 'Asian Markets Co.', date: '2023-04-25', category: 'Handicrafts & Decor', status: 'Responded' },
-                { client: 'American Retail Group', date: '2023-04-22', category: 'Textiles & Fabrics', status: 'New' },
-              ].map((request, i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <div>
-                    <p className="font-medium text-gray-800">{request.client}</p>
-                    <p className="text-sm text-gray-500">{request.category}</p>
+              {catalogRequests.length > 0 ? (
+                catalogRequests.slice(0, 4).map((request) => (
+                  <div key={request.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                    <div>
+                      <p className="font-medium text-gray-800">{request.company_name || request.client_name}</p>
+                      <p className="text-sm text-gray-500">{request.category}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className={`text-xs px-2 py-1 rounded ${getStatusColor(request.status)}`}>
+                        {request.status}
+                      </span>
+                      <p className="text-xs text-gray-500 mt-1">{formatDate(request.created_at)}</p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className={`text-xs px-2 py-1 rounded ${
-                      request.status === 'New' 
-                        ? 'bg-blue-100 text-blue-800' 
-                        : request.status === 'Viewed' 
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-green-100 text-green-800'
-                    }`}>
-                      {request.status}
-                    </span>
-                    <p className="text-xs text-gray-500 mt-1">{request.date}</p>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-6 text-gray-500">
+                  <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>No catalog requests yet</p>
                 </div>
-              ))}
+              )}
             </div>
             <div className="mt-4">
               <a href="/manufacturer/catalog-requests" className="text-sm text-brand-blue hover:underline">View all catalog requests →</a>
@@ -112,27 +246,35 @@ const Dashboard: React.FC = () => {
 
         <Card className="shadow-md">
           <CardHeader>
-            <CardTitle>Top Performing Products</CardTitle>
+            <CardTitle>Recent Products</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { name: 'Handwoven Cotton Sarees', views: 452, inquiries: 24 },
-                { name: 'Leather Laptop Bags', views: 328, inquiries: 18 },
-                { name: 'Brass Decorative Items', views: 287, inquiries: 12 },
-                { name: 'Organic Spice Set', views: 235, inquiries: 9 },
-              ].map((product, i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <p className="font-medium text-gray-800">{product.name}</p>
-                  <div className="text-right">
-                    <p className="text-sm"><span className="text-gray-500">Views:</span> <span className="font-semibold">{product.views}</span></p>
-                    <p className="text-sm"><span className="text-gray-500">Inquiries:</span> <span className="font-semibold">{product.inquiries}</span></p>
+              {products.length > 0 ? (
+                products.slice(0, 4).map((product) => (
+                  <div key={product.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                    <div>
+                      <p className="font-medium text-gray-800">{product.name}</p>
+                      <p className="text-sm text-gray-500">{product.category}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className={`text-xs px-2 py-1 rounded ${getStatusColor(product.status)}`}>
+                        {product.status}
+                      </span>
+                      <p className="text-xs text-gray-500 mt-1">{formatDate(product.created_at)}</p>
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-6 text-gray-500">
+                  <Package className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>No products yet</p>
+                  <p className="text-sm">Add products to get started</p>
                 </div>
-              ))}
+              )}
             </div>
             <div className="mt-4">
-              <a href="/manufacturer/products" className="text-sm text-brand-blue hover:underline">Manage all products →</a>
+              <a href="/admin/products" className="text-sm text-brand-blue hover:underline">Manage all products →</a>
             </div>
           </CardContent>
         </Card>

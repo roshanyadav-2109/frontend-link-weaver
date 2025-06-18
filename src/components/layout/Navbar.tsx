@@ -1,12 +1,14 @@
 
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { isAuthenticated, signOut, user } = useAuth();
 
   const navigation = [
     { name: 'Home', href: '/' },
@@ -22,9 +24,11 @@ const Navbar: React.FC = () => {
         <div className="flex flex-row items-center justify-between h-16 gap-4">
           <div className="flex items-center h-16">
             <Link to="/" className="flex-shrink-0 flex items-center h-16">
-              <span className="text-xl font-bold transition-colors duration-300 text-brand-blue">
-                Anantya<span className="text-brand-teal">Overseas</span>
-              </span>
+              <img 
+                src="/lovable-uploads/24c42267-8e02-494f-95c1-2c9dd3307076.png" 
+                alt="Anantya Overseas" 
+                className="h-12 w-auto"
+              />
             </Link>
           </div>
           
@@ -47,16 +51,30 @@ const Navbar: React.FC = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-3 h-16">
-            <Link to="/auth/initial">
-              <Button variant="outline" size="sm">
-                Sign In
-              </Button>
-            </Link>
-            <Link to="/auth/initial">
-              <Button size="sm">
-                Get Started
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-600">
+                  Welcome, {user?.email?.split('@')[0]}
+                </span>
+                <Button onClick={signOut} variant="outline" size="sm">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Link to="/auth/initial">
+                  <Button variant="outline" size="sm">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/auth/initial">
+                  <Button size="sm">
+                    Get Started
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
           <div className="md:hidden">
             <button
@@ -86,16 +104,25 @@ const Navbar: React.FC = () => {
               </Link>
             ))}
             <div className="border-t pt-4 mt-4">
-              <Link to="/auth/initial" className="block w-full mb-2">
-                <Button variant="outline" size="sm" className="w-full">
-                  Sign In
+              {isAuthenticated ? (
+                <Button onClick={signOut} variant="outline" size="sm" className="w-full">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
                 </Button>
-              </Link>
-              <Link to="/auth/initial" className="block w-full">
-                <Button size="sm" className="w-full">
-                  Get Started
-                </Button>
-              </Link>
+              ) : (
+                <>
+                  <Link to="/auth/initial" className="block w-full mb-2">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link to="/auth/initial" className="block w-full">
+                    <Button size="sm" className="w-full">
+                      Get Started
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
