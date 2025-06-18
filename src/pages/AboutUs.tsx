@@ -18,7 +18,7 @@ const AboutUs: React.FC = () => {
     },
     {
       name: "Vishakh Agarwal",
-      title: "Co-Founder, Karo Startup, SWE at HPE Compute, President JITSIE IIT Madras", 
+      title: "Co-Founder,Founding Board Member at Karo Startup , SWE at HPE Compute, President JITSIE IIT Madras", 
       image: "/lovable-uploads/8bf8cf03-6d46-4fd6-9227-dc3d4c91e44b.png",
       linkedin: "https://www.linkedin.com/in/vishakh-agarwal/"
     }
