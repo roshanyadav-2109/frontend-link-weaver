@@ -223,9 +223,7 @@ const Contact = () => {
                   </div>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="font-medium">Monday - Sunday:</span>
-                      <span>24*7 HRS</span>
-                      <span>Closed</span>
+                      <span className="font-medium">Monday - Sunday: Available 24/7 HRS</span>
                     </div>
                   </div>
                 </CardContent>
