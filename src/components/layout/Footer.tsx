@@ -12,7 +12,7 @@ const Footer: React.FC = () => {
           <div className="space-y-4">
             <div className="flex items-center">
               <img 
-                src="/lovable-uploads/24c42267-8e02-494f-95c1-2c9dd3307076.png" 
+                src="/lovable-uploads/Black_White_Minimalist_Professional_Initial_Logo__1_-removebg-preview.png" 
                 alt="Anantya Overseas" 
                 className="h-12 w-auto filter brightness-0 invert"
               />
