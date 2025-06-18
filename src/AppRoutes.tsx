@@ -10,7 +10,8 @@ import Contact from "./pages/Contact";
 import AboutUs from "./pages/AboutUs";
 import ManufacturerAuth from "./pages/auth/ManufacturerAuth";
 import ClientAuth from "./pages/auth/ClientAuth";
-import NewClientAuth from "./pages/auth/NewClientAuth";
+import InitialAuth from "./pages/auth/InitialAuth";
+import ProfileCompletion from "./pages/auth/ProfileCompletion";
 import AuthCallback from "./pages/auth/AuthCallback";
 import Careers from "./pages/Careers";
 import Categories from "./pages/categories/Categories";
@@ -27,6 +28,7 @@ import RequestQuotePage from "./pages/RequestQuotePage";
 import UserDashboard from "./pages/UserDashboard";
 import ManufacturerDashboard from "./pages/manufacturer/Dashboard";
 import CatalogRequests from "./pages/manufacturer/CatalogRequests";
+import TermsAndConditions from "./pages/TermsAndConditions";
 
 // Components
 import Navbar from "./components/layout/Navbar";

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -11,12 +10,13 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Separator } from '@/components/ui/separator';
+import UserTypeSelector from '@/components/auth/UserTypeSelector';
 
 const clientRegisterSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   confirmPassword: z.string().min(6),
-  companyType: z.enum(['registered', 'non-registered']),
+  userType: z.enum(['client', 'manufacturer']),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ['confirmPassword']
@@ -42,7 +42,7 @@ const ClientAuth = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/");
+      navigate("/profile-completion?type=client");
     }
   }, [isAuthenticated, navigate]);
 
@@ -52,7 +52,7 @@ const ClientAuth = () => {
       email: '',
       password: '',
       confirmPassword: '',
-      companyType: 'registered'
+      userType: 'client'
     }
   });
 
@@ -76,8 +76,8 @@ const ClientAuth = () => {
         email: values.email,
         password: values.password,
         options: {
-          data: { user_type: 'client', company_type: values.companyType },
-          emailRedirectTo: `${window.location.origin}/auth/client`
+          data: { user_type: values.userType },
+          emailRedirectTo: `${window.location.origin}/profile-completion?type=${values.userType}`
         }
       });
       if (error) return toast.error(error.message);
@@ -138,9 +138,16 @@ const ClientAuth = () => {
   if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm mx-auto bg-white p-6 shadow rounded">
-        <h1 className="text-lg font-bold mb-5 text-center">{isRegister ? 'Sign Up (Client)' : (showForgot ? "Reset Password" : 'Sign In (Client)')}</h1>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-teal-50">
+      <div className="w-full max-w-md mx-auto bg-white p-6 shadow rounded-lg">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">
+            {isRegister ? 'Create Account' : (showForgot ? "Reset Password" : 'Welcome Back')}
+          </h1>
+          <p className="text-gray-600 mt-2">
+            {isRegister ? 'Join our global trading platform' : (showForgot ? 'Enter your email to reset password' : 'Sign in to your account')}
+          </p>
+        </div>
         
         {showConfirmation && (
           <div className="mb-4 text-sm bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-3 rounded">
@@ -175,7 +182,7 @@ const ClientAuth = () => {
 
         {isRegister ? (
           <Form {...registerForm}>
-            <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-3">
+            <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
               <FormField
                 control={registerForm.control}
                 name="email"
@@ -189,6 +196,13 @@ const ClientAuth = () => {
                   </FormItem>
                 )}
               />
+              
+              <UserTypeSelector
+                value={registerForm.watch('userType')}
+                onValueChange={(value) => registerForm.setValue('userType', value as 'client' | 'manufacturer')}
+                className="my-4"
+              />
+
               <div className="flex gap-3">
                 <FormField
                   control={registerForm.control}
@@ -217,19 +231,6 @@ const ClientAuth = () => {
                   )}
                 />
               </div>
-              <FormField
-                control={registerForm.control}
-                name="companyType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Company Type</FormLabel>
-                    <select {...field} className="block w-full rounded border border-input py-2 px-3 bg-background text-sm">
-                      <option value="registered">Registered Company</option>
-                      <option value="non-registered">Non-Registered Company</option>
-                    </select>
-                  </FormItem>
-                )}
-              />
               <Button type="submit" className="w-full">Sign Up</Button>
             </form>
           </Form>

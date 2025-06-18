@@ -1,6 +1,6 @@
 
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -9,6 +9,10 @@ type Profile = {
   is_admin: boolean;
   user_type?: 'manufacturer' | 'client';
   gstin?: string;
+  full_name?: string;
+  company_name?: string;
+  phone?: string;
+  address?: string;
 };
 
 type AuthContextType = {
@@ -34,11 +38,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   
   useEffect(() => {
     // Set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
+        console.log('Auth state change:', event, currentSession?.user?.email);
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
@@ -46,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Fetch the user profile data
           const { data: profileData, error } = await supabase
             .from('profiles')
-            .select('is_admin, user_type, gstin')
+            .select('is_admin, user_type, gstin, full_name, company_name, phone, address')
             .eq('id', currentSession.user.id)
             .single();
           
@@ -55,6 +61,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setProfile(null);
           } else {
             setProfile(profileData as Profile);
+            
+            // Handle post-authentication navigation
+            if (event === 'SIGNED_IN' && profileData) {
+              handlePostAuthNavigation(profileData);
+            }
           }
         } else {
           setProfile(null);
@@ -73,7 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Fetch the user profile data
         supabase
           .from('profiles')
-          .select('is_admin, user_type, gstin')
+          .select('is_admin, user_type, gstin, full_name, company_name, phone, address')
           .eq('id', currentSession.user.id)
           .single()
           .then(({ data: profileData, error }) => {
@@ -93,6 +104,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     return () => subscription.unsubscribe();
   }, []);
+
+  const handlePostAuthNavigation = (profileData: Profile) => {
+    // Don't redirect if already on auth-related pages
+    if (location.pathname.includes('/auth/') || location.pathname.includes('/profile-completion')) {
+      return;
+    }
+
+    // Check if profile is complete
+    const isProfileComplete = profileData.full_name && profileData.user_type;
+    
+    if (!isProfileComplete) {
+      navigate(`/profile-completion?type=${profileData.user_type || 'client'}`);
+      return;
+    }
+
+    // Redirect based on user type
+    if (profileData.is_admin) {
+      navigate('/admin');
+    } else if (profileData.user_type === 'manufacturer') {
+      navigate('/manufacturer/dashboard');
+    } else {
+      navigate('/dashboard');
+    }
+  };
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -136,7 +171,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/auth/callback',
+          redirectTo: `${window.location.origin}/auth/callback`,
         }
       });
       
