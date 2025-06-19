@@ -66,7 +66,13 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Anantya Overseas specific colors
+				// Corporate Color Scheme (matching logo)
+				'corporate-dark': '#2A2A2A',
+				'corporate-accent': '#FF4444',
+				'corporate-gold': '#FFD700',
+				'corporate-text': '#FFFFFF',
+				'corporate-muted': '#CCCCCC',
+				// Legacy colors for backward compatibility
 				'brand-blue': '#1A365D',
 				'brand-teal': '#2C7A7B',
 				'brand-light': '#F7FAFC',
@@ -120,6 +126,16 @@ export default {
 				marquee: {
 					from: { transform: 'translateX(0)' },
 					to: { transform: 'translateX(calc(-100% - var(--gap)))' }
+				},
+				'fade-in-up': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(20px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
 				}
 			},
 			animation: {
@@ -129,6 +145,7 @@ export default {
 				'slide-in-right': 'slide-in-right 0.5s ease-out',
 				'scale-in': 'scale-in 0.3s ease-out',
 				marquee: 'marquee var(--duration) linear infinite',
+				'fade-in-up': 'fade-in-up 0.6s ease-out',
 			},
 			fontFamily: {
 				sans: ['Open Sans', 'sans-serif'],
@@ -136,7 +153,9 @@ export default {
 			},
 			boxShadow: {
 				premium: '0 10px 30px -5px rgba(0, 0, 0, 0.1), 0 5px 15px -5px rgba(0, 0, 0, 0.05)',
-				'premium-hover': '0 20px 40px -5px rgba(0, 0, 0, 0.15), 0 10px 20px -5px rgba(0, 0, 0, 0.1)'
+				'premium-hover': '0 20px 40px -5px rgba(0, 0, 0, 0.15), 0 10px 20px -5px rgba(0, 0, 0, 0.1)',
+				'corporate': '0 4px 20px rgba(255, 68, 68, 0.15)',
+				'corporate-glow': '0 0 30px rgba(255, 68, 68, 0.3)'
 			}
 		}
 	},
