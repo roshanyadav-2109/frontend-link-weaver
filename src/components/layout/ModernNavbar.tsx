@@ -53,7 +53,7 @@ const ModernNavbar: React.FC = () => {
           }`}>
             <Link to="/" className="flex items-center">
               <img 
-                src="/lovable-uploads/Black_White_Minimalist_Professional_Initial_Logo__1_-removebg-preview.png" 
+                src="/lovable-uploads/anantya_logo.png" 
                 alt="Anantya Overseas" 
                 className="h-12 w-auto filter brightness-0 invert transition-transform duration-300 hover:scale-105"
               />
@@ -84,7 +84,7 @@ const ModernNavbar: React.FC = () => {
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'
           }`}>
             <img 
-              src="/lovable-uploads/Black_logo_anantya.png" 
+              src="/lovable-uploads/Black_White_Minimalist_Professional_Initial_Logo__1_-removebg-preview.png" 
               alt="Anantya Brand" 
               className="h-10 w-auto filter brightness-0 invert transition-transform duration-300 hover:scale-105"
             />
