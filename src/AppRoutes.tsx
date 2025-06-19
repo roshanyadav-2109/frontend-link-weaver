@@ -1,5 +1,6 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import { useAuth, useLocation } from "@/hooks/useAuth";
+
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
 // Pages
@@ -96,9 +97,12 @@ const ManufacturerRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AppRoutes = () => {
-  const { isAuthenticated, isAdmin, isManufacturer } = useAuth();
+  const { isAuthenticated, isAdmin, isManufacturer, loading } = useAuth();
   const location = useLocation();
 
+  // Determine if current route is admin or manufacturer
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  const isManufacturerRoute = location.pathname.startsWith('/manufacturer');
   const shouldShowNavbar = !isAdminRoute && !isManufacturerRoute;
 
   if (loading) {
