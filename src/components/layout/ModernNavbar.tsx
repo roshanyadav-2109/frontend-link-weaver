@@ -6,6 +6,7 @@ const ModernNavbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const location = useLocation();
+  const isHomePage = location.pathname === '/';
 
   useEffect(() => {
     // Initial load animation
@@ -22,9 +23,13 @@ const ModernNavbar: React.FC = () => {
       setIsScrolled(scrolled);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    if (isHomePage) {
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+    } else {
+      setIsScrolled(true); // Always show solid background on non-home pages
+    }
+  }, [isHomePage]);
 
   const navItems = [
     { name: 'HOME', path: '/' },
@@ -36,7 +41,7 @@ const ModernNavbar: React.FC = () => {
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-      isScrolled 
+      isScrolled || !isHomePage
         ? 'bg-black/95 backdrop-blur-md shadow-lg py-3' 
         : 'bg-transparent py-4'
     } ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'}`}>

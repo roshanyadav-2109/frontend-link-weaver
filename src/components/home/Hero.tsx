@@ -1,10 +1,13 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Globe, Package, Shield, Star } from 'lucide-react';
+import { ArrowRight, Globe, Package, Shield, Star, Factory } from 'lucide-react';
+import ManufacturerPartnershipForm from '@/components/ManufacturerPartnershipForm';
 
-// Concise and professional text for hero
 const Hero = () => {
+  const [showPartnershipForm, setShowPartnershipForm] = useState(false);
+
   return (
     <div className="relative pt-28 pb-20 md:py-32 lg:py-40 overflow-hidden min-h-screen flex items-center bg-gradient-to-br from-brand-blue/95 via-brand-blue/90 to-brand-teal/85">
       {/* Floating Elements */}
@@ -39,19 +42,18 @@ const Hero = () => {
                 <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <Link to="/catalog-request">
-              <Button 
-                size="lg"
-                className="bg-gradient-to-r from-brand-teal to-brand-blue text-white px-10 py-8 text-xl font-semibold shadow-2xl hover:shadow-3xl hover:from-brand-blue hover:to-brand-teal transition-all duration-300 transform hover:-translate-y-2 rounded-2xl min-w-[220px] group border-2 border-white/80 focus-visible:ring-4 focus-visible:ring-brand-blue/40"
-                style={{
-                  textShadow: "0 1px 10px rgba(0,0,0,0.35)",
-                }}
-              >
-                <Globe className="mr-3 h-6 w-6" />
-                Request Catalogue
-                <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
+            <Button 
+              onClick={() => setShowPartnershipForm(true)}
+              size="lg"
+              className="bg-gradient-to-r from-brand-teal to-brand-blue text-white px-10 py-8 text-xl font-semibold shadow-2xl hover:shadow-3xl hover:from-brand-blue hover:to-brand-teal transition-all duration-300 transform hover:-translate-y-2 rounded-2xl min-w-[220px] group border-2 border-white/80 focus-visible:ring-4 focus-visible:ring-brand-blue/40"
+              style={{
+                textShadow: "0 1px 10px rgba(0,0,0,0.35)",
+              }}
+            >
+              <Factory className="mr-3 h-6 w-6" />
+              Partner as a Manufacturer
+              <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+            </Button>
           </div>
         </div>
         
@@ -84,6 +86,12 @@ const Hero = () => {
           <path d="M0 120L48 105C96 90 192 60 288 55C384 50 480 70 576 75C672 80 768 70 864 65C960 60 1056 60 1152 70C1248 80 1344 100 1392 110L1440 120V120H0V120Z" fill="white"/>
         </svg>
       </div>
+
+      {/* Manufacturer Partnership Form Modal */}
+      <ManufacturerPartnershipForm
+        isOpen={showPartnershipForm}
+        onClose={() => setShowPartnershipForm(false)}
+      />
     </div>
   );
 };

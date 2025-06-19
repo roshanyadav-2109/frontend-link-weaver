@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LogOut, User, Settings, Shield } from 'lucide-react';
+import { LogOut, User, Settings, Shield, Home } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -69,11 +69,19 @@ const AvatarMenu: React.FC = () => {
         <DropdownMenuSeparator />
         
         <DropdownMenuItem 
+          onClick={() => navigate('/')}
+          className="cursor-pointer"
+        >
+          <Home className="mr-2 h-4 w-4" />
+          <span>Website Home</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem 
           onClick={() => navigate('/dashboard')}
           className="cursor-pointer"
         >
           <User className="mr-2 h-4 w-4" />
-          <span>Profile</span>
+          <span>My Dashboard</span>
         </DropdownMenuItem>
 
         {isAdmin && (

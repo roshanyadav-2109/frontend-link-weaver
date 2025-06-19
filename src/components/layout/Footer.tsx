@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Linkedin, Instagram } from 'lucide-react';
@@ -25,6 +26,7 @@ const Footer: React.FC = () => {
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-brand-blue transition-colors"
+                aria-label="Follow us on Instagram"
               >
                 <Instagram size={20} />
               </a>
@@ -33,6 +35,7 @@ const Footer: React.FC = () => {
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-brand-blue transition-colors"
+                aria-label="Connect with us on LinkedIn"
               >
                 <Linkedin size={20} />
               </a>

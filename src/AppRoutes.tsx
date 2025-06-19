@@ -96,7 +96,7 @@ const ManufacturerRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AppRoutes = () => {
-  const { isAuthenticated, isAdmin, isManufacturer, loading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return (
@@ -105,6 +105,9 @@ const AppRoutes = () => {
       </div>
     );
   }
+
+  // Choose which navbar to show based on authentication status
+  const NavbarComponent = isAuthenticated ? AuthenticatedNavbar : ModernNavbar;
 
   return (
     <Routes>
@@ -145,12 +148,12 @@ const AppRoutes = () => {
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/profile-completion" element={<ProfileCompletion />} />
       
-      {/* Protected Routes */}
+      {/* Protected Dashboard Route */}
       <Route 
         path="/dashboard" 
         element={
           <ProtectedRoute>
-            <ModernNavbar />
+            <NavbarComponent />
             <main className="flex-grow">
               <UserDashboard />
             </main>
@@ -159,12 +162,12 @@ const AppRoutes = () => {
         } 
       />
 
-      {/* Public Routes with ModernNavbar */}
+      {/* All other routes with appropriate navbar */}
       <Route
         path="*"
         element={
           <>
-            <ModernNavbar />
+            <NavbarComponent />
             <main className="flex-grow">
               <Routes>
                 <Route path="/" element={<Index />} />

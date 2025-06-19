@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Hero from '@/components/home/Hero';
 import FeaturedCategories from '@/components/home/FeaturedCategories';
@@ -64,14 +65,14 @@ const Index: React.FC = () => {
                     </div>
                   ))}
                 </div>
-                <Link to="/catalog-request">
+                <Link to="/categories">
                   <Button 
                     className="bg-gradient-to-r from-brand-blue to-brand-teal text-white px-10 py-6 text-xl font-semibold rounded-xl shadow-2xl hover:from-brand-teal hover:to-brand-blue focus-visible:ring-4 focus-visible:ring-brand-blue/40 border-2 border-white/80 hover:border-brand-blue transition-all duration-300"
                     style={{
                       textShadow: "0 1px 10px rgba(0,0,0,0.35)",
                     }}
                   >
-                    Request Full Catalogue 
+                    Explore Our Products 
                     <ArrowRight className="ml-3 h-6 w-6" />
                   </Button>
                 </Link>
