@@ -70,7 +70,7 @@ const ManufacturerPartnershipForm: React.FC<ManufacturerPartnershipFormProps> = 
     setLoading(true);
 
     try {
-      // Save to database
+      // Save to database using the generic from method
       const { error } = await supabase
         .from('manufacturer_partnerships')
         .insert({

@@ -98,6 +98,81 @@ export type Database = {
           },
         ]
       }
+      manufacturer_partnerships: {
+        Row: {
+          additional_info: string | null
+          address: string | null
+          annual_turnover: string | null
+          certifications: string | null
+          city: string | null
+          company_name: string
+          country: string | null
+          created_at: string
+          email: string
+          export_experience: string | null
+          gstin: string
+          id: string
+          manufacturing_capacity: string | null
+          phone: string
+          previous_deals: string | null
+          product_category: string | null
+          representative_name: string
+          state: string | null
+          status: string
+          target_markets: string | null
+          updated_at: string
+          years_in_business: number | null
+        }
+        Insert: {
+          additional_info?: string | null
+          address?: string | null
+          annual_turnover?: string | null
+          certifications?: string | null
+          city?: string | null
+          company_name: string
+          country?: string | null
+          created_at?: string
+          email: string
+          export_experience?: string | null
+          gstin: string
+          id?: string
+          manufacturing_capacity?: string | null
+          phone: string
+          previous_deals?: string | null
+          product_category?: string | null
+          representative_name: string
+          state?: string | null
+          status?: string
+          target_markets?: string | null
+          updated_at?: string
+          years_in_business?: number | null
+        }
+        Update: {
+          additional_info?: string | null
+          address?: string | null
+          annual_turnover?: string | null
+          certifications?: string | null
+          city?: string | null
+          company_name?: string
+          country?: string | null
+          created_at?: string
+          email?: string
+          export_experience?: string | null
+          gstin?: string
+          id?: string
+          manufacturing_capacity?: string | null
+          phone?: string
+          previous_deals?: string | null
+          product_category?: string | null
+          representative_name?: string
+          state?: string | null
+          status?: string
+          target_markets?: string | null
+          updated_at?: string
+          years_in_business?: number | null
+        }
+        Relationships: []
+      }
       manufacturers: {
         Row: {
           annual_turnover: string | null
