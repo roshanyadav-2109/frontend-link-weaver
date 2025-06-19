@@ -16,7 +16,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 0 68% 60%;
+    --primary: 215 50% 23%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 187 48% 33%;
@@ -25,15 +25,15 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 0 68% 60%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 0 68% 60%;
+    --ring: 222.2 84% 4.9%;
 
     --radius: 0.8rem;
     
@@ -99,22 +99,9 @@
     max-width: 1280px;
   }
 
-  /* Corporate Button Styles */
-  .btn-corporate {
-    @apply bg-corporate-accent text-white py-2 px-6 rounded-lg hover:bg-corporate-accent/90 transition-all shadow-md focus:ring-4 focus:ring-corporate-accent/20 focus:outline-none;
-  }
-
-  .btn-corporate-outline {
-    @apply border-2 border-corporate-accent text-corporate-accent py-2 px-6 rounded-lg hover:bg-corporate-accent hover:text-white transition-all focus:ring-4 focus:ring-corporate-accent/20 focus:outline-none;
-  }
-
-  .btn-corporate-gold {
-    @apply bg-corporate-gold text-black py-2 px-6 rounded-lg hover:bg-corporate-gold/90 transition-all shadow-md focus:ring-4 focus:ring-corporate-gold/20 focus:outline-none;
-  }
-
-  /* Legacy Button Styles for Backward Compatibility */
+  /* Button Styles */
   .btn-primary {
-    @apply bg-corporate-accent text-white py-2 px-6 rounded-lg hover:bg-corporate-accent/90 transition-all shadow-md focus:ring-4 focus:ring-corporate-accent/20 focus:outline-none;
+    @apply bg-brand-blue text-white py-2 px-6 rounded-lg hover:bg-opacity-90 transition-all shadow-md focus:ring-4 focus:ring-brand-blue/20 focus:outline-none;
   }
 
   .btn-secondary {
@@ -122,16 +109,7 @@
   }
 
   .btn-outline {
-    @apply border-2 border-corporate-accent text-corporate-accent py-2 px-6 rounded-lg hover:bg-corporate-accent hover:text-white transition-all focus:ring-4 focus:ring-corporate-accent/20 focus:outline-none;
-  }
-
-  /* Corporate Card Styles */
-  .card-corporate {
-    @apply bg-white rounded-xl shadow-premium p-6 hover:shadow-corporate transition-all duration-300 border border-gray-100;
-  }
-
-  .card-corporate-dark {
-    @apply bg-corporate-dark rounded-xl shadow-premium p-6 hover:shadow-corporate-glow transition-all duration-300 border border-gray-700;
+    @apply border-2 border-brand-blue text-brand-blue py-2 px-6 rounded-lg hover:bg-brand-blue hover:text-white transition-all focus:ring-4 focus:ring-brand-blue/20 focus:outline-none;
   }
 
   /* Card Styles */
@@ -154,7 +132,7 @@
   }
 
   .premium-gradient {
-    @apply bg-gradient-to-r from-corporate-dark to-corporate-accent text-white rounded-xl;
+    @apply bg-gradient-to-r from-brand-blue to-brand-teal text-white rounded-xl;
   }
 
   .premium-blue-gradient {
@@ -162,11 +140,7 @@
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-corporate-accent to-corporate-gold font-semibold;
-  }
-
-  .text-corporate-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-corporate-accent to-corporate-gold font-semibold;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-blue to-brand-teal font-semibold;
   }
 
   .hover-lift {
@@ -214,24 +188,9 @@
                 0 5px 15px -5px rgba(44, 122, 123, 0.1);
   }
 
-  /* Corporate Shadows */
-  .shadow-corporate {
-    box-shadow: 0 10px 30px -5px rgba(255, 68, 68, 0.15), 
-                0 5px 15px -5px rgba(255, 68, 68, 0.1);
-  }
-
-  .shadow-corporate-glow {
-    box-shadow: 0 0 30px rgba(255, 68, 68, 0.3),
-                0 10px 30px -5px rgba(255, 68, 68, 0.15);
-  }
-
   /* Premium Effect for Cards */
   .premium-card {
     @apply rounded-xl bg-white border border-gray-100 shadow-premium hover:shadow-xl transition-all duration-300;
-  }
-
-  .corporate-card {
-    @apply rounded-xl bg-white border border-gray-100 shadow-premium hover:shadow-corporate transition-all duration-300;
   }
 
   /* Premium Glass Effect */
@@ -241,20 +200,14 @@
                 0 5px 15px -5px rgba(0, 0, 0, 0.05);
   }
 
-  .corporate-glass-card {
-    @apply bg-white/70 backdrop-blur-xl border border-white/20 rounded-xl;
-    box-shadow: 0 10px 30px -5px rgba(255, 68, 68, 0.1), 
-                0 5px 15px -5px rgba(255, 68, 68, 0.05);
-  }
-
   /* Premium Button Effect */
   .premium-btn {
     @apply relative overflow-hidden shadow-md transition-all duration-300 rounded-lg;
   }
 
   .premium-btn:hover {
-    box-shadow: 0 10px 30px -5px rgba(255, 68, 68, 0.15), 
-                0 5px 15px -5px rgba(255, 68, 68, 0.1);
+    box-shadow: 0 10px 30px -5px rgba(26, 54, 93, 0.15), 
+                0 5px 15px -5px rgba(26, 54, 93, 0.1);
   }
 
   .premium-btn::after {
@@ -263,21 +216,6 @@
   }
 
   .premium-btn:hover::after {
-    @apply w-full;
-  }
-
-  /* Corporate Navigation Animation */
-  .nav-link {
-    @apply relative transition-all duration-300;
-  }
-
-  .nav-link::after {
-    content: '';
-    @apply absolute left-0 bottom-0 w-0 h-0.5 bg-corporate-accent transition-all duration-300;
-  }
-
-  .nav-link:hover::after,
-  .nav-link.active::after {
     @apply w-full;
   }
 }
@@ -295,32 +233,13 @@
     }
   }
 
-  @keyframes slide-in-left {
-    from {
-      opacity: 0;
-      transform: translateX(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
   .animate-fade-in {
     animation: fade-in-up 0.6s ease-out forwards;
-  }
-
-  .animate-slide-in-left {
-    animation: slide-in-left 0.6s ease-out forwards;
   }
 
   .animate-delay-100 { animation-delay: 100ms; }
   .animate-delay-200 { animation-delay: 200ms; }
   .animate-delay-300 { animation-delay: 300ms; }
-  .animate-delay-400 { animation-delay: 400ms; }
-  .animate-delay-500 { animation-delay: 500ms; }
-  .animate-delay-600 { animation-delay: 600ms; }
-  .animate-delay-700 { animation-delay: 700ms; }
   
   /* Responsive utilities */
   .responsive-padding {
@@ -329,17 +248,5 @@
   
   .responsive-container {
     @apply container mx-auto px-4 sm:px-6 lg:px-8;
-  }
-
-  /* Corporate utilities */
-  .corporate-gradient {
-    background: linear-gradient(135deg, #2A2A2A 0%, #FF4444 100%);
-  }
-
-  .corporate-text-gradient {
-    background: linear-gradient(135deg, #FF4444 0%, #FFD700 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
   }
 }

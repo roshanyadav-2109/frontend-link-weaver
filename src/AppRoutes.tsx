@@ -1,5 +1,4 @@
-
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
@@ -37,7 +36,6 @@ import AuthenticatedNavbar from "./components/layout/AuthenticatedNavbar";
 import Footer from "./components/layout/Footer";
 import AdminLayout from "./components/admin/AdminLayout";
 import ManufacturerLayout from "./components/manufacturer/ManufacturerLayout";
-import ModernNavbar from "./components/layout/ModernNavbar";
 
 // Protected Route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -98,12 +96,6 @@ const ManufacturerRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AppRoutes = () => {
   const { isAuthenticated, isAdmin, isManufacturer, loading } = useAuth();
-  const location = useLocation();
-
-  // Determine if current route is admin or manufacturer
-  const isAdminRoute = location.pathname.startsWith('/admin');
-  const isManufacturerRoute = location.pathname.startsWith('/manufacturer');
-  const shouldShowNavbar = !isAdminRoute && !isManufacturerRoute;
 
   if (loading) {
     return (
@@ -114,96 +106,86 @@ const AppRoutes = () => {
   }
 
   return (
-    <>
-      {shouldShowNavbar && <ModernNavbar />}
-      {isAdminRoute && <AdminLayout />}
-      {isManufacturerRoute && <ManufacturerLayout />}
+    <Routes>
+      {/* Admin Routes */}
+      <Route path="/admin/login" element={<Login />} />
+      <Route 
+        path="/admin" 
+        element={
+          <AdminRoute>
+            <AdminLayout />
+          </AdminRoute>
+        }
+      >
+        <Route index element={<Dashboard />} />
+        <Route path="products" element={<ProductsManager />} />
+        <Route path="careers" element={<CareersManager />} />
+        <Route path="settings" element={<Settings />} />
+        <Route path="quote-requests" element={<QuoteRequestsManager />} />
+      </Route>
       
-      <main className={shouldShowNavbar ? "pt-20" : ""}>
-        <Routes>
-          {/* Admin Routes */}
-          <Route path="/admin/login" element={<Login />} />
-          <Route 
-            path="/admin" 
-            element={
-              <AdminRoute>
-                <AdminLayout />
-              </AdminRoute>
-            }
-          >
-            <Route index element={<Dashboard />} />
-            <Route path="products" element={<ProductsManager />} />
-            <Route path="careers" element={<CareersManager />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="quote-requests" element={<QuoteRequestsManager />} />
-          </Route>
-          
-          {/* Manufacturer Routes */}
-          <Route 
-            path="/manufacturer" 
-            element={
-              <ManufacturerRoute>
-                <ManufacturerLayout />
-              </ManufacturerRoute>
-            }
-          >
-            <Route path="dashboard" element={<ManufacturerDashboard />} />
-            <Route path="catalog-requests" element={<CatalogRequests />} />
-          </Route>
-          
-          {/* Auth Routes */}
-          <Route path="/auth/initial" element={<InitialAuth />} />
-          <Route path="/auth/client" element={<ClientAuth />} />
-          <Route path="/auth/manufacturer" element={<ManufacturerAuth />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/profile-completion" element={<ProfileCompletion />} />
-          
-          {/* Protected Routes */}
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                {isAuthenticated ? <AuthenticatedNavbar /> : <Navbar />}
-                <main className="flex-grow">
-                  <UserDashboard />
-                </main>
-                <Footer />
-              </ProtectedRoute>
-            } 
-          />
+      {/* Manufacturer Routes */}
+      <Route 
+        path="/manufacturer" 
+        element={
+          <ManufacturerRoute>
+            <ManufacturerLayout />
+          </ManufacturerRoute>
+        }
+      >
+        <Route path="dashboard" element={<ManufacturerDashboard />} />
+        <Route path="catalog-requests" element={<CatalogRequests />} />
+      </Route>
+      
+      {/* Auth Routes */}
+      <Route path="/auth/initial" element={<InitialAuth />} />
+      <Route path="/auth/client" element={<ClientAuth />} />
+      <Route path="/auth/manufacturer" element={<ManufacturerAuth />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/profile-completion" element={<ProfileCompletion />} />
+      
+      {/* Protected Routes */}
+      <Route 
+        path="/dashboard" 
+        element={
+          <ProtectedRoute>
+            {isAuthenticated ? <AuthenticatedNavbar /> : <Navbar />}
+            <main className="flex-grow">
+              <UserDashboard />
+            </main>
+            <Footer />
+          </ProtectedRoute>
+        } 
+      />
 
-          {/* Public Routes */}
-          <Route
-            path="*"
-            element={
-              <>
-                {isAuthenticated ? <AuthenticatedNavbar /> : <Navbar />}
-                <main className="flex-grow">
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/contact" element={<Contact />} />
-                    <Route path="/about" element={<AboutUs />} />
-                    <Route path="/categories" element={<Categories />} />
-                    <Route path="/categories/:categoryId" element={<SubCategories />} />
-                    <Route path="/categories/:categoryId/:subcategoryId" element={<SubCategories />} />
-                    <Route path="/product/:id" element={<ProductDetails />} />
-                    <Route path="/catalog-request" element={<CatalogRequest />} />
-                    <Route path="/careers" element={<Careers />} />
-                    <Route path="/request-quote" element={<RequestQuotePage />} />
-                    <Route path="/terms" element={<TermsAndConditions />} />
-                    <Route path="/privacy" element={<PrivacyPolicy />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </main>
-                <Footer />
-              </>
-            }
-          />
-        </Routes>
-      </main>
-      
-      {shouldShowNavbar && <Footer />}
-    </>
+      {/* Public Routes */}
+      <Route
+        path="*"
+        element={
+          <>
+            {isAuthenticated ? <AuthenticatedNavbar /> : <Navbar />}
+            <main className="flex-grow">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/about" element={<AboutUs />} />
+                <Route path="/categories" element={<Categories />} />
+                <Route path="/categories/:categoryId" element={<SubCategories />} />
+                <Route path="/categories/:categoryId/:subcategoryId" element={<SubCategories />} />
+                <Route path="/product/:id" element={<ProductDetails />} />
+                <Route path="/catalog-request" element={<CatalogRequest />} />
+                <Route path="/careers" element={<Careers />} />
+                <Route path="/request-quote" element={<RequestQuotePage />} />
+                <Route path="/terms" element={<TermsAndConditions />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </main>
+            <Footer />
+          </>
+        }
+      />
+    </Routes>
   );
 };
 
