@@ -1,15 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, ShoppingCart, Mail, Phone, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, MessageSquare, Star, Shield, Truck, Award, Globe, Filter } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import AdvancedQuoteForm from '@/components/AdvancedQuoteForm';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
+import QuoteRequestModal from '@/components/QuoteRequestModal';
 
 interface Product {
   id: string;
@@ -19,226 +18,221 @@ interface Product {
   description: string;
   price: string;
   image: string;
-  status: 'active' | 'draft';
+  status: string;
+  created_at: string;
 }
 
 const ProductDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showAdvancedQuote, setShowAdvancedQuote] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      if (!id) return;
-      
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('products')
-          .select('*')
-          .eq('id', id)
-          .eq('status', 'active')
-          .single();
-        
-        if (error) {
-          throw error;
-        }
-        
-        setProduct(data as Product);
-      } catch (err: any) {
-        console.error('Error fetching product:', err);
-        setError(err.message || 'Failed to load product details');
-      } finally {
-        setLoading(false);
+    if (id) {
+      fetchProduct(id);
+    }
+  }, [id]);
+
+  const fetchProduct = async (productId: string) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', productId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching product:', error);
+        toast.error('Product not found');
+        navigate('/categories');
+      } else {
+        setProduct(data);
+      }
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      toast.error('Failed to load product');
+      navigate('/categories');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRequestQuote = () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to request a quote');
+      navigate('/auth/client');
+      return;
+    }
+    setShowQuoteModal(true);
+  };
+
+  const getCategoryLabel = (category: string) => {
+    const categoryMap: { [key: string]: string } = {
+      textiles: 'Textiles & Fabrics',
+      electronics: 'Electronics & Audio',
+      handicrafts: 'Handicrafts & Artisan',
+      organic: 'Organic Products'
+    };
+    return categoryMap[category] || category;
+  };
+
+  const getSubcategoryLabel = (category: string, subcategory: string) => {
+    const subcategoryMap: { [key: string]: { [key: string]: string } } = {
+      textiles: {
+        cotton: 'Cotton Products',
+        silk: 'Silk Products',
+        garments: 'Ready-made Garments',
+        home: 'Home Textiles'
+      },
+      electronics: {
+        consumer: 'Consumer Electronics',
+        industrial: 'Industrial Equipment',
+        components: 'Electronic Components',
+        accessories: 'Accessories'
       }
     };
-    
-    fetchProduct();
-  }, [id]);
+    return subcategoryMap[category]?.[subcategory] || subcategory;
+  };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[500px] bg-gray-50 pt-24">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-brand-blue mx-auto mb-4" />
-          <p className="text-gray-600">Loading product details...</p>
+      <div className="min-h-screen bg-gray-50 pt-20">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-blue"></div>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (error || !product) {
+  if (!product) {
     return (
-      <div className="container py-20 text-center bg-gray-50 min-h-screen flex items-center justify-center pt-24">
-        <div>
-          <h1 className="text-3xl font-bold mb-4 text-gray-900">Product Not Found</h1>
-          <p className="text-gray-600 mb-8">{error || 'The product you are looking for does not exist'}</p>
-          <Link to="/categories">
-            <Button className="bg-brand-blue hover:bg-brand-blue/90">
-              <ArrowLeft className="mr-2 h-4 w-4" /> Browse All Products
+      <div className="min-h-screen bg-gray-50 pt-20">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Product Not Found</h1>
+            <Button onClick={() => navigate('/categories')}>
+              Back to Products
             </Button>
-          </Link>
+          </div>
         </div>
       </div>
     );
   }
-
-  const handleQuoteSuccess = () => {
-    setShowAdvancedQuote(false);
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
-      {/* Breadcrumb */}
-      <div className="bg-white border-b">
-        <div className="container py-4">
-          <Link to="/categories" className="inline-flex items-center text-brand-blue hover:text-brand-teal transition-colors">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Products
-          </Link>
-        </div>
-      </div>
+      <div className="container mx-auto px-4 py-8">
+        {/* Back Button */}
+        <Button 
+          variant="ghost" 
+          className="mb-6" 
+          onClick={() => navigate('/categories')}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Products
+        </Button>
 
-      <div className="container py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Product Image */}
-          <div className="animate-fade-in">
-            <div className="relative aspect-square rounded-2xl overflow-hidden bg-white shadow-2xl">
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10"></div>
-              <img 
-                src={product.image} 
-                alt={product.name}
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute top-6 left-6 flex gap-2 z-20">
-                <Badge className="bg-green-500 text-white">
-                  <Shield className="h-3 w-3 mr-1" />
-                  Verified
-                </Badge>
-                <Badge className="bg-brand-teal text-white">
-                  Export Quality
-                </Badge>
-              </div>
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+              {product.image ? (
+                <img 
+                  src={product.image} 
+                  alt={product.name}
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              ) : (
+                <div className="text-gray-400 text-center">
+                  <div className="text-6xl mb-4">📦</div>
+                  <div className="text-lg">No Image Available</div>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Product Info */}
-          <div className="animate-fade-in animate-delay-200">
+          {/* Product Details */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="mb-4">
+              <Badge variant="outline" className="mb-2">
+                {getCategoryLabel(product.category)}
+              </Badge>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
+              <p className="text-lg text-gray-600 mb-4">
+                {getSubcategoryLabel(product.category, product.subcategory)}
+              </p>
+            </div>
+
             <div className="mb-6">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">{product.name}</h1>
-              
-              <div className="flex items-center gap-4 mb-6">
-                <div className="flex items-center">
-                  <Star className="h-5 w-5 text-yellow-500 fill-current" />
-                  <Star className="h-5 w-5 text-yellow-500 fill-current" />
-                  <Star className="h-5 w-5 text-yellow-500 fill-current" />
-                  <Star className="h-5 w-5 text-yellow-500 fill-current" />
-                  <Star className="h-5 w-5 text-yellow-500 fill-current" />
-                  <span className="ml-2 text-gray-600">(4.9) · 127 reviews</span>
-                </div>
-              </div>
-              
-              <div className="text-2xl font-bold text-brand-teal mb-6">
+              <div className="text-2xl font-bold text-brand-blue mb-4">
                 {product.price}
               </div>
               
-              <div className="flex items-center gap-3 mb-8">
-                <Badge variant="secondary" className="px-4 py-2 text-sm">
-                  {product.category}
-                </Badge>
-                <Badge variant="outline" className="px-4 py-2 text-sm">
-                  {product.subcategory}
-                </Badge>
+              {product.description && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
+                  <p className="text-gray-600 leading-relaxed">{product.description}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-3 mb-6">
+              <Button 
+                className="w-full bg-brand-blue hover:bg-brand-blue/90"
+                onClick={handleRequestQuote}
+              >
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Request Quote
+              </Button>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <Button variant="outline" className="w-full">
+                  <Mail className="h-4 w-4 mr-2" />
+                  Email Inquiry
+                </Button>
+                <Button variant="outline" className="w-full">
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share
+                </Button>
               </div>
             </div>
-            
-            <div className="mb-8">
-              <h3 className="text-xl font-semibold mb-4">Product Description</h3>
-              <p className="text-gray-700 leading-relaxed text-lg">{product.description}</p>
-            </div>
-            
-            <Button 
-              onClick={() => setShowAdvancedQuote(true)}
-              className="w-full bg-gradient-to-r from-brand-teal to-brand-blue hover:from-brand-blue hover:to-brand-teal text-white py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 mb-8"
-              size="lg"
-            >
-              <MessageSquare className="mr-3 h-6 w-6" />
-              Request Quote
-            </Button>
 
-            {/* Features Grid */}
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              {[
-                { icon: Shield, title: "Quality Assured", desc: "Premium export quality" },
-                { icon: Truck, title: "Fast Shipping", desc: "Global delivery" },
-                { icon: Award, title: "Certified", desc: "ISO standards" },
-                { icon: Globe, title: "Worldwide", desc: "Available globally" }
-              ].map((feature, index) => (
-                <Card key={index} className="border-0 shadow-md hover:shadow-lg transition-shadow">
-                  <CardContent className="p-4 text-center">
-                    <feature.icon className="h-8 w-8 text-brand-teal mx-auto mb-2" />
-                    <h4 className="font-semibold text-sm">{feature.title}</h4>
-                    <p className="text-xs text-gray-600">{feature.desc}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            {/* Contact Information */}
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-gray-900 mb-3">Need Help?</h3>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <div className="flex items-center">
+                    <Mail className="h-4 w-4 mr-2 text-brand-blue" />
+                    <span>anantyaoverseas@gmail.com</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Phone className="h-4 w-4 mr-2 text-brand-blue" />
+                    <span>Contact us for pricing and availability</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
-        {/* Why Choose Section */}
-        <div className="mt-16">
-          <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50">
-            <CardContent className="p-12">
-              <h3 className="text-3xl font-bold text-center mb-12 text-gray-900">Why Choose Our Products</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                {[
-                  {
-                    icon: "✓",
-                    title: "Premium Export Quality",
-                    desc: "Materials sourced and processed to meet international standards"
-                  },
-                  {
-                    icon: "✓", 
-                    title: "Competitive Pricing",
-                    desc: "Best rates for bulk orders with flexible payment terms"
-                  },
-                  {
-                    icon: "✓",
-                    title: "Customization Available", 
-                    desc: "Tailored solutions to meet your specific requirements"
-                  },
-                  {
-                    icon: "✓",
-                    title: "Reliable Shipping",
-                    desc: "Trusted logistics partners for worldwide destinations"
-                  }
-                ].map((item, index) => (
-                  <div key={index} className="text-center group hover:scale-105 transition-transform duration-300">
-                    <div className="bg-gradient-to-r from-green-400 to-green-500 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold shadow-lg group-hover:shadow-xl transition-shadow">
-                      {item.icon}
-                    </div>
-                    <h4 className="font-semibold text-lg mb-2 text-gray-900">{item.title}</h4>
-                    <p className="text-gray-600">{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Quote Request Modal */}
+        {showQuoteModal && (
+          <QuoteRequestModal
+            isOpen={showQuoteModal}
+            onClose={() => setShowQuoteModal(false)}
+            productId={product.id}
+            productName={product.name}
+          />
+        )}
       </div>
-
-      {/* Advanced Quote Form Modal */}
-      {showAdvancedQuote && (
-        <AdvancedQuoteForm
-          product={product}
-          onClose={() => setShowAdvancedQuote(false)}
-          onSuccess={handleQuoteSuccess}
-        />
-      )}
     </div>
   );
 };

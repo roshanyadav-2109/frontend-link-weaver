@@ -1,3 +1,4 @@
+
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
@@ -31,7 +32,7 @@ import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 // Components
-import Navbar from "./components/layout/Navbar";
+import ModernNavbar from "./components/layout/ModernNavbar";
 import AuthenticatedNavbar from "./components/layout/AuthenticatedNavbar";
 import Footer from "./components/layout/Footer";
 import AdminLayout from "./components/admin/AdminLayout";
@@ -63,7 +64,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-blue"></div>
+        <Loader2 className="w-8 h-8 animate-spin text-brand-blue" />
       </div>
     );
   }
@@ -82,7 +83,7 @@ const ManufacturerRoute = ({ children }: { children: React.ReactNode }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-blue"></div>
+        <Loader2 className="w-8 h-8 animate-spin text-brand-blue" />
       </div>
     );
   }
@@ -149,7 +150,7 @@ const AppRoutes = () => {
         path="/dashboard" 
         element={
           <ProtectedRoute>
-            {isAuthenticated ? <AuthenticatedNavbar /> : <Navbar />}
+            <ModernNavbar />
             <main className="flex-grow">
               <UserDashboard />
             </main>
@@ -158,12 +159,12 @@ const AppRoutes = () => {
         } 
       />
 
-      {/* Public Routes */}
+      {/* Public Routes with ModernNavbar */}
       <Route
         path="*"
         element={
           <>
-            {isAuthenticated ? <AuthenticatedNavbar /> : <Navbar />}
+            <ModernNavbar />
             <main className="flex-grow">
               <Routes>
                 <Route path="/" element={<Index />} />
