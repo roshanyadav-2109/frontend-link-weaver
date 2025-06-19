@@ -53,7 +53,7 @@ const ModernNavbar: React.FC = () => {
           }`}>
             <Link to="/" className="flex items-center">
               <img 
-                src="/lovable-uploads/anantyalogo.png" 
+                src="/lovable-uploads/logoanantya.png" 
                 alt="Anantya Overseas" 
                 className="h-12 w-auto filter brightness-0 invert transition-transform duration-300 hover:scale-105"
               />
