@@ -86,7 +86,7 @@ const ModernNavbar: React.FC = () => {
             <img 
               src="/lovable-uploads/Black_White_Minimalist_Professional_Initial_Logo__1_-removebg-preview.png" 
               alt="Anantya Brand" 
-              className="h-10 w-auto filter brightness-0 invert transition-transform duration-300 hover:scale-105"
+              className="h-10 w-auto transition-transform duration-300 hover:scale-105"
             />
           </div>
         </div>
