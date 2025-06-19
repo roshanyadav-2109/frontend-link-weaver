@@ -1,14 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, Mail, Phone, Share2 } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Mail, Phone, Share2, Filter, Grid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import QuoteRequestModal from '@/components/QuoteRequestModal';
+import { QuoteRequestModal } from '@/components/QuoteRequestModal';
 
 interface Product {
   id: string;
@@ -224,14 +223,12 @@ const ProductDetails: React.FC = () => {
         </div>
 
         {/* Quote Request Modal */}
-        {showQuoteModal && (
-          <QuoteRequestModal
-            isOpen={showQuoteModal}
-            onClose={() => setShowQuoteModal(false)}
-            productId={product.id}
-            productName={product.name}
-          />
-        )}
+        <QuoteRequestModal
+          isOpen={showQuoteModal}
+          onClose={() => setShowQuoteModal(false)}
+          productId={product.id}
+          productName={product.name}
+        />
       </div>
     </div>
   );
