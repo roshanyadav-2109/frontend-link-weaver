@@ -46,12 +46,54 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              <li><Link to="/" className="text-gray-300 hover:text-white transition-colors">Home</Link></li>
-              <li><Link to="/about" className="text-gray-300 hover:text-white transition-colors">About Us</Link></li>
-              <li><Link to="/categories" className="text-gray-300 hover:text-white transition-colors">Products</Link></li>
-              <li><Link to="/careers" className="text-gray-300 hover:text-white transition-colors">Careers</Link></li>
-              <li><Link to="/contact" className="text-gray-300 hover:text-white transition-colors">Contact</Link></li>
-              <li><Link to="/request-quote" className="text-gray-300 hover:text-white transition-colors">Request Quote</Link></li>
+              <li>
+                <Link 
+                  to="/" 
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/about" 
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/categories" 
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
+                  Products
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/careers" 
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
+                  Careers
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/contact" 
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
+                  Contact
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/request-quote" 
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
+                  Request Quote
+                </Link>
+              </li>
             </ul>
           </div>
 

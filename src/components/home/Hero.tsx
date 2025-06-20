@@ -34,25 +34,25 @@ const Hero = () => {
             Expand your reach with verified suppliers and world-class support. Trade confidently, anywhere.
           </p>
           
-          <div className="flex flex-col sm:flex-row justify-center gap-6 mb-16 animate-fade-in animate-delay-300">
+          <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 mb-16 animate-fade-in animate-delay-300 px-4 sm:px-0">
             <Link to="/categories">
-              <Button size="lg" className="bg-white text-brand-blue hover:bg-gray-100 px-10 py-8 text-xl font-semibold shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-2 rounded-2xl min-w-[220px] group">
-                <Package className="mr-3 h-6 w-6" />
-                Explore Products 
-                <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+              <Button size="lg" className="bg-white text-brand-blue hover:bg-gray-100 px-6 sm:px-10 py-6 sm:py-8 text-lg sm:text-xl font-semibold shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-2 rounded-2xl w-full sm:min-w-[220px] group">
+                <Package className="mr-2 sm:mr-3 h-5 sm:h-6 w-5 sm:w-6" />
+                <span className="text-sm sm:text-base">Explore Products</span>
+                <ArrowRight className="ml-2 sm:ml-3 h-5 sm:h-6 w-5 sm:w-6 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Button 
               onClick={() => setShowPartnershipForm(true)}
               size="lg"
-              className="bg-gradient-to-r from-brand-teal to-brand-blue text-white px-10 py-8 text-xl font-semibold shadow-2xl hover:shadow-3xl hover:from-brand-blue hover:to-brand-teal transition-all duration-300 transform hover:-translate-y-2 rounded-2xl min-w-[220px] group border-2 border-white/80 focus-visible:ring-4 focus-visible:ring-brand-blue/40"
+              className="bg-gradient-to-r from-brand-teal to-brand-blue text-white px-4 sm:px-10 py-6 sm:py-8 text-lg sm:text-xl font-semibold shadow-2xl hover:shadow-3xl hover:from-brand-blue hover:to-brand-teal transition-all duration-300 transform hover:-translate-y-2 rounded-2xl w-full sm:min-w-[220px] group border-2 border-white/80 focus-visible:ring-4 focus-visible:ring-brand-blue/40"
               style={{
                 textShadow: "0 1px 10px rgba(0,0,0,0.35)",
               }}
             >
-              <Factory className="mr-3 h-6 w-6" />
-              Partner as a Manufacturer
-              <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+              <Factory className="mr-2 sm:mr-3 h-5 sm:h-6 w-5 sm:w-6 flex-shrink-0" />
+              <span className="text-sm sm:text-base text-center leading-tight">Partner as Manufacturer</span>
+              <ArrowRight className="ml-2 sm:ml-3 h-5 sm:h-6 w-5 sm:w-6 group-hover:translate-x-1 transition-transform flex-shrink-0" />
             </Button>
           </div>
         </div>
