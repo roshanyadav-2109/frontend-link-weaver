@@ -36,7 +36,7 @@ const ModernNavbar: React.FC = () => {
   const navItems = [
     { name: 'HOME', path: '/' },
     { name: 'ABOUT US', path: '/about' },
-    { name: 'PRODUCTS', path: '/categories' },
+    { name: 'PRODUCTS', path: '/products' },
     { name: 'CAREER', path: '/careers' },
     { name: 'CONTACT US', path: '/contact' },
   ];
@@ -85,7 +85,7 @@ const ModernNavbar: React.FC = () => {
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-white p-2 hover:bg-white/10 rounded-md transition-colors"
+              className="text-white p-2 hover:bg-white/10 rounded-md transition-colors z-50 relative"
               aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -105,14 +105,19 @@ const ModernNavbar: React.FC = () => {
         </div>
 
         {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-white/20">
-            <div className="flex flex-col space-y-2 pt-4">
-              {navItems.map((item) => (
+        <div className={`md:hidden fixed inset-0 bg-black/95 backdrop-blur-md z-40 transition-all duration-300 ${
+          isMobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+        }`} style={{ top: '80px' }}>
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex flex-col space-y-6">
+              {navItems.map((item, index) => (
                 <Link
                   key={item.name}
                   to={item.path}
-                  className="text-white font-medium text-sm tracking-wide py-2 px-4 hover:bg-white/10 rounded-md transition-colors"
+                  className={`text-white font-medium text-lg tracking-wide py-3 px-4 hover:bg-white/10 rounded-md transition-all duration-300 ${
+                    isMobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+                  } ${location.pathname === item.path ? 'bg-white/10 text-brand-red' : ''}`}
+                  style={{ transitionDelay: `${index * 100}ms` }}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.name}
@@ -120,7 +125,7 @@ const ModernNavbar: React.FC = () => {
               ))}
             </div>
           </div>
-        )}
+        </div>
       </div>
     </nav>
   );

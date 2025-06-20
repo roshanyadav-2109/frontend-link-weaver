@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, Mail } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Mail, Heart, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -48,14 +48,14 @@ const ProductDetails: React.FC = () => {
       if (error) {
         console.error('Error fetching product:', error);
         toast.error('Product not found');
-        navigate('/categories');
+        navigate('/products');
       } else {
         setProduct(data);
       }
     } catch (error) {
       console.error('Error fetching product:', error);
       toast.error('Failed to load product');
-      navigate('/categories');
+      navigate('/products');
     } finally {
       setLoading(false);
     }
@@ -71,18 +71,31 @@ const ProductDetails: React.FC = () => {
   };
 
   const handleEmailInquiry = () => {
-    const subject = `Inquiry about ${product?.name}`;
-    const body = `Hi,\n\nI am interested in your product: ${product?.name}\n\nPlease provide more details.\n\nThank you.`;
+    if (!product) return;
+    
+    const subject = `Inquiry about ${product.name}`;
+    const body = `Hi,\n\nI am interested in your product: ${product.name}\n\nPlease provide more details.\n\nThank you.`;
     const mailtoUrl = `mailto:anantyaoverseas@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(mailtoUrl, '_blank');
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: product?.name,
+        text: product?.description,
+        url: window.location.href,
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success('Product link copied to clipboard!');
+    }
   };
 
   const getCategoryLabel = (category: string) => {
     const categoryMap: { [key: string]: string } = {
       textiles: 'Textiles & Fabrics',
       electronics: 'Electronics & Audio',
-      handicrafts: 'Handicrafts & Artisan',
-      organic: 'Organic Products'
     };
     return categoryMap[category] || category;
   };
@@ -107,7 +120,7 @@ const ProductDetails: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-20">
+      <div className="min-h-screen bg-gray-50 pt-24">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-blue"></div>
@@ -119,11 +132,11 @@ const ProductDetails: React.FC = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-20">
+      <div className="min-h-screen bg-gray-50 pt-24">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Product Not Found</h1>
-            <Button onClick={() => navigate('/categories')}>
+            <Button onClick={() => navigate('/products')}>
               Back to Products
             </Button>
           </div>
@@ -133,13 +146,13 @@ const ProductDetails: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20">
+    <div className="min-h-screen bg-gray-50 pt-24">
       <div className="container mx-auto px-4 py-8">
         {/* Back Button */}
         <Button 
           variant="ghost" 
           className="mb-6" 
-          onClick={() => navigate('/categories')}
+          onClick={() => navigate('/products')}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Products
@@ -148,7 +161,7 @@ const ProductDetails: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Product Image */}
           <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+            <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden">
               {product.image ? (
                 <img 
                   src={product.image} 
@@ -161,6 +174,18 @@ const ProductDetails: React.FC = () => {
                   <div className="text-lg">No Image Available</div>
                 </div>
               )}
+              
+              {/* Action buttons overlay */}
+              <div className="absolute top-4 right-4 flex space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-white/90 hover:bg-white"
+                  onClick={handleShare}
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -177,7 +202,7 @@ const ProductDetails: React.FC = () => {
             </div>
 
             <div className="mb-6">
-              <div className="text-2xl font-bold text-brand-blue mb-4">
+              <div className="text-3xl font-bold text-brand-blue mb-4">
                 {product.price}
               </div>
               
@@ -192,25 +217,46 @@ const ProductDetails: React.FC = () => {
             {/* Action Buttons */}
             <div className="space-y-3 mb-6">
               <Button 
-                className="w-full bg-brand-blue hover:bg-brand-blue/90"
+                className="w-full bg-brand-blue hover:bg-brand-blue/90 text-lg py-3"
                 onClick={handleRequestQuote}
               >
-                <ShoppingCart className="h-4 w-4 mr-2" />
+                <ShoppingCart className="h-5 w-5 mr-2" />
                 Request Quote
               </Button>
               
               <Button 
                 variant="outline" 
-                className="w-full"
+                className="w-full text-lg py-3"
                 onClick={handleEmailInquiry}
               >
-                <Mail className="h-4 w-4 mr-2" />
+                <Mail className="h-5 w-5 mr-2" />
                 Email Inquiry
               </Button>
             </div>
 
+            {/* Product Information */}
+            <div className="border-t pt-6">
+              <h3 className="font-semibold text-gray-900 mb-3">Product Information</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Category:</span>
+                  <span className="font-medium">{getCategoryLabel(product.category)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Subcategory:</span>
+                  <span className="font-medium">{getSubcategoryLabel(product.category, product.subcategory)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status:</span>
+                  <Badge variant="outline" className="text-xs">
+                    {product.status}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
             {/* Contact Information */}
-            <Card>
+            <Card className="mt-6">
               <CardContent className="p-4">
                 <h3 className="font-semibold text-gray-900 mb-3">Need Help?</h3>
                 <div className="space-y-2 text-sm text-gray-600">

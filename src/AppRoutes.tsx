@@ -7,6 +7,7 @@ import Contact from './pages/Contact';
 import Categories from './pages/Categories';
 import SubCategories from './pages/categories/SubCategories';
 import ProductDetails from './pages/products/ProductDetails';
+import ProductsPage from './pages/products/ProductsPage';
 import Careers from './pages/Careers';
 import RequestQuotePage from './pages/RequestQuotePage';
 import CatalogRequest from './pages/CatalogRequest';
@@ -43,6 +44,8 @@ const AppRoutes: React.FC = () => {
       <Route path="/categories" element={<Categories />} />
       <Route path="/categories/:category" element={<SubCategories />} />
       <Route path="/categories/:category/:subcategory" element={<SubCategories />} />
+      <Route path="/products" element={<ProductsPage />} />
+      <Route path="/products/:id" element={<ProductDetails />} />
       <Route path="/product/:id" element={<ProductDetails />} />
       <Route path="/careers" element={<Careers />} />
       <Route path="/request-quote" element={<RequestQuotePage />} />
