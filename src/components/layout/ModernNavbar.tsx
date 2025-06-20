@@ -79,8 +79,8 @@ const ModernNavbar: React.FC = () => {
             ))}
           </div>
 
-          {/* Company Logo - Right */}
-          <div className={`flex items-center transition-all duration-700 delay-300 ${
+          {/* Company Logo - Right - Hidden on mobile, shown on desktop */}
+          <div className={`hidden lg:flex items-center transition-all duration-700 delay-300 ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'
           }`}>
             <img 

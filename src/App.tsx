@@ -3,8 +3,9 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
-import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { AuthProvider } from "@/hooks/useAuth";
 import AppRoutes from "./AppRoutes";
+import AppLayout from "./components/layout/AppLayout";
 import NotificationToast from "./components/NotificationToast";
 import "./App.css";
 
@@ -17,22 +18,14 @@ function App() {
         <Toaster />
         <BrowserRouter>
           <AuthProvider>
-            <AuthWrapper />
+            <AppLayout>
+              <AppRoutes />
+              <NotificationToast />
+            </AppLayout>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
-  );
-}
-
-function AuthWrapper() {
-  const { isAuthenticated } = useAuth();
-  
-  return (
-    <>
-      <AppRoutes />
-      {isAuthenticated && <NotificationToast />}
-    </>
   );
 }
 
