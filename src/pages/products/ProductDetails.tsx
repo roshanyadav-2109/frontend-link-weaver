@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, Mail, Phone, Share2, Filter, Grid, List } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -67,6 +68,13 @@ const ProductDetails: React.FC = () => {
       return;
     }
     setShowQuoteModal(true);
+  };
+
+  const handleEmailInquiry = () => {
+    const subject = `Inquiry about ${product?.name}`;
+    const body = `Hi,\n\nI am interested in your product: ${product?.name}\n\nPlease provide more details.\n\nThank you.`;
+    const mailtoUrl = `mailto:anantyaoverseas@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailtoUrl, '_blank');
   };
 
   const getCategoryLabel = (category: string) => {
@@ -191,16 +199,14 @@ const ProductDetails: React.FC = () => {
                 Request Quote
               </Button>
               
-              <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" className="w-full">
-                  <Mail className="h-4 w-4 mr-2" />
-                  Email Inquiry
-                </Button>
-                <Button variant="outline" className="w-full">
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share
-                </Button>
-              </div>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={handleEmailInquiry}
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Email Inquiry
+              </Button>
             </div>
 
             {/* Contact Information */}
@@ -211,10 +217,6 @@ const ProductDetails: React.FC = () => {
                   <div className="flex items-center">
                     <Mail className="h-4 w-4 mr-2 text-brand-blue" />
                     <span>anantyaoverseas@gmail.com</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Phone className="h-4 w-4 mr-2 text-brand-blue" />
-                    <span>Contact us for pricing and availability</span>
                   </div>
                 </div>
               </CardContent>

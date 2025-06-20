@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Linkedin, Instagram } from 'lucide-react';
+import { Mail, MapPin, Linkedin, Instagram } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -12,7 +12,7 @@ const Footer: React.FC = () => {
           <div className="space-y-4">
             <div className="flex items-center">
               <img 
-                src="/lovable-uploads/Black_White_Minimalist_Professional_Initial_Logo__1_-removebg-preview.png" 
+                src="/lovable-uploads/logoanantya.png" 
                 alt="Anantya Overseas" 
                 className="h-12 w-auto filter brightness-0 invert"
               />
@@ -46,6 +46,7 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
+              <li><Link to="/" className="text-gray-300 hover:text-white transition-colors">Home</Link></li>
               <li><Link to="/about" className="text-gray-300 hover:text-white transition-colors">About Us</Link></li>
               <li><Link to="/categories" className="text-gray-300 hover:text-white transition-colors">Products</Link></li>
               <li><Link to="/careers" className="text-gray-300 hover:text-white transition-colors">Careers</Link></li>
