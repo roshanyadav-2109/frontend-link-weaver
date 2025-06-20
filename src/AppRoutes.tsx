@@ -21,13 +21,11 @@ import AuthCallback from './pages/auth/AuthCallback';
 import UpdateProfileClient from './pages/auth/UpdateProfileClient';
 import UpdateProfileManufacturer from './pages/auth/UpdateProfileManufacturer';
 import UserDashboard from './pages/user/UserDashboard';
-import AdminLayout from './components/admin/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 import ProductsManager from './pages/admin/ProductsManager';
 import QuoteRequests from './pages/admin/QuoteRequests';
 import CareersManager from './pages/admin/CareersManager';
 import Settings from './pages/admin/Settings';
-import ManufacturerLayout from './components/manufacturer/ManufacturerLayout';
 import ManufacturerDashboard from './pages/manufacturer/ManufacturerDashboard';
 import CatalogRequests from './pages/manufacturer/CatalogRequests';
 import AdminLogin from './pages/auth/AdminLogin';
@@ -77,9 +75,7 @@ const AppRoutes: React.FC = () => {
         path="/admin" 
         element={
           <ProtectedRoute requireAdmin={true}>
-            <AdminLayout>
-              <Dashboard />
-            </AdminLayout>
+            <Dashboard />
           </ProtectedRoute>
         } 
       />
@@ -87,9 +83,7 @@ const AppRoutes: React.FC = () => {
         path="/admin/products" 
         element={
           <ProtectedRoute requireAdmin={true}>
-            <AdminLayout>
-              <ProductsManager />
-            </AdminLayout>
+            <ProductsManager />
           </ProtectedRoute>
         } 
       />
@@ -97,9 +91,7 @@ const AppRoutes: React.FC = () => {
         path="/admin/quote-requests" 
         element={
           <ProtectedRoute requireAdmin={true}>
-            <AdminLayout>
-              <QuoteRequests />
-            </AdminLayout>
+            <QuoteRequests />
           </ProtectedRoute>
         } 
       />
@@ -107,9 +99,7 @@ const AppRoutes: React.FC = () => {
         path="/admin/manufacturer-partnerships" 
         element={
           <ProtectedRoute requireAdmin={true}>
-            <AdminLayout>
-              <ManufacturerPartnerships />
-            </AdminLayout>
+            <ManufacturerPartnerships />
           </ProtectedRoute>
         } 
       />
@@ -117,9 +107,7 @@ const AppRoutes: React.FC = () => {
         path="/admin/careers" 
         element={
           <ProtectedRoute requireAdmin={true}>
-            <AdminLayout>
-              <CareersManager />
-            </AdminLayout>
+            <CareersManager />
           </ProtectedRoute>
         } 
       />
@@ -127,9 +115,7 @@ const AppRoutes: React.FC = () => {
         path="/admin/settings" 
         element={
           <ProtectedRoute requireAdmin={true}>
-            <AdminLayout>
-              <Settings />
-            </AdminLayout>
+            <Settings />
           </ProtectedRoute>
         } 
       />
@@ -139,9 +125,7 @@ const AppRoutes: React.FC = () => {
         path="/manufacturer/dashboard" 
         element={
           <ProtectedRoute requireManufacturer={true}>
-            <ManufacturerLayout>
-              <ManufacturerDashboard />
-            </ManufacturerLayout>
+            <ManufacturerDashboard />
           </ProtectedRoute>
         } 
       />
@@ -149,9 +133,7 @@ const AppRoutes: React.FC = () => {
         path="/manufacturer/catalog-requests" 
         element={
           <ProtectedRoute requireManufacturer={true}>
-            <ManufacturerLayout>
-              <CatalogRequests />
-            </ManufacturerLayout>
+            <CatalogRequests />
           </ProtectedRoute>
         } 
       />
