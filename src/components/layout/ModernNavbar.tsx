@@ -1,13 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, User, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const ModernNavbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, user, profile, signOut } = useAuth();
   const isHomePage = location.pathname === '/';
 
   useEffect(() => {
@@ -25,25 +28,61 @@ const ModernNavbar: React.FC = () => {
       setIsScrolled(scrolled);
     };
 
-    if (isHomePage) {
+    if (isHomePage && !isAuthenticated) {
       window.addEventListener('scroll', handleScroll);
       return () => window.removeEventListener('scroll', handleScroll);
     } else {
-      setIsScrolled(true); // Always show solid background on non-home pages
+      setIsScrolled(true); // Always show solid background for authenticated users or non-home pages
     }
-  }, [isHomePage]);
+  }, [isHomePage, isAuthenticated]);
 
-  const navItems = [
-    { name: 'HOME', path: '/' },
-    { name: 'ABOUT US', path: '/about' },
-    { name: 'PRODUCTS', path: '/products' },
-    { name: 'CAREER', path: '/careers' },
-    { name: 'CONTACT US', path: '/contact' },
-  ];
+  const getNavItems = () => {
+    if (!isAuthenticated) {
+      return [
+        { name: 'HOME', path: '/' },
+        { name: 'ABOUT US', path: '/about' },
+        { name: 'PRODUCTS', path: '/products' },
+        { name: 'CAREER', path: '/careers' },
+        { name: 'CONTACT US', path: '/contact' },
+      ];
+    }
+
+    // Authenticated user navigation
+    if (profile?.is_admin) {
+      return [
+        { name: 'DASHBOARD', path: '/admin' },
+        { name: 'PRODUCTS', path: '/admin/products' },
+        { name: 'QUOTES', path: '/admin/quote-requests' },
+        { name: 'CAREERS', path: '/admin/careers' },
+      ];
+    } else if (profile?.user_type === 'manufacturer') {
+      return [
+        { name: 'DASHBOARD', path: '/manufacturer/dashboard' },
+        { name: 'PRODUCTS', path: '/products' },
+        { name: 'CATALOG REQUESTS', path: '/manufacturer/catalog-requests' },
+        { name: 'CONTACT', path: '/contact' },
+      ];
+    } else {
+      return [
+        { name: 'DASHBOARD', path: '/dashboard' },
+        { name: 'PRODUCTS', path: '/products' },
+        { name: 'QUOTE REQUEST', path: '/request-quote' },
+        { name: 'CONTACT', path: '/contact' },
+      ];
+    }
+  };
+
+  const navItems = getNavItems();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-      isScrolled || !isHomePage
+      isScrolled || !isHomePage || isAuthenticated
         ? 'bg-black/95 backdrop-blur-md shadow-lg py-3' 
         : 'bg-transparent py-4'
     } ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'}`}>
@@ -53,7 +92,7 @@ const ModernNavbar: React.FC = () => {
           <div className={`flex items-center transition-all duration-700 delay-100 ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'
           }`}>
-            <Link to="/" className="flex items-center">
+            <Link to={isAuthenticated ? (profile?.is_admin ? '/admin' : profile?.user_type === 'manufacturer' ? '/manufacturer/dashboard' : '/dashboard') : '/'} className="flex items-center">
               <img 
                 src="/lovable-uploads/logoanantya.png" 
                 alt="Anantya Overseas" 
@@ -81,6 +120,39 @@ const ModernNavbar: React.FC = () => {
             ))}
           </div>
 
+          {/* Right Side - User Menu or Company Logo */}
+          <div className="hidden lg:flex items-center gap-4">
+            {isAuthenticated ? (
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <p className="text-white text-sm font-medium">
+                    {profile?.full_name || user?.email?.split('@')[0]}
+                  </p>
+                  <p className="text-gray-300 text-xs capitalize">
+                    {profile?.user_type || 'user'}
+                  </p>
+                </div>
+                <button
+                  onClick={handleSignOut}
+                  className="text-white hover:text-brand-red transition-colors p-2 hover:bg-white/10 rounded-md"
+                  title="Sign Out"
+                >
+                  <LogOut size={20} />
+                </button>
+              </div>
+            ) : (
+              <div className={`transition-all duration-700 delay-300 ${
+                isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'
+              }`}>
+                <img 
+                  src="/lovable-uploads/Black_White_Minimalist_Professional_Initial_Logo__1_-removebg-preview.png" 
+                  alt="Anantya Brand" 
+                  className="h-10 w-auto transition-transform duration-300 hover:scale-105"
+                />
+              </div>
+            )}
+          </div>
+
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button
@@ -90,17 +162,6 @@ const ModernNavbar: React.FC = () => {
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-          </div>
-
-          {/* Company Logo - Right - Hidden on mobile, shown on desktop */}
-          <div className={`hidden lg:flex items-center transition-all duration-700 delay-300 ${
-            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'
-          }`}>
-            <img 
-              src="/lovable-uploads/Black_White_Minimalist_Professional_Initial_Logo__1_-removebg-preview.png" 
-              alt="Anantya Brand" 
-              className="h-10 w-auto transition-transform duration-300 hover:scale-105"
-            />
           </div>
         </div>
 
@@ -123,6 +184,22 @@ const ModernNavbar: React.FC = () => {
                   {item.name}
                 </Link>
               ))}
+              
+              {isAuthenticated && (
+                <div className="border-t border-white/20 pt-6 mt-6">
+                  <div className="text-white mb-4 px-4">
+                    <p className="font-medium">{profile?.full_name || user?.email?.split('@')[0]}</p>
+                    <p className="text-gray-300 text-sm capitalize">{profile?.user_type || 'user'}</p>
+                  </div>
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center text-white font-medium text-lg tracking-wide py-3 px-4 hover:bg-white/10 rounded-md transition-all duration-300 w-full"
+                  >
+                    <LogOut className="h-5 w-5 mr-3" />
+                    Sign Out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

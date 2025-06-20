@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import AuthenticatedNavbar from './AuthenticatedNavbar';
 import ModernNavbar from './ModernNavbar';
 import Footer from './Footer';
 
@@ -14,7 +13,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {isAuthenticated ? <AuthenticatedNavbar /> : <ModernNavbar />}
+      <ModernNavbar />
       <main className="flex-1">
         {children}
       </main>
