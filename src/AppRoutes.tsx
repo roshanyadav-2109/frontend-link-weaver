@@ -76,7 +76,7 @@ const AppRoutes: React.FC = () => {
       <Route 
         path="/admin" 
         element={
-          <ProtectedRoute requireAdmin>
+          <ProtectedRoute requireAdmin={true}>
             <AdminLayout>
               <Dashboard />
             </AdminLayout>
@@ -86,7 +86,7 @@ const AppRoutes: React.FC = () => {
       <Route 
         path="/admin/products" 
         element={
-          <ProtectedRoute requireAdmin>
+          <ProtectedRoute requireAdmin={true}>
             <AdminLayout>
               <ProductsManager />
             </AdminLayout>
@@ -96,7 +96,7 @@ const AppRoutes: React.FC = () => {
       <Route 
         path="/admin/quote-requests" 
         element={
-          <ProtectedRoute requireAdmin>
+          <ProtectedRoute requireAdmin={true}>
             <AdminLayout>
               <QuoteRequests />
             </AdminLayout>
@@ -106,7 +106,7 @@ const AppRoutes: React.FC = () => {
       <Route 
         path="/admin/manufacturer-partnerships" 
         element={
-          <ProtectedRoute requireAdmin>
+          <ProtectedRoute requireAdmin={true}>
             <AdminLayout>
               <ManufacturerPartnerships />
             </AdminLayout>
@@ -116,7 +116,7 @@ const AppRoutes: React.FC = () => {
       <Route 
         path="/admin/careers" 
         element={
-          <ProtectedRoute requireAdmin>
+          <ProtectedRoute requireAdmin={true}>
             <AdminLayout>
               <CareersManager />
             </AdminLayout>
@@ -126,7 +126,7 @@ const AppRoutes: React.FC = () => {
       <Route 
         path="/admin/settings" 
         element={
-          <ProtectedRoute requireAdmin>
+          <ProtectedRoute requireAdmin={true}>
             <AdminLayout>
               <Settings />
             </AdminLayout>
@@ -138,7 +138,7 @@ const AppRoutes: React.FC = () => {
       <Route 
         path="/manufacturer/dashboard" 
         element={
-          <ProtectedRoute requireManufacturer>
+          <ProtectedRoute requireManufacturer={true}>
             <ManufacturerLayout>
               <ManufacturerDashboard />
             </ManufacturerLayout>
@@ -148,7 +148,7 @@ const AppRoutes: React.FC = () => {
       <Route 
         path="/manufacturer/catalog-requests" 
         element={
-          <ProtectedRoute requireManufacturer>
+          <ProtectedRoute requireManufacturer={true}>
             <ManufacturerLayout>
               <CatalogRequests />
             </ManufacturerLayout>

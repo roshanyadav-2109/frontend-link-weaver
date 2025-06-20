@@ -14,7 +14,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireAdmin = false, 
   requireManufacturer = false 
 }) => {
-  const { isAuthenticated, user, loading } = useAuth();
+  const { isAuthenticated, profile, loading } = useAuth();
 
   if (loading) {
     return (
@@ -28,11 +28,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/auth/initial" replace />;
   }
 
-  if (requireAdmin && !user?.is_admin) {
+  if (requireAdmin && !profile?.is_admin) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  if (requireManufacturer && user?.user_type !== 'manufacturer') {
+  if (requireManufacturer && profile?.user_type !== 'manufacturer') {
     return <Navigate to="/dashboard" replace />;
   }
 

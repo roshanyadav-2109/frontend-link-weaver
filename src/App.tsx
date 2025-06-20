@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import AppRoutes from "./AppRoutes";
 import NotificationToast from "./components/NotificationToast";
 import "./App.css";
@@ -16,7 +16,9 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <BrowserRouter>
-          <AuthWrapper />
+          <AuthProvider>
+            <AuthWrapper />
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
