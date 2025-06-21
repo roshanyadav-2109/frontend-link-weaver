@@ -1,9 +1,12 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, MapPin, Linkedin, Instagram } from 'lucide-react';
+import { Mail, MapPin, Linkedin, Instagram, LogIn, UserPlus } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const Footer: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <footer className="bg-gray-900 text-white">
       <div className="container mx-auto px-4 py-12">
@@ -49,7 +52,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link 
                   to="/" 
-                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                  className="text-gray-300 hover:text-white transition-colors"
                 >
                   Home
                 </Link>
@@ -57,15 +60,15 @@ const Footer: React.FC = () => {
               <li>
                 <Link 
                   to="/about" 
-                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                  className="text-gray-300 hover:text-white transition-colors"
                 >
                   About Us
                 </Link>
               </li>
               <li>
                 <Link 
-                  to="/categories" 
-                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                  to="/products" 
+                  className="text-gray-300 hover:text-white transition-colors"
                 >
                   Products
                 </Link>
@@ -73,7 +76,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link 
                   to="/careers" 
-                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                  className="text-gray-300 hover:text-white transition-colors"
                 >
                   Careers
                 </Link>
@@ -81,7 +84,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link 
                   to="/contact" 
-                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                  className="text-gray-300 hover:text-white transition-colors"
                 >
                   Contact
                 </Link>
@@ -89,7 +92,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link 
                   to="/request-quote" 
-                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                  className="text-gray-300 hover:text-white transition-colors"
                 >
                   Request Quote
                 </Link>
@@ -109,10 +112,10 @@ const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Contact Info */}
+          {/* Contact Info & Auth Links */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Contact Info</h3>
-            <div className="space-y-3">
+            <div className="space-y-3 mb-6">
               <div className="flex items-center space-x-3">
                 <Mail size={18} className="text-brand-blue" />
                 <a 
@@ -127,6 +130,29 @@ const Footer: React.FC = () => {
                 <span className="text-gray-300 text-sm">Ahmedabad, Gujarat, India</span>
               </div>
             </div>
+            
+            {/* Auth Links */}
+            {!isAuthenticated && (
+              <div className="space-y-2">
+                <h4 className="text-md font-medium mb-2">Get Started</h4>
+                <div className="flex flex-col space-y-2">
+                  <Link 
+                    to="/auth/client" 
+                    className="flex items-center text-gray-300 hover:text-white transition-colors text-sm"
+                  >
+                    <LogIn size={16} className="mr-2" />
+                    Sign In
+                  </Link>
+                  <Link 
+                    to="/auth/initial" 
+                    className="flex items-center text-gray-300 hover:text-white transition-colors text-sm"
+                  >
+                    <UserPlus size={16} className="mr-2" />
+                    Sign Up
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
