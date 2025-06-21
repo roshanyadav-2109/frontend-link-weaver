@@ -35,7 +35,7 @@ const Hero = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 mb-16 animate-fade-in animate-delay-300 px-4 sm:px-0">
-            <Link to="/products">
+            <Link to="/categories">
               <Button size="lg" className="bg-white text-brand-blue hover:bg-gray-100 px-6 sm:px-10 py-6 sm:py-8 text-lg sm:text-xl font-semibold shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-2 rounded-2xl w-full sm:min-w-[220px] group">
                 <Package className="mr-2 sm:mr-3 h-5 sm:h-6 w-5 sm:w-6" />
                 <span className="text-sm sm:text-base">Explore Products</span>

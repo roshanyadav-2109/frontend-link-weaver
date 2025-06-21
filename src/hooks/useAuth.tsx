@@ -1,89 +1,87 @@
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { Session, User } from '@supabase/supabase-js';
 
-interface Profile {
-  id: string;
-  email: string;
+type Profile = {
+  is_admin: boolean;
+  user_type?: 'manufacturer' | 'client';
+  gstin?: string;
   full_name?: string;
-  phone?: string;
   company_name?: string;
-  user_type?: string;
-  is_admin?: boolean;
-  verification_status?: string;
-}
-
-interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  profile: Profile | null;
-  loading: boolean;
-  isAuthenticated: boolean;
-  isAdmin: boolean;
-  signIn: (email: string, password: string) => Promise<boolean>;
-  signUp: (email: string, password: string, userData?: any) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
-  signInWithGoogle: () => Promise<boolean>;
-  refreshProfile: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  phone?: string;
+  address?: string;
 };
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
+type AuthContextType = {
+  user: User | null;
+  profile: Profile | null;
+  session: Session | null;
+  signIn: (email: string, password: string) => Promise<boolean>;
+  signInWithGoogle: () => Promise<void>;
+  signOut: () => void;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  isManufacturer: boolean;
+  isClient: boolean;
+  loading: boolean;
+  resendConfirmationEmail: (email: string) => Promise<void>;
+};
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const refreshProfile = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.warn('Error fetching profile:', error);
-        return;
-      }
-
-      setProfile(data);
-    } catch (error) {
-      console.warn('Error in refreshProfile:', error);
-    }
-  };
-
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   useEffect(() => {
-    // Set up auth state listener
+    let mounted = true;
+
+    // Set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+      async (event, currentSession) => {
+        if (!mounted) return;
         
-        setSession(session);
-        setUser(session?.user ?? null);
+        console.log('Auth state change:', event, currentSession?.user?.email);
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
         
-        // Handle profile loading asynchronously
-        if (session?.user) {
-          setTimeout(() => {
-            refreshProfile();
-          }, 0);
+        if (currentSession?.user) {
+          // Fetch the user profile data
+          const { data: profileData, error } = await supabase
+            .from('profiles')
+            .select('is_admin, user_type, gstin, full_name, company_name, phone, address')
+            .eq('id', currentSession.user.id)
+            .single();
+          
+          if (error) {
+            console.error('Error fetching profile:', error);
+            setProfile(null);
+          } else {
+            const typedProfile: Profile = {
+              is_admin: profileData.is_admin || false,
+              user_type: profileData.user_type as 'manufacturer' | 'client' | undefined,
+              gstin: profileData.gstin || undefined,
+              full_name: profileData.full_name || undefined,
+              company_name: profileData.company_name || undefined,
+              phone: profileData.phone || undefined,
+              address: profileData.address || undefined,
+            };
+            setProfile(typedProfile);
+            
+            // Handle post-authentication navigation
+            if (event === 'SIGNED_IN' && profileData) {
+              setTimeout(() => {
+                handlePostAuthNavigation(typedProfile);
+              }, 100);
+            }
+          }
         } else {
           setProfile(null);
         }
@@ -91,148 +89,189 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setLoading(false);
       }
     );
-
+    
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      if (!mounted) return;
       
-      if (session?.user) {
-        setTimeout(() => {
-          refreshProfile();
-        }, 0);
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      
+      if (currentSession?.user) {
+        supabase
+          .from('profiles')
+          .select('is_admin, user_type, gstin, full_name, company_name, phone, address')
+          .eq('id', currentSession.user.id)
+          .single()
+          .then(({ data: profileData, error }) => {
+            if (!mounted) return;
+            
+            if (error) {
+              console.error('Error fetching profile:', error);
+              setProfile(null);
+            } else {
+              const typedProfile: Profile = {
+                is_admin: profileData.is_admin || false,
+                user_type: profileData.user_type as 'manufacturer' | 'client' | undefined,
+                gstin: profileData.gstin || undefined,
+                full_name: profileData.full_name || undefined,
+                company_name: profileData.company_name || undefined,
+                phone: profileData.phone || undefined,
+                address: profileData.address || undefined,
+              };
+              setProfile(typedProfile);
+            }
+            setLoading(false);
+          });
+      } else {
+        setProfile(null);
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
-
-    return () => subscription.unsubscribe();
+    
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const signIn = async (email: string, password: string): Promise<boolean> => {
+  const handlePostAuthNavigation = (profileData: Profile) => {
+    // Don't redirect if already on auth-related pages
+    if (location.pathname.includes('/auth/') || location.pathname.includes('/profile-completion')) {
+      return;
+    }
+
+    // Check if profile is complete
+    const isProfileComplete = profileData.full_name && profileData.user_type;
+    
+    if (!isProfileComplete) {
+      navigate(`/profile-completion?type=${profileData.user_type || 'client'}`);
+      return;
+    }
+
+    // Redirect based on user type
+    if (profileData.is_admin) {
+      navigate('/admin');
+    } else if (profileData.user_type === 'manufacturer') {
+      navigate('/manufacturer/dashboard');
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
+  const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       });
-
+      
       if (error) {
+        if (error.message === "Email not confirmed") {
+          toast.error("Please check your email to confirm your account before signing in.", {
+            description: "Need a new confirmation email? Use the resend option below.",
+            action: {
+              label: "Resend",
+              onClick: () => resendConfirmationEmail(email)
+            },
+            duration: 8000,
+          });
+          return false;
+        }
         toast.error(error.message);
         return false;
       }
-
+      
       if (data.user) {
-        toast.success('Successfully signed in!');
+        toast.success('Welcome back!', {
+          description: "You've successfully signed in.",
+        });
         return true;
       }
-
-      return false;
-    } catch (error: any) {
-      console.error('Sign in error:', error);
-      toast.error('An unexpected error occurred');
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signUp = async (email: string, password: string, userData?: any) => {
-    try {
-      const redirectUrl = `${window.location.origin}/auth/callback`;
       
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: userData
-        }
-      });
-
-      if (error) {
-        toast.error(error.message);
-        return { error };
-      }
-
-      if (data.user && !data.user.email_confirmed_at) {
-        toast.success('Please check your email to confirm your account');
-      } else if (data.user) {
-        toast.success('Account created successfully!');
-      }
-
-      return { error: null };
-    } catch (error: any) {
-      console.error('Sign up error:', error);
-      toast.error('An unexpected error occurred');
-      return { error };
-    }
-  };
-
-  const signOut = async (): Promise<void> => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error('Sign out error:', error);
-        toast.error('Error signing out');
-      } else {
-        setUser(null);
-        setSession(null);
-        setProfile(null);
-        toast.success('Successfully signed out');
-      }
+      return false;
     } catch (error) {
-      console.error('Sign out error:', error);
-      toast.error('Error signing out');
+      toast.error('An error occurred during login');
+      return false;
     } finally {
       setLoading(false);
     }
   };
-
-  const signInWithGoogle = async (): Promise<boolean> => {
+  
+  const signInWithGoogle = async () => {
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${window.location.origin}/auth/callback`,
         }
       });
-
+      
       if (error) {
         toast.error(error.message);
-        return false;
       }
-
-      return true;
-    } catch (error: any) {
-      console.error('Google sign in error:', error);
-      toast.error('An unexpected error occurred');
-      return false;
+    } catch (error) {
+      toast.error('An error occurred during Google sign-in');
     }
   };
 
-  const isAuthenticated = !!user;
-  const isAdmin = profile?.is_admin ?? false;
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setProfile(null);
+    setSession(null);
+    navigate('/');
+    toast('You have been logged out', {
+      description: 'Successfully signed out of your account'
+    });
+  };
 
-  const value: AuthContextType = {
-    user,
-    session,
-    profile,
-    loading,
-    isAuthenticated,
-    isAdmin,
-    signIn,
-    signUp,
-    signOut,
-    signInWithGoogle,
-    refreshProfile,
+  const resendConfirmationEmail = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email
+      });
+      
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('Confirmation email has been sent. Please check your inbox.', {
+          description: "Didn't receive it? Check your spam folder or try again in a few minutes."
+        });
+      }
+    } catch (error) {
+      toast.error('An error occurred while sending the confirmation email.');
+    }
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        user,
+        profile,
+        session,
+        signIn,
+        signInWithGoogle,
+        signOut,
+        isAuthenticated: !!user,
+        isAdmin: profile?.is_admin || false,
+        isManufacturer: profile?.user_type === 'manufacturer',
+        isClient: profile?.user_type === 'client',
+        loading,
+        resendConfirmationEmail
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
