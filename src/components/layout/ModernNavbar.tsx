@@ -1,8 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut } from 'lucide-react';
+import { Menu, X, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
 
 const ModernNavbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -14,9 +14,11 @@ const ModernNavbar: React.FC = () => {
   const isHomePage = location.pathname === '/';
 
   useEffect(() => {
+    // Initial load animation
     const timer = setTimeout(() => {
       setIsLoaded(true);
     }, 100);
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -30,7 +32,7 @@ const ModernNavbar: React.FC = () => {
       window.addEventListener('scroll', handleScroll);
       return () => window.removeEventListener('scroll', handleScroll);
     } else {
-      setIsScrolled(true);
+      setIsScrolled(true); // Always show solid background for authenticated users or non-home pages
     }
   }, [isHomePage, isAuthenticated]);
 
@@ -45,6 +47,7 @@ const ModernNavbar: React.FC = () => {
       ];
     }
 
+    // Authenticated user navigation
     if (profile?.is_admin) {
       return [
         { name: 'DASHBOARD', path: '/admin' },
@@ -72,15 +75,9 @@ const ModernNavbar: React.FC = () => {
   const navItems = getNavItems();
 
   const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast.success('Signed out successfully');
-      navigate('/');
-      setIsMobileMenuOpen(false);
-    } catch (error) {
-      console.error('Sign out error:', error);
-      toast.error('Error signing out. Please try again.');
-    }
+    await signOut();
+    navigate('/');
+    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -91,7 +88,7 @@ const ModernNavbar: React.FC = () => {
     } ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'}`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
-          {/* Logo Section */}
+          {/* Logo Section - Left */}
           <div className={`flex items-center transition-all duration-700 delay-100 ${
             isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'
           }`}>
@@ -104,7 +101,7 @@ const ModernNavbar: React.FC = () => {
             </Link>
           </div>
 
-          {/* Navigation Menu - Desktop */}
+          {/* Navigation Menu - Center */}
           <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item, index) => (
               <Link
