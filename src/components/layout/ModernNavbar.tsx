@@ -73,15 +73,10 @@ const ModernNavbar: React.FC = () => {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await signOut();
-      if (error) {
-        console.error('Sign out error:', error);
-        toast.error('Error signing out. Please try again.');
-      } else {
-        toast.success('Signed out successfully');
-        navigate('/');
-        setIsMobileMenuOpen(false);
-      }
+      await signOut();
+      toast.success('Signed out successfully');
+      navigate('/');
+      setIsMobileMenuOpen(false);
     } catch (error) {
       console.error('Sign out error:', error);
       toast.error('Error signing out. Please try again.');
