@@ -1,13 +1,11 @@
 
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Index from './pages/Index';
 import AboutUs from './pages/AboutUs';
 import Contact from './pages/Contact';
-import Categories from './pages/Categories';
-import SubCategories from './pages/categories/SubCategories';
-import ProductDetails from './pages/products/ProductDetails';
 import ProductsPage from './pages/products/ProductsPage';
+import ProductDetails from './pages/products/ProductDetails';
 import Careers from './pages/Careers';
 import RequestQuotePage from './pages/RequestQuotePage';
 import CatalogRequest from './pages/CatalogRequest';
@@ -41,9 +39,11 @@ const AppRoutes: React.FC = () => {
       <Route path="/" element={<Index />} />
       <Route path="/about" element={<AboutUs />} />
       <Route path="/contact" element={<Contact />} />
-      <Route path="/categories" element={<Categories />} />
-      <Route path="/categories/:category" element={<SubCategories />} />
-      <Route path="/categories/:category/:subcategory" element={<SubCategories />} />
+      
+      {/* Redirect categories to products */}
+      <Route path="/categories" element={<Navigate to="/products" replace />} />
+      <Route path="/categories/*" element={<Navigate to="/products" replace />} />
+      
       <Route path="/products" element={<ProductsPage />} />
       <Route path="/products/:id" element={<ProductDetails />} />
       <Route path="/product/:id" element={<ProductDetails />} />

@@ -9,10 +9,12 @@ import {
   AlertCircle,
   RefreshCw,
   CheckCircle,
-  Clock
+  Clock,
+  Bell
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -24,6 +26,8 @@ interface DashboardStats {
   totalQuotes: number;
   approvedQuotes: number;
   completedQuotes: number;
+  totalPartnerships: number;
+  pendingPartnerships: number;
 }
 
 interface QuoteRequest {
@@ -36,6 +40,14 @@ interface QuoteRequest {
   admin_response?: string;
 }
 
+interface PartnershipRequest {
+  id: string;
+  company_name: string;
+  representative_name: string;
+  status: string;
+  created_at: string;
+}
+
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats>({
     totalProducts: 0,
@@ -43,9 +55,12 @@ const Dashboard: React.FC = () => {
     pendingQuotes: 0,
     totalQuotes: 0,
     approvedQuotes: 0,
-    completedQuotes: 0
+    completedQuotes: 0,
+    totalPartnerships: 0,
+    pendingPartnerships: 0
   });
   const [recentQuotes, setRecentQuotes] = useState<QuoteRequest[]>([]);
+  const [recentPartnerships, setRecentPartnerships] = useState<PartnershipRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
@@ -70,13 +85,21 @@ const Dashboard: React.FC = () => {
         .select('*', { count: 'exact' })
         .order('created_at', { ascending: false });
 
-      // Calculate quote statistics
+      // Fetch partnership requests
+      const { data: partnershipsData, count: partnershipsCount } = await supabase
+        .from('manufacturer_partnerships')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false });
+
+      // Calculate statistics
       const pendingQuotes = quotesData?.filter(quote => quote.status === 'pending').length || 0;
       const approvedQuotes = quotesData?.filter(quote => quote.status === 'approved').length || 0;
       const completedQuotes = quotesData?.filter(quote => quote.status === 'completed').length || 0;
+      const pendingPartnerships = partnershipsData?.filter(p => p.status === 'pending').length || 0;
 
-      // Get recent quotes for display
+      // Get recent data for display
       const recentQuotesData = quotesData?.slice(0, 8) || [];
+      const recentPartnershipsData = partnershipsData?.slice(0, 5) || [];
 
       setStats({
         totalProducts: productsCount || 0,
@@ -84,10 +107,13 @@ const Dashboard: React.FC = () => {
         pendingQuotes,
         totalQuotes: quotesCount || 0,
         approvedQuotes,
-        completedQuotes
+        completedQuotes,
+        totalPartnerships: partnershipsCount || 0,
+        pendingPartnerships
       });
 
       setRecentQuotes(recentQuotesData);
+      setRecentPartnerships(recentPartnershipsData);
       setLastUpdated(new Date());
 
     } catch (error) {
@@ -101,7 +127,7 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     fetchDashboardData();
 
-    // Set up real-time subscriptions for live updates
+    // Set up real-time subscriptions
     const quotesChannel = supabase
       .channel('admin_dashboard_quotes')
       .on(
@@ -117,7 +143,30 @@ const Dashboard: React.FC = () => {
           
           if (payload.eventType === 'INSERT') {
             const newRecord = payload.new as QuoteRequest;
-            toast.success(`New quote request received from: ${newRecord.name}`, {
+            toast.success(`New quote request from: ${newRecord.name}`, {
+              duration: 5000,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    const partnershipsChannel = supabase
+      .channel('admin_dashboard_partnerships')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'manufacturer_partnerships'
+        },
+        (payload) => {
+          console.log('Partnership updated:', payload);
+          fetchDashboardData();
+          
+          if (payload.eventType === 'INSERT') {
+            const newRecord = payload.new as any;
+            toast.success(`New partnership application from: ${newRecord.company_name}`, {
               duration: 5000,
             });
           }
@@ -140,25 +189,10 @@ const Dashboard: React.FC = () => {
       )
       .subscribe();
 
-    const careersChannel = supabase
-      .channel('admin_dashboard_careers')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'careers'
-        },
-        () => {
-          fetchDashboardData();
-        }
-      )
-      .subscribe();
-
     return () => {
       supabase.removeChannel(quotesChannel);
+      supabase.removeChannel(partnershipsChannel);
       supabase.removeChannel(productsChannel);
-      supabase.removeChannel(careersChannel);
     };
   }, []);
 
@@ -177,23 +211,25 @@ const Dashboard: React.FC = () => {
       change: 'Awaiting response',
       icon: <AlertCircle className="h-8 w-8 text-orange-500" />,
       link: '/admin/quote-requests',
-      color: 'orange'
+      color: 'orange',
+      urgent: stats.pendingQuotes > 0
+    },
+    {
+      title: 'Partnership Requests',
+      value: stats.pendingPartnerships.toString(),
+      change: `${stats.totalPartnerships} total`,
+      icon: <Users className="h-8 w-8 text-brand-teal" />,
+      link: '/admin/manufacturer-partnerships',
+      color: 'teal',
+      urgent: stats.pendingPartnerships > 0
     },
     {
       title: 'Active Jobs',
       value: stats.activeJobs.toString(),
       change: 'Open positions',
-      icon: <Briefcase className="h-8 w-8 text-brand-teal" />,
+      icon: <Briefcase className="h-8 w-8 text-purple-500" />,
       link: '/admin/careers',
-      color: 'teal'
-    },
-    {
-      title: 'Total Quotes',
-      value: stats.totalQuotes.toString(),
-      change: `${stats.completedQuotes} completed`,
-      icon: <MessageSquare className="h-8 w-8 text-blue-500" />,
-      link: '/admin/quote-requests',
-      color: 'blue'
+      color: 'purple'
     }
   ];
 
@@ -254,7 +290,7 @@ const Dashboard: React.FC = () => {
     <div>
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
           <p className="text-gray-600 mt-1">Real-time overview of system activity</p>
         </div>
         <div className="mt-4 md:mt-0 flex items-center gap-4">
@@ -274,9 +310,12 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {statCards.map((card, index) => (
           <Link key={index} to={card.link}>
-            <Card className="shadow-md hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-l-blue-500">
+            <Card className={`shadow-md hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-l-blue-500 ${card.urgent ? 'ring-2 ring-orange-200 bg-orange-50' : ''}`}>
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium text-gray-500">{card.title}</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                  {card.title}
+                  {card.urgent && <Bell className="h-4 w-4 text-orange-500 animate-pulse" />}
+                </CardTitle>
                 {card.icon}
               </CardHeader>
               <CardContent>
@@ -292,14 +331,15 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Recent Quote Requests */}
         <Card className="shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5" />
               Recent Quote Requests
-              <span className="ml-auto text-sm font-normal text-gray-500">
+              <Badge variant="secondary" className="ml-auto">
                 Live Updates
-              </span>
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -347,61 +387,49 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
+        {/* Recent Partnership Requests */}
         <Card className="shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Quick Actions
+              <Users className="h-5 w-5" />
+              Recent Partnership Requests
+              <Badge variant="secondary" className="ml-auto">
+                Live Updates
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <Link to="/admin/products">
-                <div className="p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer">
-                  <div className="flex items-center">
-                    <Package className="h-5 w-5 text-blue-600 mr-3" />
-                    <div>
-                      <span className="font-medium text-gray-800">Manage Products</span>
-                      <p className="text-sm text-gray-600">Add, edit, or remove products</p>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {recentPartnerships.length > 0 ? (
+                recentPartnerships.map((partnership) => (
+                  <div key={partnership.id} className="p-3 bg-gray-50 rounded-lg border border-gray-100 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium text-gray-800">{partnership.company_name}</span>
+                        </div>
+                        <p className="text-sm text-gray-600">{partnership.representative_name}</p>
+                      </div>
+                      <div className="text-right ml-3">
+                        <span className={`text-xs px-2 py-1 rounded-full border flex items-center gap-1 ${getStatusColor(partnership.status)}`}>
+                          {getStatusIcon(partnership.status)}
+                          {partnership.status}
+                        </span>
+                        <p className="text-xs text-gray-500 mt-1">{formatDate(partnership.created_at)}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-              
-              <Link to="/admin/quote-requests">
-                <div className="p-3 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors cursor-pointer">
-                  <div className="flex items-center">
-                    <MessageSquare className="h-5 w-5 text-orange-600 mr-3" />
-                    <div>
-                      <span className="font-medium text-gray-800">Review Quote Requests</span>
-                      <p className="text-sm text-gray-600">Respond to customer inquiries</p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-              
-              <Link to="/admin/careers">
-                <div className="p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer">
-                  <div className="flex items-center">
-                    <Briefcase className="h-5 w-5 text-green-600 mr-3" />
-                    <div>
-                      <span className="font-medium text-gray-800">Manage Careers</span>
-                      <p className="text-sm text-gray-600">Post and manage job listings</p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-              
+                ))
+              ) : (
+                <p className="text-gray-500 text-center py-8">No partnership requests yet</p>
+              )}
+            </div>
+            <div className="mt-4 pt-4 border-t">
               <Link to="/admin/manufacturer-partnerships">
-                <div className="p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer">
-                  <div className="flex items-center">
-                    <Users className="h-5 w-5 text-purple-600 mr-3" />
-                    <div>
-                      <span className="font-medium text-gray-800">Manufacturer Partners</span>
-                      <p className="text-sm text-gray-600">Manage partnership requests</p>
-                    </div>
-                  </div>
-                </div>
+                <Button className="w-full" variant="outline">
+                  <Users className="h-4 w-4 mr-2" />
+                  View all partnerships
+                </Button>
               </Link>
             </div>
           </CardContent>
