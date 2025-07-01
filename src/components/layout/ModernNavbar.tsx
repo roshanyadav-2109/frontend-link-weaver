@@ -1,206 +1,280 @@
 
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, User, LogOut } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Menu, User, LogOut, Settings, Package } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
-const ModernNavbar: React.FC = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+const ModernNavbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const { isAuthenticated, user, profile, signOut } = useAuth();
-  const isHomePage = location.pathname === '/';
-
-  useEffect(() => {
-    // Initial load animation
-    const timer = setTimeout(() => {
-      setIsLoaded(true);
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrolled = window.scrollY > 50;
-      setIsScrolled(scrolled);
-    };
-
-    if (isHomePage && !isAuthenticated) {
-      window.addEventListener('scroll', handleScroll);
-      return () => window.removeEventListener('scroll', handleScroll);
-    } else {
-      setIsScrolled(true); // Always show solid background for authenticated users or non-home pages
-    }
-  }, [isHomePage, isAuthenticated]);
-
-  const getNavItems = () => {
-    if (!isAuthenticated) {
-      return [
-        { name: 'HOME', path: '/' },
-        { name: 'ABOUT US', path: '/about' },
-        { name: 'PRODUCTS', path: '/products' },
-        { name: 'CAREER', path: '/careers' },
-        { name: 'CONTACT US', path: '/contact' },
-      ];
-    }
-
-    // Authenticated user navigation
-    if (profile?.is_admin) {
-      return [
-        { name: 'DASHBOARD', path: '/admin' },
-        { name: 'PRODUCTS', path: '/admin/products' },
-        { name: 'QUOTES', path: '/admin/quote-requests' },
-        { name: 'CAREERS', path: '/admin/careers' },
-      ];
-    } else if (profile?.user_type === 'manufacturer') {
-      return [
-        { name: 'DASHBOARD', path: '/manufacturer/dashboard' },
-        { name: 'PRODUCTS', path: '/products' },
-        { name: 'CATALOG REQUESTS', path: '/manufacturer/catalog-requests' },
-        { name: 'CONTACT', path: '/contact' },
-      ];
-    } else {
-      return [
-        { name: 'DASHBOARD', path: '/dashboard' },
-        { name: 'PRODUCTS', path: '/products' },
-        { name: 'QUOTE REQUEST', path: '/request-quote' },
-        { name: 'CONTACT', path: '/contact' },
-      ];
-    }
-  };
-
-  const navItems = getNavItems();
+  const { isAuthenticated, user, profile, signOut, loading } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/');
-    setIsMobileMenuOpen(false);
+  };
+
+  const navItems = [
+    { name: 'Home', href: '/' },
+    { name: 'About', href: '/about' },
+    { name: 'Products', href: '/products' }, // Changed from Categories to Products
+    { name: 'Careers', href: '/careers' },
+    { name: 'Contact', href: '/contact' },
+  ];
+
+  const isActivePath = (path: string) => {
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname.startsWith(path);
+  };
+
+  const getUserInitials = () => {
+    if (profile?.full_name) {
+      return profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return 'U';
+  };
+
+  const getDashboardLink = () => {
+    if (profile?.is_admin) return '/admin';
+    if (profile?.user_type === 'manufacturer') return '/manufacturer/dashboard';
+    return '/dashboard';
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-      isScrolled || !isHomePage || isAuthenticated
-        ? 'bg-black/95 backdrop-blur-md shadow-lg py-3' 
-        : 'bg-transparent py-4'
-    } ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'}`}>
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between">
-          {/* Logo Section - Left */}
-          <div className={`flex items-center transition-all duration-700 delay-100 ${
-            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'
-          }`}>
-            <Link to={isAuthenticated ? (profile?.is_admin ? '/admin' : profile?.user_type === 'manufacturer' ? '/manufacturer/dashboard' : '/dashboard') : '/'} className="flex items-center">
-              <img 
-                src="/lovable-uploads/logoanantya.png" 
-                alt="Anantya Overseas" 
-                className="h-12 w-auto filter brightness-0 invert transition-transform duration-300 hover:scale-105"
-              />
-            </Link>
-          </div>
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <img 
+              src="/lovable-uploads/logoanantya.png" 
+              alt="Anantya Overseas" 
+              className="h-10 w-auto"
+            />
+          </Link>
 
-          {/* Navigation Menu - Center */}
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item, index) => (
+            {navItems.map((item) => (
               <Link
                 key={item.name}
-                to={item.path}
-                className={`relative text-white font-medium text-sm tracking-wide transition-all duration-700 ${
-                  isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'
-                } hover:text-brand-red group`}
-                style={{ transitionDelay: `${200 + index * 100}ms` }}
+                to={item.href}
+                className={`text-gray-700 hover:text-brand-blue transition-colors font-medium ${
+                  isActivePath(item.href) ? 'text-brand-blue border-b-2 border-brand-blue pb-1' : ''
+                }`}
               >
                 {item.name}
-                <span className={`absolute bottom-0 left-0 w-0 h-0.5 bg-brand-red transition-all duration-300 group-hover:w-full ${
-                  location.pathname === item.path ? 'w-full' : ''
-                }`}></span>
               </Link>
             ))}
           </div>
 
-          {/* Right Side - User Menu or Company Logo */}
-          <div className="hidden lg:flex items-center gap-4">
-            {isAuthenticated ? (
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <p className="text-white text-sm font-medium">
-                    {profile?.full_name || user?.email?.split('@')[0]}
-                  </p>
-                  <p className="text-gray-300 text-xs capitalize">
-                    {profile?.user_type || 'user'}
-                  </p>
-                </div>
-                <button
-                  onClick={handleSignOut}
-                  className="text-white hover:text-brand-red transition-colors p-2 hover:bg-white/10 rounded-md"
-                  title="Sign Out"
-                >
-                  <LogOut size={20} />
-                </button>
-              </div>
+          {/* Desktop Auth */}
+          <div className="hidden md:flex items-center space-x-4">
+            {isAuthenticated && user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-brand-blue text-white text-sm">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <div className="flex items-center justify-start gap-2 p-2">
+                    <div className="flex flex-col space-y-1 leading-none">
+                      <p className="font-medium text-sm">
+                        {profile?.full_name || user.email}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to={getDashboardLink()} className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/products" className="cursor-pointer">
+                      <Package className="mr-2 h-4 w-4" />
+                      Products
+                    </Link>
+                  </DropdownMenuItem>
+                  {profile?.user_type === 'client' && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/auth/update-profile-client" className="cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {profile?.user_type === 'manufacturer' && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/auth/update-profile-manufacturer" className="cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    className="cursor-pointer text-red-600 focus:text-red-600"
+                    onClick={handleSignOut}
+                    disabled={loading}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    {loading ? 'Signing out...' : 'Sign out'}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
-              <div className={`transition-all duration-700 delay-300 ${
-                isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'
-              }`}>
-                <img 
-                  src="/lovable-uploads/Black_White_Minimalist_Professional_Initial_Logo__1_-removebg-preview.png" 
-                  alt="Anantya Brand" 
-                  className="h-10 w-auto transition-transform duration-300 hover:scale-105"
-                />
+              <div className="flex items-center space-x-2">
+                <Link to="/auth/initial">
+                  <Button variant="ghost" size="sm">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/auth/initial">
+                  <Button size="sm" className="bg-brand-blue hover:bg-brand-blue/90">
+                    Get Started
+                  </Button>
+                </Link>
               </div>
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile Menu */}
           <div className="md:hidden">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-white p-2 hover:bg-white/10 rounded-md transition-colors z-50 relative"
-              aria-label="Toggle menu"
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        <div className={`md:hidden fixed inset-0 bg-black/95 backdrop-blur-md z-40 transition-all duration-300 ${
-          isMobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
-        }`} style={{ top: '80px' }}>
-          <div className="container mx-auto px-4 py-8">
-            <div className="flex flex-col space-y-6">
-              {navItems.map((item, index) => (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  className={`text-white font-medium text-lg tracking-wide py-3 px-4 hover:bg-white/10 rounded-md transition-all duration-300 ${
-                    isMobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
-                  } ${location.pathname === item.path ? 'bg-white/10 text-brand-red' : ''}`}
-                  style={{ transitionDelay: `${index * 100}ms` }}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
-              
-              {isAuthenticated && (
-                <div className="border-t border-white/20 pt-6 mt-6">
-                  <div className="text-white mb-4 px-4">
-                    <p className="font-medium">{profile?.full_name || user?.email?.split('@')[0]}</p>
-                    <p className="text-gray-300 text-sm capitalize">{profile?.user_type || 'user'}</p>
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                <div className="flex flex-col space-y-4 mt-8">
+                  {/* Mobile Navigation */}
+                  {navItems.map((item) => (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`text-gray-700 hover:text-brand-blue transition-colors font-medium py-2 ${
+                        isActivePath(item.href) ? 'text-brand-blue' : ''
+                      }`}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                  
+                  <div className="border-t pt-4">
+                    {isAuthenticated && user ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-3 p-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback className="bg-brand-blue text-white text-sm">
+                              {getUserInitials()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium text-sm">
+                              {profile?.full_name || user.email}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {user.email}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <Link 
+                          to={getDashboardLink()}
+                          className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <User className="h-4 w-4" />
+                          <span>Dashboard</span>
+                        </Link>
+                        
+                        <Link 
+                          to="/products"
+                          className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <Package className="h-4 w-4" />
+                          <span>Products</span>
+                        </Link>
+                        
+                        {profile?.user_type === 'client' && (
+                          <Link 
+                            to="/auth/update-profile-client"
+                            className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded"
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <Settings className="h-4 w-4" />
+                            <span>Settings</span>
+                          </Link>
+                        )}
+                        
+                        {profile?.user_type === 'manufacturer' && (
+                          <Link 
+                            to="/auth/update-profile-manufacturer"
+                            className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded"
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <Settings className="h-4 w-4" />
+                            <span>Settings</span>
+                          </Link>
+                        )}
+                        
+                        <button 
+                          onClick={() => {
+                            handleSignOut();
+                            setIsOpen(false);
+                          }}
+                          className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded text-red-600 w-full text-left"
+                          disabled={loading}
+                        >
+                          <LogOut className="h-4 w-4" />
+                          <span>{loading ? 'Signing out...' : 'Sign out'}</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Link to="/auth/initial" onClick={() => setIsOpen(false)}>
+                          <Button variant="ghost" className="w-full justify-start">
+                            Sign In
+                          </Button>
+                        </Link>
+                        <Link to="/auth/initial" onClick={() => setIsOpen(false)}>
+                          <Button className="w-full bg-brand-blue hover:bg-brand-blue/90">
+                            Get Started
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
                   </div>
-                  <button
-                    onClick={handleSignOut}
-                    className="flex items-center text-white font-medium text-lg tracking-wide py-3 px-4 hover:bg-white/10 rounded-md transition-all duration-300 w-full"
-                  >
-                    <LogOut className="h-5 w-5 mr-3" />
-                    Sign Out
-                  </button>
                 </div>
-              )}
-            </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>

@@ -21,7 +21,7 @@ type AuthContextType = {
   session: Session | null;
   signIn: (email: string, password: string) => Promise<boolean>;
   signInWithGoogle: () => Promise<void>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isManufacturer: boolean;
@@ -43,68 +43,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let mounted = true;
 
-    // Set up the auth state listener
+    // Set up the auth state listener with optimized performance
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         if (!mounted) return;
         
         console.log('Auth state change:', event, currentSession?.user?.email);
+        
+        // Batch state updates for better performance
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
         if (currentSession?.user) {
-          // Fetch the user profile data
-          const { data: profileData, error } = await supabase
-            .from('profiles')
-            .select('is_admin, user_type, gstin, full_name, company_name, phone, address')
-            .eq('id', currentSession.user.id)
-            .single();
-          
-          if (error) {
-            console.error('Error fetching profile:', error);
-            setProfile(null);
-          } else {
-            const typedProfile: Profile = {
-              is_admin: profileData.is_admin || false,
-              user_type: profileData.user_type as 'manufacturer' | 'client' | undefined,
-              gstin: profileData.gstin || undefined,
-              full_name: profileData.full_name || undefined,
-              company_name: profileData.company_name || undefined,
-              phone: profileData.phone || undefined,
-              address: profileData.address || undefined,
-            };
-            setProfile(typedProfile);
-            
-            // Handle post-authentication navigation
-            if (event === 'SIGNED_IN' && profileData) {
-              setTimeout(() => {
-                handlePostAuthNavigation(typedProfile);
-              }, 100);
-            }
-          }
-        } else {
-          setProfile(null);
-        }
-        
-        setLoading(false);
-      }
-    );
-    
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      if (!mounted) return;
-      
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      
-      if (currentSession?.user) {
-        supabase
-          .from('profiles')
-          .select('is_admin, user_type, gstin, full_name, company_name, phone, address')
-          .eq('id', currentSession.user.id)
-          .single()
-          .then(({ data: profileData, error }) => {
+          // Use setTimeout to prevent blocking the auth callback
+          setTimeout(async () => {
             if (!mounted) return;
+            
+            const { data: profileData, error } = await supabase
+              .from('profiles')
+              .select('is_admin, user_type, gstin, full_name, company_name, phone, address')
+              .eq('id', currentSession.user.id)
+              .single();
             
             if (error) {
               console.error('Error fetching profile:', error);
@@ -120,14 +79,70 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 address: profileData.address || undefined,
               };
               setProfile(typedProfile);
+              
+              // Handle post-authentication navigation
+              if (event === 'SIGNED_IN' && profileData) {
+                setTimeout(() => {
+                  handlePostAuthNavigation(typedProfile);
+                }, 100);
+              }
             }
-            setLoading(false);
-          });
-      } else {
-        setProfile(null);
+          }, 0);
+        } else {
+          setProfile(null);
+        }
+        
         setLoading(false);
       }
-    });
+    );
+    
+    // Check for existing session with optimized loading
+    const initializeAuth = async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        if (currentSession?.user) {
+          const { data: profileData, error } = await supabase
+            .from('profiles')
+            .select('is_admin, user_type, gstin, full_name, company_name, phone, address')
+            .eq('id', currentSession.user.id)
+            .single();
+          
+          if (!mounted) return;
+          
+          if (error) {
+            console.error('Error fetching profile:', error);
+            setProfile(null);
+          } else {
+            const typedProfile: Profile = {
+              is_admin: profileData.is_admin || false,
+              user_type: profileData.user_type as 'manufacturer' | 'client' | undefined,
+              gstin: profileData.gstin || undefined,
+              full_name: profileData.full_name || undefined,
+              company_name: profileData.company_name || undefined,
+              phone: profileData.phone || undefined,
+              address: profileData.address || undefined,
+            };
+            setProfile(typedProfile);
+          }
+        } else {
+          setProfile(null);
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    initializeAuth();
     
     return () => {
       mounted = false;
@@ -217,14 +232,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setProfile(null);
-    setSession(null);
-    navigate('/');
-    toast('You have been logged out', {
-      description: 'Successfully signed out of your account'
-    });
+    try {
+      setLoading(true);
+      
+      // Clear local state immediately for better UX
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Sign out error:', error);
+        toast.error('Error signing out. Please try again.');
+        return;
+      }
+      
+      // Navigate to home page
+      navigate('/', { replace: true });
+      
+      toast.success('Successfully signed out', {
+        description: 'You have been logged out of your account'
+      });
+    } catch (error) {
+      console.error('Unexpected sign out error:', error);
+      toast.error('An unexpected error occurred during sign out');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resendConfirmationEmail = async (email: string) => {

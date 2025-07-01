@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, Mail, Heart, Share2 } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Heart, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -43,6 +43,7 @@ const ProductDetails: React.FC = () => {
         .from('products')
         .select('*')
         .eq('id', productId)
+        .eq('status', 'active')
         .single();
 
       if (error) {
@@ -68,15 +69,6 @@ const ProductDetails: React.FC = () => {
       return;
     }
     setShowQuoteModal(true);
-  };
-
-  const handleEmailInquiry = () => {
-    if (!product) return;
-    
-    const subject = `Inquiry about ${product.name}`;
-    const body = `Hi,\n\nI am interested in your product: ${product.name}\n\nPlease provide more details.\n\nThank you.`;
-    const mailtoUrl = `mailto:anantyaoverseas@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(mailtoUrl, '_blank');
   };
 
   const handleShare = () => {
@@ -214,7 +206,7 @@ const ProductDetails: React.FC = () => {
               )}
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons - Removed Email Inquiry Button */}
             <div className="space-y-3 mb-6">
               <Button 
                 className="w-full bg-brand-blue hover:bg-brand-blue/90 text-lg py-3"
@@ -222,15 +214,6 @@ const ProductDetails: React.FC = () => {
               >
                 <ShoppingCart className="h-5 w-5 mr-2" />
                 Request Quote
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="w-full text-lg py-3"
-                onClick={handleEmailInquiry}
-              >
-                <Mail className="h-5 w-5 mr-2" />
-                Email Inquiry
               </Button>
             </div>
 
@@ -260,10 +243,8 @@ const ProductDetails: React.FC = () => {
               <CardContent className="p-4">
                 <h3 className="font-semibold text-gray-900 mb-3">Need Help?</h3>
                 <div className="space-y-2 text-sm text-gray-600">
-                  <div className="flex items-center">
-                    <Mail className="h-4 w-4 mr-2 text-brand-blue" />
-                    <span>anantyaoverseas@gmail.com</span>
-                  </div>
+                  <p>For detailed inquiries, please use the quote request form above.</p>
+                  <p>Our team will respond within 24 hours with comprehensive information.</p>
                 </div>
               </CardContent>
             </Card>

@@ -1,95 +1,105 @@
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Package, 
-  Briefcase, 
-  MessageSquare,
-  TrendingUp,
-  Users,
-  AlertCircle,
-  RefreshCw,
-  CheckCircle,
-  Clock
-} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { 
+  Users, 
+  ShoppingCart, 
+  FileText, 
+  TrendingUp, 
+  Package, 
+  MessageSquare,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Bell
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
 
 interface DashboardStats {
+  totalUsers: number;
   totalProducts: number;
-  activeJobs: number;
   pendingQuotes: number;
   totalQuotes: number;
-  approvedQuotes: number;
-  completedQuotes: number;
+  manufacturerPartnerships: number;
+  pendingPartnerships: number;
 }
 
-interface QuoteRequest {
+interface RecentQuote {
   id: string;
   product_name: string;
   name: string;
   company: string;
   status: string;
   created_at: string;
-  admin_response?: string;
+}
+
+interface RecentPartnership {
+  id: string;
+  company_name: string;
+  representative_name: string;
+  status: string;
+  created_at: string;
 }
 
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats>({
+    totalUsers: 0,
     totalProducts: 0,
-    activeJobs: 0,
     pendingQuotes: 0,
     totalQuotes: 0,
-    approvedQuotes: 0,
-    completedQuotes: 0
+    manufacturerPartnerships: 0,
+    pendingPartnerships: 0,
   });
-  const [recentQuotes, setRecentQuotes] = useState<QuoteRequest[]>([]);
+  const [recentQuotes, setRecentQuotes] = useState<RecentQuote[]>([]);
+  const [recentPartnerships, setRecentPartnerships] = useState<RecentPartnership[]>([]);
   const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   const fetchDashboardData = async () => {
     try {
-      setLoading(true);
-
-      // Fetch products count
-      const { count: productsCount } = await supabase
-        .from('products')
-        .select('*', { count: 'exact', head: true });
-
-      // Fetch careers count
-      const { count: careersCount } = await supabase
-        .from('careers')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
-
-      // Fetch quote requests
-      const { data: quotesData, count: quotesCount } = await supabase
-        .from('quote_requests')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false });
-
-      // Calculate quote statistics
-      const pendingQuotes = quotesData?.filter(quote => quote.status === 'pending').length || 0;
-      const approvedQuotes = quotesData?.filter(quote => quote.status === 'approved').length || 0;
-      const completedQuotes = quotesData?.filter(quote => quote.status === 'completed').length || 0;
-
-      // Get recent quotes for display
-      const recentQuotesData = quotesData?.slice(0, 8) || [];
+      // Fetch dashboard statistics
+      const [
+        { count: totalUsers },
+        { count: totalProducts },
+        { count: totalQuotes },
+        { count: pendingQuotes },
+        { count: manufacturerPartnerships },
+        { count: pendingPartnerships },
+        { data: quotes },
+        { data: partnerships }
+      ] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('products').select('*', { count: 'exact', head: true }),
+        supabase.from('quote_requests').select('*', { count: 'exact', head: true }),
+        supabase.from('quote_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('manufacturer_partnerships').select('*', { count: 'exact', head: true }),
+        supabase.from('manufacturer_partnerships').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase
+          .from('quote_requests')
+          .select('id, product_name, name, company, status, created_at')
+          .order('created_at', { ascending: false })
+          .limit(5),
+        supabase
+          .from('manufacturer_partnerships')
+          .select('id, company_name, representative_name, status, created_at')
+          .order('created_at', { ascending: false })
+          .limit(5)
+      ]);
 
       setStats({
-        totalProducts: productsCount || 0,
-        activeJobs: careersCount || 0,
-        pendingQuotes,
-        totalQuotes: quotesCount || 0,
-        approvedQuotes,
-        completedQuotes
+        totalUsers: totalUsers || 0,
+        totalProducts: totalProducts || 0,
+        pendingQuotes: pendingQuotes || 0,
+        totalQuotes: totalQuotes || 0,
+        manufacturerPartnerships: manufacturerPartnerships || 0,
+        pendingPartnerships: pendingPartnerships || 0,
       });
 
-      setRecentQuotes(recentQuotesData);
-      setLastUpdated(new Date());
-
+      setRecentQuotes(quotes || []);
+      setRecentPartnerships(partnerships || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       toast.error('Failed to load dashboard data');
@@ -103,7 +113,7 @@ const Dashboard: React.FC = () => {
 
     // Set up real-time subscriptions for live updates
     const quotesChannel = supabase
-      .channel('admin_dashboard_quotes')
+      .channel('admin-quotes-realtime')
       .on(
         'postgres_changes',
         {
@@ -112,13 +122,42 @@ const Dashboard: React.FC = () => {
           table: 'quote_requests'
         },
         (payload) => {
-          console.log('Quote request updated:', payload);
+          console.log('Real-time quote update:', payload);
           fetchDashboardData();
           
           if (payload.eventType === 'INSERT') {
-            const newRecord = payload.new as QuoteRequest;
-            toast.success(`New quote request received from: ${newRecord.name}`, {
-              duration: 5000,
+            toast.info('New quote request received!', {
+              description: `From: ${payload.new.name}`,
+              action: {
+                label: 'View',
+                onClick: () => window.open('/admin/quote-requests', '_blank')
+              }
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    const partnershipsChannel = supabase
+      .channel('admin-partnerships-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'manufacturer_partnerships'
+        },
+        (payload) => {
+          console.log('Real-time partnership update:', payload);
+          fetchDashboardData();
+          
+          if (payload.eventType === 'INSERT') {
+            toast.info('New manufacturer partnership request!', {
+              description: `From: ${payload.new.company_name}`,
+              action: {
+                label: 'View',
+                onClick: () => window.open('/admin/manufacturer-partnerships', '_blank')
+              }
             });
           }
         }
@@ -126,7 +165,7 @@ const Dashboard: React.FC = () => {
       .subscribe();
 
     const productsChannel = supabase
-      .channel('admin_dashboard_products')
+      .channel('admin-products-realtime')
       .on(
         'postgres_changes',
         {
@@ -134,22 +173,8 @@ const Dashboard: React.FC = () => {
           schema: 'public',
           table: 'products'
         },
-        () => {
-          fetchDashboardData();
-        }
-      )
-      .subscribe();
-
-    const careersChannel = supabase
-      .channel('admin_dashboard_careers')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'careers'
-        },
-        () => {
+        (payload) => {
+          console.log('Real-time product update:', payload);
           fetchDashboardData();
         }
       )
@@ -157,256 +182,247 @@ const Dashboard: React.FC = () => {
 
     return () => {
       supabase.removeChannel(quotesChannel);
+      supabase.removeChannel(partnershipsChannel);
       supabase.removeChannel(productsChannel);
-      supabase.removeChannel(careersChannel);
     };
   }, []);
 
-  const statCards = [
-    {
-      title: 'Total Products',
-      value: stats.totalProducts.toString(),
-      change: 'Manage inventory',
-      icon: <Package className="h-8 w-8 text-brand-blue" />,
-      link: '/admin/products',
-      color: 'blue'
-    },
-    {
-      title: 'Pending Quotes',
-      value: stats.pendingQuotes.toString(),
-      change: 'Awaiting response',
-      icon: <AlertCircle className="h-8 w-8 text-orange-500" />,
-      link: '/admin/quote-requests',
-      color: 'orange'
-    },
-    {
-      title: 'Active Jobs',
-      value: stats.activeJobs.toString(),
-      change: 'Open positions',
-      icon: <Briefcase className="h-8 w-8 text-brand-teal" />,
-      link: '/admin/careers',
-      color: 'teal'
-    },
-    {
-      title: 'Total Quotes',
-      value: stats.totalQuotes.toString(),
-      change: `${stats.completedQuotes} completed`,
-      icon: <MessageSquare className="h-8 w-8 text-blue-500" />,
-      link: '/admin/quote-requests',
-      color: 'blue'
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Clock className="h-4 w-4 text-yellow-500" />;
+      case 'approved':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'rejected':
+        return <AlertCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <Clock className="h-4 w-4 text-gray-500" />;
     }
-  ];
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-yellow-100 text-yellow-800';
       case 'approved':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'contacted':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-green-100 text-green-800';
       case 'rejected':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'completed':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
+        return 'bg-red-100 text-red-800';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return <Clock className="h-4 w-4" />;
-      case 'approved':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'contacted':
-        return <MessageSquare className="h-4 w-4" />;
-      case 'rejected':
-        return <AlertCircle className="h-4 w-4" />;
-      case 'completed':
-        return <Package className="h-4 w-4" />;
-      default:
-        return <Clock className="h-4 w-4" />;
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-blue"></div>
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-blue"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-1">Real-time overview of system activity</p>
+          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <p className="text-gray-600 mt-1">Monitor your business performance and manage operations</p>
         </div>
-        <div className="mt-4 md:mt-0 flex items-center gap-4">
-          <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-            <p className="text-sm text-gray-600 flex items-center gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Last updated: {lastUpdated.toLocaleTimeString()}
-            </p>
-          </div>
-          <Button onClick={fetchDashboardData} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
+        <div className="flex items-center space-x-2">
+          <Bell className="h-5 w-5 text-gray-500" />
+          <span className="text-sm text-gray-500">Real-time updates enabled</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statCards.map((card, index) => (
-          <Link key={index} to={card.link}>
-            <Card className="shadow-md hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-l-blue-500">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-sm font-medium text-gray-500">{card.title}</CardTitle>
-                {card.icon}
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{card.value}</div>
-                <p className="text-xs text-gray-500 flex items-center mt-1">
-                  <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
-                  {card.change}
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
-              Recent Quote Requests
-              <span className="ml-auto text-sm font-normal text-gray-500">
-                Live Updates
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {recentQuotes.length > 0 ? (
-                recentQuotes.map((quote) => (
-                  <div key={quote.id} className="p-3 bg-gray-50 rounded-lg border border-gray-100 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-gray-800">{quote.name}</span>
-                          {quote.company && (
-                            <span className="text-sm text-gray-500">({quote.company})</span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600">{quote.product_name}</p>
-                        {quote.admin_response && (
-                          <p className="text-xs text-blue-600 mt-1 bg-blue-50 p-1 rounded">
-                            Response: {quote.admin_response.substring(0, 50)}...
-                          </p>
-                        )}
-                      </div>
-                      <div className="text-right ml-3">
-                        <span className={`text-xs px-2 py-1 rounded-full border flex items-center gap-1 ${getStatusColor(quote.status)}`}>
-                          {getStatusIcon(quote.status)}
-                          {quote.status}
-                        </span>
-                        <p className="text-xs text-gray-500 mt-1">{formatDate(quote.created_at)}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500 text-center py-8">No quote requests yet</p>
-              )}
-            </div>
-            <div className="mt-4 pt-4 border-t">
-              <Link to="/admin/quote-requests">
-                <Button className="w-full" variant="outline">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  View all quote requests
-                </Button>
-              </Link>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Users</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
+              </div>
+              <Users className="h-8 w-8 text-brand-blue" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="shadow-md">
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Products</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalProducts}</p>
+              </div>
+              <Package className="h-8 w-8 text-brand-blue" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Quotes</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalQuotes}</p>
+              </div>
+              <ShoppingCart className="h-8 w-8 text-brand-blue" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow border-yellow-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-yellow-600">Pending Quotes</p>
+                <p className="text-2xl font-bold text-yellow-700">{stats.pendingQuotes}</p>
+              </div>
+              <Clock className="h-8 w-8 text-yellow-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Manufacturers</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.manufacturerPartnerships}</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-brand-blue" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow border-yellow-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-yellow-600">Pending Partners</p>
+                <p className="text-2xl font-bold text-yellow-700">{stats.pendingPartnerships}</p>
+              </div>
+              <MessageSquare className="h-8 w-8 text-yellow-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Quote Requests */}
+        <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Quick Actions
+            <CardTitle className="flex items-center justify-between">
+              <span>Recent Quote Requests</span>
+              <Link to="/admin/quote-requests">
+                <Button variant="outline" size="sm">View All</Button>
+              </Link>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <Link to="/admin/products">
-                <div className="p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer">
-                  <div className="flex items-center">
-                    <Package className="h-5 w-5 text-blue-600 mr-3" />
-                    <div>
-                      <span className="font-medium text-gray-800">Manage Products</span>
-                      <p className="text-sm text-gray-600">Add, edit, or remove products</p>
+            {recentQuotes.length > 0 ? (
+              <div className="space-y-3">
+                {recentQuotes.map((quote) => (
+                  <div key={quote.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{quote.product_name}</p>
+                      <p className="text-xs text-gray-600">{quote.name} - {quote.company}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(quote.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {getStatusIcon(quote.status)}
+                      <Badge className={`text-xs ${getStatusColor(quote.status)}`}>
+                        {quote.status}
+                      </Badge>
                     </div>
                   </div>
-                </div>
-              </Link>
-              
-              <Link to="/admin/quote-requests">
-                <div className="p-3 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors cursor-pointer">
-                  <div className="flex items-center">
-                    <MessageSquare className="h-5 w-5 text-orange-600 mr-3" />
-                    <div>
-                      <span className="font-medium text-gray-800">Review Quote Requests</span>
-                      <p className="text-sm text-gray-600">Respond to customer inquiries</p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-              
-              <Link to="/admin/careers">
-                <div className="p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors cursor-pointer">
-                  <div className="flex items-center">
-                    <Briefcase className="h-5 w-5 text-green-600 mr-3" />
-                    <div>
-                      <span className="font-medium text-gray-800">Manage Careers</span>
-                      <p className="text-sm text-gray-600">Post and manage job listings</p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-              
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-4">No quote requests yet</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Recent Partnership Requests */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Recent Partnership Requests</span>
               <Link to="/admin/manufacturer-partnerships">
-                <div className="p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors cursor-pointer">
-                  <div className="flex items-center">
-                    <Users className="h-5 w-5 text-purple-600 mr-3" />
-                    <div>
-                      <span className="font-medium text-gray-800">Manufacturer Partners</span>
-                      <p className="text-sm text-gray-600">Manage partnership requests</p>
+                <Button variant="outline" size="sm">View All</Button>
+              </Link>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {recentPartnerships.length > 0 ? (
+              <div className="space-y-3">
+                {recentPartnerships.map((partnership) => (
+                  <div key={partnership.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{partnership.company_name}</p>
+                      <p className="text-xs text-gray-600">{partnership.representative_name}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(partnership.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {getStatusIcon(partnership.status)}
+                      <Badge className={`text-xs ${getStatusColor(partnership.status)}`}>
+                        {partnership.status}
+                      </Badge>
                     </div>
                   </div>
-                </div>
-              </Link>
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-4">No partnership requests yet</p>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Link to="/admin/products">
+              <Button variant="outline" className="w-full h-auto p-4 flex flex-col items-center">
+                <Package className="h-6 w-6 mb-2" />
+                Manage Products
+              </Button>
+            </Link>
+            <Link to="/admin/quote-requests">
+              <Button variant="outline" className="w-full h-auto p-4 flex flex-col items-center">
+                <ShoppingCart className="h-6 w-6 mb-2" />
+                Quote Requests
+              </Button>
+            </Link>
+            <Link to="/admin/manufacturer-partnerships">
+              <Button variant="outline" className="w-full h-auto p-4 flex flex-col items-center">
+                <TrendingUp className="h-6 w-6 mb-2" />
+                Partnerships
+              </Button>
+            </Link>
+            <Link to="/admin/careers">
+              <Button variant="outline" className="w-full h-auto p-4 flex flex-col items-center">
+                <FileText className="h-6 w-6 mb-2" />
+                Career Posts
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

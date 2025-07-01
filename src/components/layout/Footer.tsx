@@ -64,7 +64,7 @@ const Footer: React.FC = () => {
               </li>
               <li>
                 <Link 
-                  to="/categories" 
+                  to="/products" 
                   className="text-gray-300 hover:text-white transition-colors cursor-pointer"
                 >
                   Products
@@ -109,10 +109,10 @@ const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Contact Info */}
+          {/* Contact Info & Auth Links */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Contact Info</h3>
-            <div className="space-y-3">
+            <div className="space-y-3 mb-6">
               <div className="flex items-center space-x-3">
                 <Mail size={18} className="text-brand-blue" />
                 <a 
@@ -125,6 +125,25 @@ const Footer: React.FC = () => {
               <div className="flex items-center space-x-3">
                 <MapPin size={18} className="text-brand-blue" />
                 <span className="text-gray-300 text-sm">Ahmedabad, Gujarat, India</span>
+              </div>
+            </div>
+            
+            {/* Authentication Links */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wide">Account</h4>
+              <div className="space-y-1">
+                <Link 
+                  to="/auth/initial" 
+                  className="block text-gray-300 text-sm hover:text-white transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link 
+                  to="/auth/initial" 
+                  className="block text-gray-300 text-sm hover:text-white transition-colors"
+                >
+                  Create Account
+                </Link>
               </div>
             </div>
           </div>
