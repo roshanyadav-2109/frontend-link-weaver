@@ -14,7 +14,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col">
       <ModernNavbar />
-      <main className="flex-1">
+      <main className="flex-1 pt-16">
         {children}
       </main>
       <Footer />
