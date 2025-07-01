@@ -226,12 +226,14 @@ const ModernNavbar = () => {
           <div className="lg:hidden">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-white hover:text-brand-red">
+                <Button variant="ghost" size="sm" className="text-white hover:text-brand-red hover:bg-transparent">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-black/95 border-gray-700">
-                <div className="flex flex-col space-y-4 mt-8">
+                <div className="flex flex-col h-full">
+                  <div className="flex-1">
+                    <div className="flex flex-col space-y-4 mt-8">
                   {/* Mobile Navigation */}
                   {navItems.map((item) => (
                     <Link
@@ -323,6 +325,17 @@ const ModernNavbar = () => {
                       </div>
                     )}
                   </div>
+                </div>
+                
+                {/* Company Logo at Bottom */}
+                <div className="mt-auto pb-6 flex justify-center">
+                  <img 
+                    src="/lovable-uploads/Black_White_Minimalist_Professional_Initial_Logo__1_-removebg-preview.png" 
+                    alt="Anantya Brand" 
+                    className="h-12 w-auto opacity-70 transition-opacity duration-300 hover:opacity-100"
+                  />
+                </div>
+              </div>
                 </div>
               </SheetContent>
             </Sheet>
