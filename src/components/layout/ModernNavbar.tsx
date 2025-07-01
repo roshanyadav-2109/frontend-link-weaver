@@ -108,7 +108,7 @@ const ModernNavbar = () => {
       isScrolled || !isHomePage || isAuthenticated
         ? 'bg-black/95 backdrop-blur-md shadow-lg py-3' 
         : 'bg-transparent py-4'
-    } ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'} hover:bg-black/95 hover:backdrop-blur-md`}>
+    } ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'}`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Left Logo */}
@@ -119,7 +119,7 @@ const ModernNavbar = () => {
               <img 
                 src="/lovable-uploads/logoanantya.png" 
                 alt="Anantya Overseas" 
-                className="h-10 w-auto transition-transform duration-300 hover:scale-105"
+                className="h-10 w-auto transition-transform duration-300 hover:scale-105 filter invert"
               />
             </Link>
           </div>
@@ -210,8 +210,7 @@ const ModernNavbar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="flex items-center gap-4">
-                <div className={`transition-all duration-700 delay-300 ${
+              <div className={`transition-all duration-700 delay-300 ${
                   isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5'
                 }`}>
                   <img 
@@ -220,19 +219,6 @@ const ModernNavbar = () => {
                     className="h-10 w-auto transition-transform duration-300 hover:scale-105"
                   />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Link to="/auth/initial">
-                    <Button variant="ghost" size="sm" className="text-white hover:text-brand-red hover:bg-white/10">
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link to="/auth/initial">
-                    <Button size="sm" className="bg-brand-red hover:bg-brand-red/90 text-white">
-                      Get Started
-                    </Button>
-                  </Link>
-                </div>
-              </div>
             )}
           </div>
 
@@ -333,16 +319,7 @@ const ModernNavbar = () => {
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        <Link to="/auth/initial" onClick={() => setIsOpen(false)}>
-                          <Button variant="ghost" className="w-full justify-start text-white hover:text-brand-red hover:bg-white/10">
-                            Sign In
-                          </Button>
-                        </Link>
-                        <Link to="/auth/initial" onClick={() => setIsOpen(false)}>
-                          <Button className="w-full bg-brand-red hover:bg-brand-red/90 text-white">
-                            Get Started
-                          </Button>
-                        </Link>
+                        {/* Removed Sign In and Get Started buttons */}
                       </div>
                     )}
                   </div>
