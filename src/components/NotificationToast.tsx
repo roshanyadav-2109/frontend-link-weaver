@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const NotificationToast: React.FC = () => {
   const { user } = useAuth();
@@ -27,36 +27,29 @@ const NotificationToast: React.FC = () => {
           const oldRecord = payload.old as any;
           
           if (newRecord.status !== oldRecord.status) {
-            let title = '';
-            let description = '';
+            let message = '';
             switch (newRecord.status) {
               case 'contacted':
-                title = 'Quote Request Update';
-                description = `Your quote request for "${newRecord.product_name}" has been reviewed and we will contact you soon.`;
+                message = `Your quote request for "${newRecord.product_name}" has been reviewed and we will contact you soon.`;
                 break;
               case 'completed':
-                title = 'Quote Request Completed';
-                description = `Your quote request for "${newRecord.product_name}" has been completed!`;
+                message = `Your quote request for "${newRecord.product_name}" has been completed!`;
                 break;
               case 'rejected':
-                title = 'Quote Request Update';
-                description = `Your quote request for "${newRecord.product_name}" has been updated.`;
+                message = `Your quote request for "${newRecord.product_name}" has been updated.`;
                 break;
               default:
-                title = 'Quote Request Update';
-                description = `Your quote request for "${newRecord.product_name}" status has been updated.`;
+                message = `Your quote request for "${newRecord.product_name}" status has been updated.`;
             }
             
-            toast({
-              title,
-              description,
+            toast.success(message, {
+              duration: 5000,
             });
           }
           
           if (newRecord.admin_response && newRecord.admin_response !== oldRecord.admin_response) {
-            toast({
-              title: 'New Response',
-              description: `New response to your quote request: "${newRecord.admin_response}"`,
+            toast.info(`New response to your quote request: "${newRecord.admin_response}"`, {
+              duration: 7000,
             });
           }
         }
