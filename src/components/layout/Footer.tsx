@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
+import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram, LogIn, UserPlus } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -61,7 +61,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Services */}
+          {/* Services & Auth */}
           <div>
             <h4 className="text-lg font-semibold mb-4">Services</h4>
             <ul className="space-y-2">
@@ -81,6 +81,19 @@ const Footer = () => {
                 </Link>
               </li>
             </ul>
+            <div className="mt-4 pt-4 border-t border-gray-700">
+              <h5 className="text-sm font-semibold mb-2">Account</h5>
+              <div className="flex flex-col space-y-2">
+                <Link to="/auth/client" className="text-gray-300 hover:text-white transition-colors text-sm flex items-center">
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Sign In
+                </Link>
+                <Link to="/auth/client?register=true" className="text-gray-300 hover:text-white transition-colors text-sm flex items-center">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Sign Up
+                </Link>
+              </div>
+            </div>
           </div>
 
           {/* Contact Info */}
