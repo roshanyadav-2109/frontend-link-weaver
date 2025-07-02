@@ -80,11 +80,6 @@ const Footer = () => {
                   Partner With Us
                 </Link>
               </li>
-              <li>
-                <Link to="/remove-background" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  Remove Background
-                </Link>
-              </li>
             </ul>
           </div>
 
