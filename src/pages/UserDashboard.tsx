@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Package, 
@@ -327,10 +326,10 @@ const UserDashboard: React.FC = () => {
                 )}
               </div>
               <div className="mt-4 pt-4 border-t">
-                <Link to="/request-quote">
-                  <Button className="w-full">
+                <Link to="/user/quote-history">
+                  <Button className="w-full" variant="outline">
                     <FileText className="h-4 w-4 mr-2" />
-                    New Quote Request
+                    View All Quote Requests
                   </Button>
                 </Link>
               </div>

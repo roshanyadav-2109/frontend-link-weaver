@@ -8,7 +8,8 @@ import {
   Briefcase, 
   Settings, 
   Users,
-  UserCheck
+  UserCheck,
+  ClipboardList
 } from 'lucide-react';
 
 const AdminSidebar: React.FC = () => {
@@ -20,6 +21,7 @@ const AdminSidebar: React.FC = () => {
     { icon: FileText, label: 'Quote Requests', path: '/admin/quote-requests' },
     { icon: Users, label: 'Manufacturer Partnerships', path: '/admin/manufacturer-partnerships' },
     { icon: UserCheck, label: 'Job Applications', path: '/admin/job-applications' },
+    { icon: ClipboardList, label: 'Applications Manager', path: '/admin/applications' },
     { icon: Briefcase, label: 'Careers', path: '/admin/careers' },
     { icon: Settings, label: 'Settings', path: '/admin/settings' },
   ];
