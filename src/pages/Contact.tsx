@@ -1,244 +1,239 @@
-import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Clock, Send, Loader2 } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Mail, Phone, MapPin, Clock, Send, Globe } from 'lucide-react';
+import { toast } from 'sonner';
+import { Card, CardContent } from '@/components/ui/card';
 
-const contactFormSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-  phone: z.string().optional(),
-  company: z.string().optional(),
-  subject: z.string().min(2, {
-    message: "Subject must be at least 2 characters.",
-  }),
-  message: z.string().min(10, {
-    message: "Message must be at least 10 characters.",
-  }),
+const formSchema = z.object({
+  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
+  email: z.string().email({ message: 'Please enter a valid email address.' }),
+  subject: z.string().min(5, { message: 'Subject must be at least 5 characters.' }),
+  message: z.string().min(10, { message: 'Message must be at least 10 characters.' }),
 });
 
-export default function Contact() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const EMAIL_ENDPOINT = 'https://lusfthgqlkgktplplqnv.functions.supabase.co/send-form-email';
 
-  const form = useForm<z.infer<typeof contactFormSchema>>({
-    resolver: zodResolver(contactFormSchema),
+const Contact = () => {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      company: "",
-      subject: "",
-      message: "",
+      name: '',
+      email: '',
+      subject: '',
+      message: '',
     },
   });
 
-  async function onSubmit(values: z.infer<typeof contactFormSchema>) {
-    setIsSubmitting(true);
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    form.reset();
-    alert("Form submitted successfully!");
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const response = await fetch(EMAIL_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "contact",
+          ...values,
+        })
+      });
+      const data = await response.json();
+      if (response.ok && data.sent) {
+        toast.success('Message sent successfully! We will get back to you shortly.');
+        form.reset();
+      } else {
+        toast.error("Failed to send message. Please try again.");
+      }
+    } catch (err) {
+      toast.error("Could not send message. Please try again.");
+      console.error("Contact form error:", err);
+    }
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-brand-blue py-20 text-center text-white">
-        <h1 className="text-4xl font-bold mb-4">Contact Us</h1>
-        <p className="text-lg">We're here to help. Reach out to us today!</p>
-      </div>
-
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Contact Information */}
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Get in Touch</h2>
-              <p className="text-gray-600 mb-8">
-                Ready to expand your business globally? Contact us today to discuss your export requirements and discover how we can help you succeed in international markets.
-              </p>
+      {/* Enhanced Hero Section */}
+      <div className="relative bg-gradient-to-br from-brand-blue via-brand-blue/95 to-brand-teal py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_70%,rgba(255,255,255,0.1),transparent_50%)]"></div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm rounded-full mb-8 animate-fade-in">
+              <Globe className="h-5 w-5 text-white mr-2" />
+              <span className="text-white font-medium">Connect Globally</span>
             </div>
-
-            <div className="space-y-6">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-brand-blue rounded-lg flex items-center justify-center">
-                  <Mail className="h-6 w-6 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Email Us</h3>
-                  <a 
-                    href="mailto:anantyaoverseas@gmail.com" 
-                    className="text-brand-blue hover:underline email-responsive break-all"
-                  >
-                    anantyaoverseas@gmail.com
-                  </a>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-brand-blue rounded-lg flex items-center justify-center">
-                  <Phone className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Call Us</h3>
-                  <p className="text-gray-600">+91 (Available on request)</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-brand-blue rounded-lg flex items-center justify-center">
-                  <MapPin className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Visit Us</h3>
-                  <p className="text-gray-600">
-                    Ahmedabad, Gujarat 380054<br />
-                    India
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-brand-blue rounded-lg flex items-center justify-center">
-                  <Clock className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Business Hours</h3>
-                  <p className="text-gray-600">
-                    Monday - Friday: 9:00 AM - 6:00 PM IST<br />
-                    Saturday: 9:00 AM - 2:00 PM IST
-                  </p>
-                </div>
-              </div>
-            </div>
+            <h1 className="text-4xl md:text-6xl font-extrabold text-slate-200 mb-6 animate-fade-in animate-delay-100">
+              Connect for 
+              <span className="block bg-gradient-to-r from-white via-gray-100 to-slate-200 bg-clip-text text-transparent font-black">
+                Business Inquiriers
+              </span>
+            </h1>
+            <p className="text-xl text-white/90 max-w-3xl mx-auto animate-fade-in animate-delay-200">
+              Whether you are prepared to proceed with a bulk order or explore a manufacturing partnership, we invite you to contact our team to discuss how we can support your business objectives.
+            </p>
           </div>
-
-          {/* Contact Form */}
-          <div className="bg-white rounded-2xl shadow-xl p-6 lg:p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Send us a Message</h2>
-            
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Your name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="your.email@example.com" type="email" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone</FormLabel>
-                        <FormControl>
-                          <Input placeholder="+1 (555) 000-0000" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="company"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Company</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Your company name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="subject"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Subject *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="How can we help you?" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="message"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Message *</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Tell us more about your requirements..."
-                          className="min-h-[120px] resize-vertical"
-                          {...field}
+        </div>
+      </div>
+      
+      <div className="py-20 -mt-10 relative z-10">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            {/* Contact Form */}
+            <div className="lg:col-span-2">
+              <Card className="border-0 shadow-2xl bg-white">
+                <CardContent className="p-12">
+                  <div className="mb-8">
+                    <h2 className="text-3xl font-bold text-brand-blue mb-4">
+                      Send Us a Message
+                    </h2>
+                    <p className="text-gray-600 text-lg">
+                      Fill out the form below and we'll get back to you within 24 hours.
+                    </p>
+                  </div>
+                  
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-lg font-semibold">Your Name</FormLabel>
+                              <FormControl>
+                                <Input                                    
+                                  className="h-12 text-lg border-2 focus:border-brand-teal"
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button 
-                  type="submit" 
-                  className="w-full bg-brand-blue hover:bg-blue-700 text-white py-3"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      Send Message
-                      <Send className="ml-2 h-4 w-4" />
-                    </>
-                  )}
-                </Button>
-              </form>
-            </Form>
+                        
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-lg font-semibold">Email Address</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="email"                               
+                                  className="h-12 text-lg border-2 focus:border-brand-teal"
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      
+                      <FormField
+                        control={form.control}
+                        name="subject"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-lg font-semibold">Subject</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="What is this regarding?" 
+                                className="h-12 text-lg border-2 focus:border-brand-teal"
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="message"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-lg font-semibold">Your Message</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                placeholder="Please let us know how we can help you..."
+                                className="min-h-[150px] text-lg border-2 focus:border-brand-teal resize-none"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <Button 
+                        type="submit" 
+                        className="w-full bg-gradient-to-r from-brand-teal to-brand-blue hover:from-brand-blue hover:to-brand-teal text-white py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                      >
+                        <Send className="mr-3 h-5 w-5" />
+                        Send Message
+                      </Button>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* Contact Information */}
+            <div className="space-y-8">
+              <Card className="border-0 shadow-xl bg-white">
+                <CardContent className="p-8">
+                  <h3 className="text-2xl font-bold text-brand-blue mb-6">Contact Information</h3>
+                  <div className="space-y-6">
+                    <div className="flex items-start space-x-4 group hover:bg-gray-50 p-4 rounded-xl transition-colors">
+                      <div className="bg-brand-blue/10 p-3 rounded-xl group-hover:bg-brand-blue group-hover:text-white transition-colors">
+                        <MapPin className="h-6 w-6 text-brand-blue group-hover:text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-lg mb-1">Our Office</h4>
+                        <p className="text-gray-600">
+                          Ahmedabad, Gujarat 380054<br />
+                          India
+                        </p>
+                      </div>
+                    </div>
+                           
+                    <div className="flex items-start space-x-4 group hover:bg-gray-50 p-4 rounded-xl transition-colors">
+                      <div className="bg-green-100 p-3 rounded-xl group-hover:bg-green-500 group-hover:text-white transition-colors">
+                        <Mail className="h-6 w-6 text-green-600 group-hover:text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-lg mb-1">Email Us</h4>
+                        <p className="text-gray-600">
+                          <a href="mailto:anantyaoverseas@gmail.com" className="hover:text-brand-teal transition-colors">anantyaoverseas@gmail.com</a>                   
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-brand-blue to-brand-teal text-white">
+                <CardContent className="p-8">
+                  <div className="flex items-center mb-4">
+                    <Clock className="h-6 w-6 mr-3" />
+                    <h4 className="font-semibold text-xl">Business Hours</h4>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="font-medium">Monday - Sunday: Available 24/7 HRS</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default Contact;

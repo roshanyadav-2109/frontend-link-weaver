@@ -5,94 +5,54 @@ import {
   LayoutDashboard, 
   Package, 
   FileText, 
-  Building, 
   Briefcase, 
-  Settings,
-  ClipboardCheck
+  Settings, 
+  Users,
+  UserCheck
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
-const AdminSidebar = () => {
+const AdminSidebar: React.FC = () => {
   const location = useLocation();
-
+  
   const menuItems = [
-    {
-      title: 'Dashboard',
-      href: '/admin/dashboard',
-      icon: LayoutDashboard,
-    },
-    {
-      title: 'Applications Manager',
-      href: '/admin/applications',
-      icon: ClipboardCheck,
-    },
-    {
-      title: 'Products',
-      href: '/admin/products',
-      icon: Package,
-    },
-    {
-      title: 'Quote Requests',
-      href: '/admin/quote-requests',
-      icon: FileText,
-    },
-    {
-      title: 'Partnerships',
-      href: '/admin/manufacturer-partnerships',
-      icon: Building,
-    },
-    {
-      title: 'Career Posts',
-      href: '/admin/careers',
-      icon: Briefcase,
-    },
-    {
-      title: 'Settings',
-      href: '/admin/settings',
-      icon: Settings,
-    },
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
+    { icon: Package, label: 'Products', path: '/admin/products' },
+    { icon: FileText, label: 'Quote Requests', path: '/admin/quote-requests' },
+    { icon: Users, label: 'Manufacturer Partnerships', path: '/admin/manufacturer-partnerships' },
+    { icon: UserCheck, label: 'Job Applications', path: '/admin/job-applications' },
+    { icon: Briefcase, label: 'Careers', path: '/admin/careers' },
+    { icon: Settings, label: 'Settings', path: '/admin/settings' },
   ];
 
+  const isActive = (path: string) => {
+    if (path === '/admin') {
+      return location.pathname === '/admin';
+    }
+    return location.pathname.startsWith(path);
+  };
+
   return (
-    <div className="w-64 bg-white shadow-lg border-r border-gray-200 h-screen overflow-y-auto">
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center space-x-3">
-          <img 
-            src="/lovable-uploads/Black_White_Minimalist_Professional_Initial_Logo__1_-removebg-preview.png" 
-            alt="Anantya Overseas" 
-            className="h-8 w-8"
-          />
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">Admin Panel</h2>
-            <p className="text-sm text-gray-500">Anantya Overseas</p>
-          </div>
-        </div>
+    <div className="bg-white shadow-lg w-64 min-h-screen">
+      <div className="p-6 border-b">
+        <h2 className="text-xl font-bold text-gray-800">Admin Panel</h2>
       </div>
       
-      <nav className="p-4">
-        <ul className="space-y-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.href;
-            
-            return (
-              <li key={item.href}>
-                <Link
-                  to={item.href}
-                  className={cn(
-                    "flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors",
-                    isActive
-                      ? "bg-brand-blue text-white"
-                      : "text-gray-700 hover:bg-gray-100"
-                  )}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="font-medium">{item.title}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+      <nav className="mt-6">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 hover:text-brand-blue transition-colors ${
+                isActive(item.path) ? 'bg-blue-50 text-brand-blue border-r-2 border-brand-blue' : ''
+              }`}
+            >
+              <Icon className="h-5 w-5 mr-3" />
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
     </div>
   );

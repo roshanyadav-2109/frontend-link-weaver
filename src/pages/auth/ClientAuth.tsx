@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -14,9 +13,9 @@ import { Separator } from '@/components/ui/separator';
 import UserTypeSelector from '@/components/auth/UserTypeSelector';
 
 const clientRegisterSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email(),
+  password: z.string().min(6),
+  confirmPassword: z.string().min(6),
   userType: z.enum(['client', 'manufacturer']),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
@@ -24,12 +23,12 @@ const clientRegisterSchema = z.object({
 });
 
 const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email(),
+  password: z.string().min(6),
 });
 
 const forgotSchema = z.object({
-  email: z.string().email('Please enter a valid email address')
+  email: z.string().email()
 });
 
 const ClientAuth = () => {
@@ -38,13 +37,12 @@ const ClientAuth = () => {
   const [showForgot, setShowForgot] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [confirmationEmail, setConfirmationEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const { signInWithGoogle, isAuthenticated, loading, resendConfirmationEmail } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      navigate("/profile-completion?type=client");
     }
   }, [isAuthenticated, navigate]);
 
@@ -73,115 +71,75 @@ const ClientAuth = () => {
 
   // Registration handler
   async function onRegister(values: z.infer<typeof clientRegisterSchema>) {
-    setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
         options: {
           data: { user_type: values.userType },
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: `${window.location.origin}/profile-completion?type=${values.userType}`
         }
       });
-      
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
-      
+      if (error) return toast.error(error.message);
       if (data.user) {
         setShowConfirmation(true);
         setConfirmationEmail(values.email);
-        toast.success('Account created! Please check your email to confirm your account.');
+        toast.success('Check your email to confirm!');
       }
-    } catch (error) {
-      console.error('Registration error:', error);
-      toast.error('Registration failed. Please try again.');
-    } finally {
-      setIsLoading(false);
+    } catch {
+      toast.error('Registration failed.');
     }
   }
 
   // Login handler
   async function onLogin(values: z.infer<typeof loginSchema>) {
-    setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password
       });
-      
       if (error) {
         if (error.message === "Email not confirmed") {
           setShowConfirmation(true);
           setConfirmationEmail(values.email);
-          toast.error("Please confirm your email before signing in.");
+          toast.error("Please confirm your email.");
         } else {
           toast.error(error.message);
         }
         return;
       }
-      
-      if (data.user) {
-        toast.success('Successfully signed in!');
-        navigate('/dashboard');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      toast.error('Login failed. Please try again.');
-    } finally {
-      setIsLoading(false);
+      toast.success('Logged in!');
+    } catch {
+      toast.error('Login failed.');
     }
   }
 
   // Forgot password handler
   async function onForgot(values: z.infer<typeof forgotSchema>) {
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-        redirectTo: `${window.location.origin}/auth/client`
-      });
-      
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success("Password reset email sent! Check your inbox.");
-        setShowForgot(false);
-      }
-    } catch (error) {
-      console.error('Password reset error:', error);
-      toast.error('Failed to send reset email. Please try again.');
-    } finally {
-      setIsLoading(false);
+    const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
+      redirectTo: `${window.location.origin}/auth/client`
+    });
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Password reset email sent!");
+      setShowForgot(false);
     }
   }
 
   const handleResend = async () => {
-    if (confirmationEmail) {
-      await resendConfirmationEmail(confirmationEmail);
-    }
+    if (confirmationEmail) await resendConfirmationEmail(confirmationEmail);
   };
 
   const handleGoogleSignIn = async () => {
-    try {
-      await signInWithGoogle();
-    } catch (error) {
-      console.error('Google sign in error:', error);
-      toast.error('Google sign in failed. Please try again.');
-    }
+    await signInWithGoogle();
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-blue"></div>
-      </div>
-    );
-  }
+  if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-teal-50 p-4">
-      <div className="w-full max-w-md mx-auto bg-white p-6 shadow-lg rounded-xl">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-teal-50">
+      <div className="w-full max-w-md mx-auto bg-white p-6 shadow rounded-lg">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">
             {isRegister ? 'Create Account' : (showForgot ? "Reset Password" : 'Welcome Back')}
@@ -194,9 +152,7 @@ const ClientAuth = () => {
         {showConfirmation && (
           <div className="mb-4 text-sm bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-3 rounded">
             Please check your inbox for a confirmation link.
-            <Button variant="link" onClick={handleResend} className="ml-1 p-0 h-auto align-middle text-yellow-900" disabled={isLoading}>
-              Resend
-            </Button>
+            <Button variant="link" onClick={handleResend} className="ml-1 p-0 h-auto align-middle text-yellow-900">Resend</Button>
           </div>
         )}
 
@@ -207,7 +163,6 @@ const ClientAuth = () => {
               onClick={handleGoogleSignIn}
               variant="outline" 
               className="w-full flex items-center justify-center gap-2 py-2"
-              disabled={isLoading}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -276,9 +231,7 @@ const ClientAuth = () => {
                   )}
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Creating Account...' : 'Sign Up'}
-              </Button>
+              <Button type="submit" className="w-full">Sign Up</Button>
             </form>
           </Form>
         ) : showForgot ? (
@@ -297,9 +250,7 @@ const ClientAuth = () => {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Sending...' : 'Send reset link'}
-              </Button>
+              <Button type="submit" className="w-full">Send reset link</Button>
             </form>
           </Form>
         ) : (
@@ -331,38 +282,23 @@ const ClientAuth = () => {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Signing In...' : 'Sign In'}
-              </Button>
+              <Button type="submit" className="w-full">Sign In</Button>
             </form>
           </Form>
         )}
-        
         <div className="mt-4 flex flex-col items-center gap-2">
           {!showForgot && (
-            <button 
-              onClick={() => setShowForgot(true)} 
-              className="text-xs text-gray-500 hover:underline focus:outline-none"
-              disabled={isLoading}
-            >
+            <button onClick={() => setShowForgot(true)} className="text-xs text-gray-500 hover:underline focus:outline-none">
               Forgot password?
             </button>
           )}
           {!showForgot && (
-            <button 
-              onClick={() => setIsRegister((r) => !r)} 
-              className="text-xs text-gray-600 hover:underline mt-1"
-              disabled={isLoading}
-            >
+            <button onClick={() => setIsRegister((r) => !r)} className="text-xs text-gray-600 hover:underline mt-1">
               {isRegister ? "Already have an account? Sign In" : "No account? Sign Up"}
             </button>
           )}
           {showForgot && (
-            <button 
-              onClick={() => setShowForgot(false)} 
-              className="text-xs text-gray-600 hover:underline mt-1"
-              disabled={isLoading}
-            >
+            <button onClick={() => setShowForgot(false)} className="text-xs text-gray-600 hover:underline mt-1">
               Back to sign in
             </button>
           )}

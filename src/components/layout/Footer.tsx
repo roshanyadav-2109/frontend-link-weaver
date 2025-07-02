@@ -1,139 +1,166 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram, LogIn, UserPlus } from 'lucide-react';
+import { Mail, MapPin, Linkedin, Instagram } from 'lucide-react';
 
-const Footer = () => {
+const Footer: React.FC = () => {
   return (
-    <footer className="bg-brand-blue text-white">
-      <div className="container mx-auto px-4 py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <footer className="bg-gray-900 text-white">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center">
               <img 
-                src="/lovable-uploads/Black_White_Minimalist_Professional_Initial_Logo__1_-removebg-preview.png" 
+                src="/lovable-uploads/logoanantya.png" 
                 alt="Anantya Overseas" 
-                className="h-10 w-10"
+                className="h-12 w-auto filter brightness-0 invert"
               />
-              <h3 className="text-xl font-bold">Anantya Overseas</h3>
             </div>
             <p className="text-gray-300 text-sm leading-relaxed">
-              Your trusted partner for global export solutions, connecting businesses worldwide with quality products and reliable services.
+              Connecting global markets through innovative sourcing solutions and strategic partnerships.
             </p>
             <div className="flex space-x-4">
-              <Facebook className="h-5 w-5 text-gray-300 hover:text-white cursor-pointer transition-colors" />
-              <Twitter className="h-5 w-5 text-gray-300 hover:text-white cursor-pointer transition-colors" />
-              <Linkedin className="h-5 w-5 text-gray-300 hover:text-white cursor-pointer transition-colors" />
-              <Instagram className="h-5 w-5 text-gray-300 hover:text-white cursor-pointer transition-colors" />
+              <a 
+                href="https://www.instagram.com/anantya_overseas/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-brand-blue transition-colors"
+                aria-label="Follow us on Instagram"
+              >
+                <Instagram size={20} />
+              </a>
+              <a 
+                href="https://www.linkedin.com/company/anantya-overseas" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-brand-blue transition-colors"
+                aria-label="Connect with us on LinkedIn"
+              >
+                <Linkedin size={20} />
+              </a>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
+            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/" className="text-gray-300 hover:text-white transition-colors text-sm">
+                <Link 
+                  to="/" 
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
                   Home
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="text-gray-300 hover:text-white transition-colors text-sm">
+                <Link 
+                  to="/about" 
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
                   About Us
                 </Link>
               </li>
               <li>
-                <Link to="/products" className="text-gray-300 hover:text-white transition-colors text-sm">
+                <Link 
+                  to="/products" 
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
                   Products
                 </Link>
               </li>
               <li>
-                <Link to="/careers" className="text-gray-300 hover:text-white transition-colors text-sm">
+                <Link 
+                  to="/careers" 
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
                   Careers
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-gray-300 hover:text-white transition-colors text-sm">
+                <Link 
+                  to="/contact" 
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
                   Contact
                 </Link>
               </li>
-            </ul>
-          </div>
-
-          {/* Services & Auth */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Services</h4>
-            <ul className="space-y-2">
               <li>
-                <Link to="/request-quote" className="text-gray-300 hover:text-white transition-colors text-sm">
+                <Link 
+                  to="/request-quote" 
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
                   Request Quote
                 </Link>
               </li>
-              <li>
-                <Link to="/catalog-request" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  Catalog Request
-                </Link>
-              </li>
-              <li>
-                <Link to="/auth/manufacturer-auth" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  Partner With Us
-                </Link>
-              </li>
             </ul>
-            <div className="mt-4 pt-4 border-t border-gray-700">
-              <h5 className="text-sm font-semibold mb-2">Account</h5>
-              <div className="flex flex-col space-y-2">
-                <Link to="/auth/client" className="text-gray-300 hover:text-white transition-colors text-sm flex items-center">
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Sign In
-                </Link>
-                <Link to="/auth/client?register=true" className="text-gray-300 hover:text-white transition-colors text-sm flex items-center">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Sign Up
-                </Link>
-              </div>
-            </div>
           </div>
 
-          {/* Contact Info */}
+          {/* Services */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Contact Info</h4>
-            <div className="space-y-3">
-              <div className="flex items-start space-x-3">
-                <MapPin className="h-4 w-4 text-gray-300 mt-1 flex-shrink-0" />
-                <p className="text-gray-300 text-sm">
-                  Ahmedabad, Gujarat 380054<br />
-                  India
-                </p>
-              </div>
+            <h3 className="text-lg font-semibold mb-4">Services</h3>
+            <ul className="space-y-2">
+              <li><span className="text-gray-300">Global Sourcing</span></li>
+              <li><span className="text-gray-300">B2B Wholesale</span></li>
+              <li><span className="text-gray-300">Quality Assurance</span></li>
+              <li><span className="text-gray-300">Export Solutions</span></li>
+              <li><span className="text-gray-300">Startup Support</span></li>
+            </ul>
+          </div>
+
+          {/* Contact Info & Auth Links */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Contact Info</h3>
+            <div className="space-y-3 mb-6">
               <div className="flex items-center space-x-3">
-                <Mail className="h-4 w-4 text-gray-300 flex-shrink-0" />
+                <Mail size={18} className="text-brand-blue" />
                 <a 
-                  href="mailto:anantyaoverseas@gmail.com" 
-                  className="text-gray-300 hover:text-white transition-colors text-sm break-all"
+                  href="mailto:anantyaoverseas@gmail.com"
+                  className="text-gray-300 text-sm hover:text-white transition-colors"
                 >
                   anantyaoverseas@gmail.com
                 </a>
+              </div>
+              <div className="flex items-center space-x-3">
+                <MapPin size={18} className="text-brand-blue" />
+                <span className="text-gray-300 text-sm">Ahmedabad, Gujarat, India</span>
+              </div>
+            </div>
+            
+            {/* Authentication Links */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wide">Account</h4>
+              <div className="space-y-1">
+                <Link 
+                  to="/auth/initial" 
+                  className="block text-gray-300 text-sm hover:text-white transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link 
+                  to="/auth/initial" 
+                  className="block text-gray-300 text-sm hover:text-white transition-colors"
+                >
+                  Create Account
+                </Link>
               </div>
             </div>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-700 mt-8 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-gray-300 text-sm text-center md:text-left">
-              © {new Date().getFullYear()} Anantya Overseas. All rights reserved.
-            </p>
-            <div className="flex space-x-6">
-              <Link to="/privacy-policy" className="text-gray-300 hover:text-white transition-colors text-sm">
-                Privacy Policy
-              </Link>
-              <Link to="/terms-and-conditions" className="text-gray-300 hover:text-white transition-colors text-sm">
-                Terms & Conditions
-              </Link>
-            </div>
+        <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-gray-400 text-sm">
+            © 2025 Anantya Overseas. All rights reserved.
+          </p>
+          <div className="mt-4 md:mt-0 flex space-x-6">
+            <Link to="/terms" className="text-gray-400 hover:text-white text-sm transition-colors">
+              Terms of Service
+            </Link>
+            <Link to="/privacy" className="text-gray-400 hover:text-white text-sm transition-colors">
+              Privacy Policy
+            </Link>
           </div>
         </div>
       </div>
