@@ -49,7 +49,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link 
                   to="/" 
-                  className="text-gray-300 hover:text-white transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
                 >
                   Home
                 </Link>
@@ -57,7 +57,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link 
                   to="/about" 
-                  className="text-gray-300 hover:text-white transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
                 >
                   About Us
                 </Link>
@@ -65,7 +65,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link 
                   to="/products" 
-                  className="text-gray-300 hover:text-white transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
                 >
                   Products
                 </Link>
@@ -73,7 +73,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link 
                   to="/careers" 
-                  className="text-gray-300 hover:text-white transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
                 >
                   Careers
                 </Link>
@@ -81,7 +81,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link 
                   to="/contact" 
-                  className="text-gray-300 hover:text-white transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
                 >
                   Contact
                 </Link>
@@ -89,7 +89,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link 
                   to="/request-quote" 
-                  className="text-gray-300 hover:text-white transition-colors"
+                  className="text-gray-300 hover:text-white transition-colors cursor-pointer"
                 >
                   Request Quote
                 </Link>
