@@ -148,24 +148,33 @@ const ApplicationsManager = () => {
 
     try {
       let updateData: any = { status: statusUpdate };
-      let table = '';
-
+      
       if (dialogType === 'quote') {
-        table = 'quote_requests';
         if (responseText) updateData.admin_response = responseText;
+        
+        const { error } = await supabase
+          .from('quote_requests')
+          .update(updateData)
+          .eq('id', selectedItem.id);
+          
+        if (error) throw error;
       } else if (dialogType === 'partnership') {
-        table = 'manufacturer_partnerships';
+        const { error } = await supabase
+          .from('manufacturer_partnerships')
+          .update(updateData)
+          .eq('id', selectedItem.id);
+          
+        if (error) throw error;
       } else if (dialogType === 'job') {
-        table = 'job_applications';
         if (responseText) updateData.admin_notes = responseText;
+        
+        const { error } = await supabase
+          .from('job_applications')
+          .update(updateData)
+          .eq('id', selectedItem.id);
+          
+        if (error) throw error;
       }
-
-      const { error } = await supabase
-        .from(table)
-        .update(updateData)
-        .eq('id', selectedItem.id);
-
-      if (error) throw error;
 
       toast.success('Status updated successfully');
       setIsDialogOpen(false);

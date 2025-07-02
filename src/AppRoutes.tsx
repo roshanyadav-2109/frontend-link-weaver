@@ -82,7 +82,7 @@ const AppRoutes = () => {
       <Route 
         path="/dashboard" 
         element={
-          <ProtectedRoute requiredUserType="client">
+          <ProtectedRoute>
             <UserDashboard />
           </ProtectedRoute>
         } 
@@ -92,7 +92,7 @@ const AppRoutes = () => {
       <Route 
         path="/admin/dashboard" 
         element={
-          <ProtectedRoute requiredUserType="admin">
+          <ProtectedRoute requireAdmin>
             <AdminDashboard />
           </ProtectedRoute>
         } 
@@ -100,7 +100,7 @@ const AppRoutes = () => {
       <Route 
         path="/admin/applications" 
         element={
-          <ProtectedRoute requiredUserType="admin">
+          <ProtectedRoute requireAdmin>
             <ApplicationsManager />
           </ProtectedRoute>
         } 
@@ -108,7 +108,7 @@ const AppRoutes = () => {
       <Route 
         path="/admin/products" 
         element={
-          <ProtectedRoute requiredUserType="admin">
+          <ProtectedRoute requireAdmin>
             <ProductsManager />
           </ProtectedRoute>
         } 
@@ -116,7 +116,7 @@ const AppRoutes = () => {
       <Route 
         path="/admin/quote-requests" 
         element={
-          <ProtectedRoute requiredUserType="admin">
+          <ProtectedRoute requireAdmin>
             <QuoteRequests />
           </ProtectedRoute>
         } 
@@ -124,7 +124,7 @@ const AppRoutes = () => {
       <Route 
         path="/admin/quote-requests-manager" 
         element={
-          <ProtectedRoute requiredUserType="admin">
+          <ProtectedRoute requireAdmin>
             <QuoteRequestsManager />
           </ProtectedRoute>
         } 
@@ -132,7 +132,7 @@ const AppRoutes = () => {
       <Route 
         path="/admin/manufacturer-partnerships" 
         element={
-          <ProtectedRoute requiredUserType="admin">
+          <ProtectedRoute requireAdmin>
             <ManufacturerPartnerships />
           </ProtectedRoute>
         } 
@@ -140,7 +140,7 @@ const AppRoutes = () => {
       <Route 
         path="/admin/careers" 
         element={
-          <ProtectedRoute requiredUserType="admin">
+          <ProtectedRoute requireAdmin>
             <CareersManager />
           </ProtectedRoute>
         } 
@@ -148,7 +148,7 @@ const AppRoutes = () => {
       <Route 
         path="/admin/job-applications" 
         element={
-          <ProtectedRoute requiredUserType="admin">
+          <ProtectedRoute requireAdmin>
             <JobApplications />
           </ProtectedRoute>
         } 
@@ -156,7 +156,7 @@ const AppRoutes = () => {
       <Route 
         path="/admin/settings" 
         element={
-          <ProtectedRoute requiredUserType="admin">
+          <ProtectedRoute requireAdmin>
             <Settings />
           </ProtectedRoute>
         } 
@@ -167,7 +167,7 @@ const AppRoutes = () => {
       <Route 
         path="/manufacturer/dashboard" 
         element={
-          <ProtectedRoute requiredUserType="manufacturer">
+          <ProtectedRoute requireManufacturer>
             <ManufacturerDashboard />
           </ProtectedRoute>
         } 
@@ -175,7 +175,7 @@ const AppRoutes = () => {
       <Route 
         path="/manufacturer/catalog-requests" 
         element={
-          <ProtectedRoute requiredUserType="manufacturer">
+          <ProtectedRoute requireManufacturer>
             <CatalogRequests />
           </ProtectedRoute>
         } 
