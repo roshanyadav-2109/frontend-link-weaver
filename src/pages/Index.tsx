@@ -1,7 +1,8 @@
+
 import React from 'react';
 import Hero from '@/components/home/Hero';
 import FeaturedCategories from '@/components/home/FeaturedCategories';
-import GlobalPresence from '@/components/home/GlobalPresence';
+import { GlobalPresence } from '@/components/home/GlobalPresence';
 import Testimonials from '@/components/home/Testimonials';
 
 const Index = () => {
