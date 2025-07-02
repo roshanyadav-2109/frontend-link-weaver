@@ -17,6 +17,19 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Mobile viewport optimization */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+  
+  body {
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+}
+
 /* Optimize font rendering */
 body {
   -webkit-font-smoothing: antialiased;
@@ -28,6 +41,8 @@ body {
 img {
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
+  max-width: 100%;
+  height: auto;
 }
 
 /* Premium shadows - optimized */
@@ -158,6 +173,37 @@ img {
   background: #b91c1c;
 }
 
+/* Mobile-specific optimizations */
+@media (max-width: 768px) {
+  .shadow-premium,
+  .shadow-card {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Prevent horizontal scrolling */
+  body {
+    overflow-x: hidden;
+  }
+  
+  /* Improve touch targets */
+  button, a, input, select, textarea {
+    min-height: 44px;
+  }
+  
+  /* Optimize form elements for mobile */
+  input, select, textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
 /* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -166,12 +212,51 @@ img {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  
+  .animate-float {
+    animation: none;
+  }
 }
 
-/* Optimize for mobile */
-@media (max-width: 768px) {
-  .shadow-premium,
-  .shadow-card {
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+/* Loading optimization */
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
   }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Focus improvements */
+*:focus-visible {
+  outline: 2px solid #2C7A7B;
+  outline-offset: 2px;
+}
+
+/* Text overflow handling */
+.text-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

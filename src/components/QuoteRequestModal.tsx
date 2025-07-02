@@ -29,9 +29,9 @@ export function QuoteRequestModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-w-[95vw] mx-auto max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Request a Quote</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">Request a Quote</DialogTitle>
         </DialogHeader>
         
         {isAuthenticated ? (
@@ -42,11 +42,11 @@ export function QuoteRequestModal({
             userId={user?.id}
           />
         ) : (
-          <div className="py-6 text-center">
-            <p className="mb-6 text-gray-600">
+          <div className="py-4 sm:py-6 text-center px-2">
+            <p className="mb-4 sm:mb-6 text-gray-600 text-sm sm:text-base">
               You need to be logged in to request a quote. Please sign in or create an account to continue.
             </p>
-            <Button onClick={handleLoginRedirect} className="bg-brand-blue">
+            <Button onClick={handleLoginRedirect} className="bg-brand-blue w-full sm:w-auto">
               <LogIn className="mr-2 h-4 w-4" />
               Sign In to Continue
             </Button>
