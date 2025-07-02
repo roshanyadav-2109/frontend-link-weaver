@@ -1,7 +1,5 @@
 
-/* Base styles - these will be combined with Tailwind */
-
-/* Remove the default padding since we'll control this with Tailwind */
+/* Base styles - optimized for performance */
 #root {
   max-width: 100%;
   margin: 0;
@@ -9,51 +7,77 @@
   text-align: left;
 }
 
-/* Premium shadows */
+/* Performance optimizations */
+* {
+  box-sizing: border-box;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Optimize font rendering */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Optimize image rendering */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Premium shadows - optimized */
 .shadow-glow {
-  box-shadow: 0 0 20px rgba(44, 122, 123, 0.2);
+  box-shadow: 0 0 20px rgba(44, 122, 123, 0.15);
 }
 
 .shadow-premium {
   box-shadow: 
-    0 10px 25px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .shadow-card {
   box-shadow: 
-    0 10px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-/* Text effects for visibility */
+/* Optimized text shadows */
 .text-shadow-sm {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .text-shadow-md {
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .text-shadow-lg {
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Custom animations */
+/* Optimized animations */
 @keyframes float {
-  0% {
+  0%, 100% {
     transform: translateY(0px);
   }
   50% {
     transform: translateY(-10px);
   }
-  100% {
-    transform: translateY(0px);
-  }
 }
 
 .animate-float {
   animation: float 6s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Smooth transitions */
+.smooth-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Premium gradients */
@@ -66,10 +90,10 @@
 }
 
 .gradient-overlay {
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.7) 100%);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.6) 100%);
 }
 
-/* Button animations */
+/* Optimized button animations */
 .btn-hover-slide {
   position: relative;
   overflow: hidden;
@@ -83,71 +107,42 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: all 0.6s;
+  transition: left 0.5s ease;
 }
 
 .btn-hover-slide:hover::after {
   left: 100%;
 }
 
-/* Text visibility on images */
-.image-text-overlay {
-  position: relative;
-}
-
-.image-text-overlay::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 50%;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
-  z-index: 1;
-}
-
-.image-text-overlay h3,
-.image-text-overlay p {
-  position: relative;
-  z-index: 2;
-  color: white;
-}
-
-/* Premium glass effect */
+/* Glass effect - optimized */
 .glass-effect {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* High-contrast text for better readability */
+/* High-contrast text */
 .high-contrast-text {
-  text-shadow: 
-    0 0 1px rgba(0, 0, 0, 0.1),
-    0 0 2px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
   font-weight: 500;
 }
 
-/* Premium card effect with depth */
+/* Optimized card effects */
 .premium-depth-card {
-  box-shadow: 
-    0 2px 5px -2px rgba(0, 0, 0, 0.1),
-    0 6px 15px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   border: 1px solid rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease-in-out;
+  transition: all 0.2s ease-in-out;
 }
 
 .premium-depth-card:hover {
-  box-shadow: 
-    0 5px 15px -3px rgba(0, 0, 0, 0.1), 
-    0 10px 20px -2px rgba(0, 0, 0, 0.05);
-  transform: translateY(-5px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
 }
 
-/* Custom scrollbar */
+/* Performance optimized scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -155,10 +150,28 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2C7A7B;
-  border-radius: 5px;
+  background: #dc2626;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #1A365D;
+  background: #b91c1c;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Optimize for mobile */
+@media (max-width: 768px) {
+  .shadow-premium,
+  .shadow-card {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  }
 }
