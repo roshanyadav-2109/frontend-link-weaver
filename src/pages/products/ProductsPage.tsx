@@ -38,7 +38,7 @@ const ProductsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubcategory, setSelectedSubcategory] = useState('all');
   const [priceRange, setPriceRange] = useState('all');
-  const [viewMode, setViewMode<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<{ id: string; name: string } | null>(null);
   const [connectionError, setConnectionError] = useState(false);
