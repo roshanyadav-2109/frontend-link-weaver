@@ -7,7 +7,7 @@ import { useAuth } from "./hooks/useAuth";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import QuoteRequestsManager from "./pages/admin/QuoteRequestsManager";
-import Products from "./pages/Products";
+import ProductsPage from "./pages/products/ProductsPage";
 import Careers from "./pages/Careers";
 import Contact from "./pages/Contact";
 import ManufacturerPartnership from "./pages/ManufacturerPartnership";
@@ -21,7 +21,7 @@ const AppRoutes = () => {
       <Route path="/" element={<Index />} />
       <Route path="/request-quote" element={<RequestQuotePage />} />
       <Route path="/catalog-request" element={<CatalogRequest />} />
-      <Route path="/products" element={<Products />} />
+      <Route path="/products" element={<ProductsPage />} />
       <Route path="/careers" element={<Careers />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/manufacturer-partnership" element={<ManufacturerPartnership />} />
