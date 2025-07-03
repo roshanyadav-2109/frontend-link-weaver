@@ -17,7 +17,6 @@ import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { QuoteRequestModal } from '@/components/QuoteRequestModal';
 import { motion } from 'framer-motion';
-import { realtimeService } from '@/services/realtimeService';
 
 interface Product {
   id: string;
@@ -41,7 +40,6 @@ const ProductsPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<{ id: string; name: string } | null>(null);
-  const [connectionError, setConnectionError] = useState(false);
   
   const categories = [
     { value: 'textiles', label: 'Textiles & Fabrics' },
@@ -65,17 +63,6 @@ const ProductsPage: React.FC = () => {
 
   useEffect(() => {
     fetchProducts();
-    
-    // Set up real-time subscription
-    const channel = realtimeService.subscribeToProducts((updatedProducts) => {
-      const activeProducts = updatedProducts.filter(p => p.status === 'active');
-      setProducts(activeProducts);
-      setConnectionError(false);
-    });
-
-    return () => {
-      realtimeService.unsubscribe('products-sync');
-    };
   }, []);
 
   useEffect(() => {
@@ -85,8 +72,6 @@ const ProductsPage: React.FC = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      setConnectionError(false);
-      
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -95,22 +80,16 @@ const ProductsPage: React.FC = () => {
 
       if (error) {
         console.error('Error fetching products:', error);
-        setConnectionError(true);
-        // Don't show toast immediately, let user retry
+        toast.error('Failed to load products');
       } else {
         setProducts(data || []);
-        setConnectionError(false);
       }
     } catch (error) {
       console.error('Error fetching products:', error);
-      setConnectionError(true);
+      toast.error('Failed to load products');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleRetry = () => {
-    fetchProducts();
   };
 
   const filterProducts = () => {
@@ -172,6 +151,7 @@ const ProductsPage: React.FC = () => {
   const getProductImage = (product: Product) => {
     if (product.image) return product.image;
     
+    // Category-specific placeholder images
     const categoryImages = {
       textiles: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80',
       electronics: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=800&q=80'
@@ -193,25 +173,6 @@ const ProductsPage: React.FC = () => {
     );
   }
 
-  if (connectionError) {
-    return (
-      <div className="min-h-screen bg-gray-50 pt-24">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col items-center justify-center h-64 space-y-4">
-            <div className="text-red-500 text-6xl mb-4">⚠️</div>
-            <h3 className="text-xl font-medium text-gray-900 mb-2">Connection Error</h3>
-            <p className="text-gray-600 mb-4 text-center">
-              Unable to connect to the server. Please check your internet connection.
-            </p>
-            <Button onClick={handleRetry} className="bg-brand-blue hover:bg-brand-blue/90">
-              Try Again
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 pt-24">
       <div className="container mx-auto px-4 py-8">
@@ -224,6 +185,7 @@ const ProductsPage: React.FC = () => {
           <p className="text-gray-600">Discover our extensive range of high-quality products</p>
         </motion.div>
 
+        {/* Enhanced Filters with Animation */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -231,6 +193,7 @@ const ProductsPage: React.FC = () => {
         >
           <AnimatedCard className="p-6 mb-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+              {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
@@ -241,6 +204,7 @@ const ProductsPage: React.FC = () => {
                 />
               </div>
 
+              {/* Category Filter */}
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Categories" />
@@ -255,6 +219,7 @@ const ProductsPage: React.FC = () => {
                 </SelectContent>
               </Select>
 
+              {/* Subcategory Filter */}
               <Select 
                 value={selectedSubcategory} 
                 onValueChange={setSelectedSubcategory}
@@ -273,6 +238,7 @@ const ProductsPage: React.FC = () => {
                 </SelectContent>
               </Select>
 
+              {/* Price Range Filter */}
               <Select value={priceRange} onValueChange={setPriceRange}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Prices" />
@@ -285,6 +251,7 @@ const ProductsPage: React.FC = () => {
                 </SelectContent>
               </Select>
 
+              {/* View Mode Toggle */}
               <div className="flex space-x-2">
                 <Button
                   variant={viewMode === 'grid' ? 'default' : 'outline'}
@@ -303,12 +270,14 @@ const ProductsPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Results count */}
             <div className="text-sm text-gray-600">
               Showing {filteredProducts.length} of {products.length} products
             </div>
           </AnimatedCard>
         </motion.div>
 
+        {/* Enhanced Products Grid/List with Staggered Animation */}
         {filteredProducts.length > 0 ? (
           <div className={viewMode === 'grid' 
             ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
@@ -380,7 +349,7 @@ const ProductsPage: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center p-4 space-x-4">
+                  <>
                     <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                       {product.image ? (
                         <img 
@@ -430,7 +399,7 @@ const ProductsPage: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </>
                 )}
               </AnimatedCard>
             ))}
@@ -457,6 +426,7 @@ const ProductsPage: React.FC = () => {
           </motion.div>
         )}
 
+        {/* Quote Request Modal */}
         <QuoteRequestModal
           isOpen={showQuoteModal}
           onClose={() => setShowQuoteModal(false)}
