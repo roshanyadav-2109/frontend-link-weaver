@@ -17,7 +17,7 @@ const NotificationToast: React.FC = () => {
       supabase.removeChannel(channelRef.current);
     }
 
-    // Subscribe to quote request updates with enhanced notifications
+    // Subscribe to quote request updates
     channelRef.current = supabase
       .channel(`quote-updates-${user.id}`)
       .on(
@@ -44,48 +44,28 @@ const NotificationToast: React.FC = () => {
           
           if (newRecord.status !== oldRecord.status) {
             let message = '';
-            let toastType: 'success' | 'info' | 'warning' = 'info';
-            
             switch (newRecord.status) {
               case 'contacted':
                 message = `Your quote request for "${newRecord.product_name}" has been reviewed. We will contact you soon.`;
-                toastType = 'info';
                 break;
               case 'completed':
-                message = `Your quote request for "${newRecord.product_name}" has been completed! 🎉`;
-                toastType = 'success';
+                message = `Your quote request for "${newRecord.product_name}" has been completed!`;
                 break;
               case 'rejected':
                 message = `Your quote request for "${newRecord.product_name}" has been updated.`;
-                toastType = 'warning';
                 break;
               default:
-                message = `Your quote request for "${newRecord.product_name}" status has been updated to: ${newRecord.status}`;
-                toastType = 'info';
+                message = `Your quote request for "${newRecord.product_name}" status has been updated.`;
             }
             
-            if (toastType === 'success') {
-              toast.success(message, {
-                duration: 6000,
-                className: 'animate-slide-in-right',
-              });
-            } else if (toastType === 'warning') {
-              toast.warning(message, {
-                duration: 5000,
-                className: 'animate-slide-in-right',
-              });
-            } else {
-              toast.info(message, {
-                duration: 5000,
-                className: 'animate-slide-in-right',
-              });
-            }
+            toast.success(message, {
+              duration: 5000,
+            });
           }
           
           if (newRecord.admin_response && newRecord.admin_response !== oldRecord.admin_response) {
-            toast.info(`💬 New response: "${newRecord.admin_response}"`, {
-              duration: 7000,
-              className: 'animate-scale-in',
+            toast.info(`New response: "${newRecord.admin_response}"`, {
+              duration: 6000,
             });
           }
         }
