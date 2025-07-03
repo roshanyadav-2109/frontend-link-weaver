@@ -3,12 +3,12 @@ import React, { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const NotificationToast: React.FC = () => {
   const { user } = useAuth();
   const channelRef = useRef<any>(null);
   const processedNotifications = useRef<Set<string>>(new Set());
+  const lastToastTime = useRef<number>(0);
 
   useEffect(() => {
     if (!user) return;
@@ -17,6 +17,25 @@ const NotificationToast: React.FC = () => {
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
     }
+
+    // Debounced notification function
+    const showNotification = (message: string, type: 'success' | 'info' = 'success', icon = '📦') => {
+      const now = Date.now();
+      if (now - lastToastTime.current < 1000) return; // Prevent notifications within 1 second
+      
+      lastToastTime.current = now;
+      toast[type](message, {
+        duration: 6000,
+        icon: icon,
+        style: {
+          background: type === 'success' 
+            ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+            : 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+          color: 'white',
+          border: '1px solid rgba(255,255,255,0.2)',
+        },
+      });
+    };
 
     // Enhanced real-time subscription with better error handling
     channelRef.current = supabase
@@ -34,7 +53,7 @@ const NotificationToast: React.FC = () => {
           const oldRecord = payload.old as any;
           
           // Create a unique identifier for this notification
-          const notificationId = `${newRecord.id}-${newRecord.updated_at}`;
+          const notificationId = `quote-${newRecord.id}-${newRecord.updated_at}`;
           
           // Skip if we've already processed this notification
           if (processedNotifications.current.has(notificationId)) {
@@ -69,27 +88,16 @@ const NotificationToast: React.FC = () => {
                 message = `Your quote request for "${newRecord.product_name}" status has been updated.`;
             }
             
-            toast.success(message, {
-              duration: 6000,
-              icon: icon,
-              style: {
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                border: '1px solid rgba(255,255,255,0.2)',
-              },
-            });
+            showNotification(message, 'success', icon);
           }
           
           // Enhanced admin response notifications
           if (newRecord.admin_response && newRecord.admin_response !== oldRecord.admin_response) {
-            toast.info(`💬 New response for "${newRecord.product_name}": ${newRecord.admin_response}`, {
-              duration: 8000,
-              style: {
-                background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                color: 'white',
-                border: '1px solid rgba(255,255,255,0.2)',
-              },
-            });
+            showNotification(
+              `💬 New response for "${newRecord.product_name}": ${newRecord.admin_response}`,
+              'info',
+              '💬'
+            );
           }
         }
       )
@@ -104,6 +112,14 @@ const NotificationToast: React.FC = () => {
         (payload) => {
           const newRecord = payload.new as any;
           const oldRecord = payload.old as any;
+          
+          const notificationId = `job-${newRecord.id}-${newRecord.updated_at}`;
+          
+          if (processedNotifications.current.has(notificationId)) {
+            return;
+          }
+          
+          processedNotifications.current.add(notificationId);
           
           if (newRecord.status !== oldRecord.status) {
             let message = '';
@@ -126,19 +142,13 @@ const NotificationToast: React.FC = () => {
                 message = `Your application for ${newRecord.interested_department} has been updated.`;
             }
             
-            toast.success(message, {
-              duration: 7000,
-              icon: icon,
-              style: {
-                background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-                color: 'white',
-                border: '1px solid rgba(255,255,255,0.2)',
-              },
-            });
+            showNotification(message, 'success', icon);
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Notification subscription status:', status);
+      });
 
     return () => {
       if (channelRef.current) {
