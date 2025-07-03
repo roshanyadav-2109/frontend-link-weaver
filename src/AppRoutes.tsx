@@ -18,9 +18,7 @@ import ProfileCompletion from './pages/auth/ProfileCompletion';
 import AuthCallback from './pages/auth/AuthCallback';
 import UpdateProfileClient from './pages/auth/UpdateProfileClient';
 import UpdateProfileManufacturer from './pages/auth/UpdateProfileManufacturer';
-import UserDashboard from './pages/UserDashboard';
-import UserQuoteRequests from './pages/user/UserQuoteRequests';
-import UserJobApplications from './pages/user/UserJobApplications';
+import UserDashboard from './pages/user/UserDashboard';
 import Dashboard from './pages/admin/Dashboard';
 import ProductsManager from './pages/admin/ProductsManager';
 import QuoteRequests from './pages/admin/QuoteRequests';
@@ -71,24 +69,6 @@ const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute>
             <UserDashboard />
-          </ProtectedRoute>
-        } 
-      />
-      
-      {/* User-specific routes */}
-      <Route 
-        path="/user/quote-requests" 
-        element={
-          <ProtectedRoute>
-            <UserQuoteRequests />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/user/job-applications" 
-        element={
-          <ProtectedRoute>
-            <UserJobApplications />
           </ProtectedRoute>
         } 
       />
