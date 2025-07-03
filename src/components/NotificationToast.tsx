@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,9 +7,13 @@ const NotificationToast: React.FC = () => {
   const { user } = useAuth();
   const channelRef = useRef<any>(null);
   const processedNotifications = useRef<Set<string>>(new Set());
+  const isInitializedRef = useRef(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || isInitializedRef.current) return;
+    
+    // Mark as initialized to prevent duplicate subscriptions
+    isInitializedRef.current = true;
 
     // Clean up existing channel
     if (channelRef.current) {
@@ -19,7 +22,7 @@ const NotificationToast: React.FC = () => {
 
     // Subscribe to quote request updates
     channelRef.current = supabase
-      .channel(`quote-updates-${user.id}`)
+      .channel(`notifications-${user.id}-${Date.now()}`) // Unique channel name
       .on(
         'postgres_changes',
         {
@@ -33,7 +36,7 @@ const NotificationToast: React.FC = () => {
           const oldRecord = payload.old as any;
           
           // Create a unique identifier for this notification
-          const notificationId = `${newRecord.id}-${newRecord.updated_at}`;
+          const notificationId = `${newRecord.id}-${newRecord.updated_at}-${newRecord.status}`;
           
           // Skip if we've already processed this notification
           if (processedNotifications.current.has(notificationId)) {
@@ -41,6 +44,12 @@ const NotificationToast: React.FC = () => {
           }
           
           processedNotifications.current.add(notificationId);
+          
+          // Clean up old notifications (keep only last 50)
+          if (processedNotifications.current.size > 50) {
+            const items = Array.from(processedNotifications.current);
+            processedNotifications.current = new Set(items.slice(-25));
+          }
           
           if (newRecord.status !== oldRecord.status) {
             let message = '';
@@ -76,8 +85,9 @@ const NotificationToast: React.FC = () => {
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
       }
+      isInitializedRef.current = false;
     };
-  }, [user]);
+  }, [user?.id]); // Only depend on user.id to prevent re-runs
 
   return null;
 };

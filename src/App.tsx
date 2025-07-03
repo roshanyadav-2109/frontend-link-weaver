@@ -9,13 +9,18 @@ import AppLayout from "./components/layout/AppLayout";
 import NotificationToast from "./components/NotificationToast";
 import "./App.css";
 
+// Optimize query client for better performance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 10, // 10 minutes (renamed from cacheTime)
+      gcTime: 1000 * 60 * 10, // 10 minutes
       refetchOnWindowFocus: false,
-      retry: 1,
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors
+        if (error?.message?.includes('4')) return false;
+        return failureCount < 2;
+      },
     },
   },
 });
