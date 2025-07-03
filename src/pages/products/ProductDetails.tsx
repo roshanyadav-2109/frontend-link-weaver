@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { AnimatedCard } from '@/components/ui/animated-card';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Badge } from '@/components/ui/badge';
+import { CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
