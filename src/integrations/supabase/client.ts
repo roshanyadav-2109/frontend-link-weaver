@@ -18,9 +18,3 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     }
   }
 })
-
-// Export types for convenience
-export type QuoteRequest = Database['public']['Tables']['quote_requests']['Row'];
-export type Profile = Database['public']['Tables']['profiles']['Row'];
-export type Product = Database['public']['Tables']['products']['Row'];
-export type Notification = Database['public']['Tables']['notifications']['Row'];
