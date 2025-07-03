@@ -12,7 +12,8 @@ import {
   Briefcase,
   Bell,
   Activity,
-  BarChart3
+  BarChart3,
+  User
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AnimatedCard } from '@/components/ui/animated-card';
@@ -380,80 +381,87 @@ const UserDashboard: React.FC = () => {
                   </div>
                 )}
               </div>
-              <div className="mt-6 pt-4 border-t border-gray-100">
-                <Link to="/request-quote">
-                  <Button className="w-full bg-gradient-to-r from-brand-blue to-brand-teal hover:from-brand-teal hover:to-brand-blue">
-                    <FileText className="h-4 w-4 mr-2" />
-                    New Quote Request
-                  </Button>
-                </Link>
-              </div>
+              <Link to="/user/quote-requests">
+                <Button variant="outline" size="sm" className="w-full mt-3">
+                  View All Requests
+                </Button>
+              </Link>
             </CardContent>
           </AnimatedCard>
 
-          {/* Enhanced Job Applications */}
+          {/* Recent Notifications */}
           <AnimatedCard className="bg-white/80 backdrop-blur-sm border-0 shadow-lg" delay={0.5}>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3">
-                <div className="p-2 bg-green-50 rounded-lg">
-                  <Briefcase className="h-5 w-5 text-green-600" />
-                </div>
-                Job Applications
-                <div className="ml-auto flex items-center gap-2">
-                  <motion.div
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ repeat: Infinity, duration: 2, delay: 0.5 }}
-                    className="w-2 h-2 bg-green-500 rounded-full"
-                  />
-                  <span className="text-sm font-normal text-green-600">Live</span>
-                </div>
+            <CardHeader>
+              <CardTitle className="flex items-center text-lg">
+                <Bell className="h-5 w-5 mr-2 text-brand-blue" />
+                Recent Notifications
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {jobApplications.length > 0 ? (
-                  jobApplications.map((application) => (
-                    <div key={application.id} className="p-4 bg-gradient-to-r from-gray-50 to-green-50/50 rounded-xl border border-gray-100 hover:shadow-md transition-all duration-300">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-800">{application.interested_department}</p>
-                          <p className="text-sm text-gray-500">Applied: {formatDate(application.created_at)}</p>
-                          {application.admin_notes && (
-                            <p className="text-sm text-blue-600 mt-1 bg-blue-50 p-2 rounded">
-                              Notes: {application.admin_notes}
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right ml-4">
-                          <Badge className={`text-xs px-3 py-1 rounded-full border flex items-center gap-1 ${getStatusColor(application.status)}`}>
-                            {getStatusIcon(application.status)}
-                            {application.status.replace('_', ' ')}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Briefcase className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p className="font-medium">No job applications yet</p>
-                    <p className="text-sm">Check our careers page for opportunities</p>
-                  </div>
-                )}
-              </div>
-              <div className="mt-4 pt-4 border-t">
-                <Link to="/careers">
-                  <Button className="w-full" variant="outline">
-                    <Briefcase className="h-4 w-4 mr-2" />
-                    View Careers
-                  </Button>
-                </Link>
-              </div>
+              
+                <div className="text-center py-6">
+                  <p className="text-gray-500 text-sm">No notifications yet</p>
+                </div>
+              
             </CardContent>
           </AnimatedCard>
         </div>
 
-        {/* Enhanced Quick Actions */}
+        {/* Main Action Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center text-lg">
+                <User className="h-5 w-5 mr-2 text-brand-blue" />
+                Profile
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">Manage your personal information and preferences</p>
+              <Link to="/auth/update-profile-client">
+                <Button variant="outline" className="w-full">
+                  Update Profile
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center text-lg">
+                <ShoppingCart className="h-5 w-5 mr-2 text-brand-blue" />
+                Quote Requests
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">View and track your product quote requests</p>
+              <Link to="/user/quote-requests">
+                <Button variant="outline" className="w-full">
+                  View All Requests
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center text-lg">
+                <FileText className="h-5 w-5 mr-2 text-brand-blue" />
+                Job Applications
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">Track your job application status</p>
+              <Link to="/user/job-applications">
+                <Button variant="outline" className="w-full">
+                  View Applications
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
