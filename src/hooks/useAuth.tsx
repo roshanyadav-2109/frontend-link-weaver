@@ -13,6 +13,10 @@ interface Profile {
   user_type?: string;
   is_admin?: boolean;
   verification_status?: string;
+  gstin?: string;
+  address?: string;
+  city?: string;
+  country?: string;
 }
 
 interface AuthContextType {
@@ -24,6 +28,9 @@ interface AuthContextType {
   isAdmin: boolean;
   isManufacturer: boolean;
   signOut: () => Promise<void>;
+  signIn: (email: string, password: string) => Promise<boolean>;
+  signInWithGoogle: () => Promise<void>;
+  resendConfirmationEmail: (email: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -59,6 +66,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user?.id) {
       const profileData = await fetchProfile(user.id);
       setProfile(profileData);
+    }
+  };
+
+  const signIn = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return false;
+      }
+
+      if (data.user) {
+        toast.success('Signed in successfully');
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Error signing in:', error);
+      toast.error('Error signing in');
+      return false;
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) {
+        toast.error(error.message);
+      }
+    } catch (error) {
+      console.error('Error signing in with Google:', error);
+      toast.error('Error signing in with Google');
+    }
+  };
+
+  const resendConfirmationEmail = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email
+      });
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('Confirmation email sent!');
+      }
+    } catch (error) {
+      console.error('Error resending confirmation email:', error);
+      toast.error('Error resending confirmation email');
     }
   };
 
@@ -126,6 +194,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAdmin: profile?.is_admin || false,
     isManufacturer: profile?.user_type === 'manufacturer',
     signOut,
+    signIn,
+    signInWithGoogle,
+    resendConfirmationEmail,
     refreshProfile,
   };
 
