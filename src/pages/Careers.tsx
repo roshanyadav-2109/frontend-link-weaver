@@ -1,25 +1,10 @@
+import React, { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { ArrowRight, Loader2, ExternalLink } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import GeneralApplicationForm from '@/components/GeneralApplicationForm';
 
-import React, { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
-import { useAuth } from "@/hooks/useAuth";
-
-interface JobApplication {
-  applicant_name: string;
-  email: string;
-  phone: string;
-  current_location: string;
-  experience: string;
-  interested_department: string;
-  current_position: string;
-  cover_letter: string;
-  resume_link: string;
-}
-
-interface Career {
+interface JobOpening {
   id: string;
   title: string;
   department: string;
@@ -27,277 +12,203 @@ interface Career {
   type: string;
   description: string;
   status: string;
+  apply_link?: string | null;
 }
 
-const EMAIL_ENDPOINT = "https://lusfthgqlkgktplplqnv.functions.supabase.co/send-form-email";
-
 const Careers = () => {
-  const { user } = useAuth();
-  const [careers, setCareers] = useState<Career[]>([]);
-  const [form, setForm] = useState<JobApplication>({
-    applicant_name: "",
-    email: "",
-    phone: "",
-    current_location: "",
-    experience: "",
-    interested_department: "",
-    current_position: "",
-    cover_letter: "",
-    resume_link: "",
-  });
-  const [submitting, setSubmitting] = useState(false);
+  const [jobs, setJobs] = useState<JobOpening[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isApplicationFormOpen, setIsApplicationFormOpen] = useState(false);
 
-  useEffect(() => {
-    fetchCareers();
-  }, []);
-
-  const fetchCareers = async () => {
+  // Fetch jobs from Supabase with improved error handling
+  const fetchJobs = async () => {
     try {
+      console.log('Fetching active careers...');
       const { data, error } = await supabase
         .from('careers')
         .select('*')
         .eq('status', 'active')
         .order('created_at', { ascending: false });
-
+      
       if (error) {
         console.error('Error fetching careers:', error);
-      } else {
-        setCareers(data || []);
+        throw error;
       }
-    } catch (error) {
-      console.error('Error fetching careers:', error);
+      
+      console.log('Careers fetched successfully:', data);
+      setJobs(data as JobOpening[]);
+    } catch (err: any) {
+      console.error('Error in fetchJobs:', err);
+      setJobs([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-
-    const { applicant_name, email, phone, current_location, experience, interested_department, current_position, cover_letter } = form;
-    if (!applicant_name || !email || !phone || !current_location || !experience || !interested_department || !current_position || !cover_letter) {
-      toast.error("Please fill in all required fields.");
-      setSubmitting(false);
-      return;
-    }
-
-    try {
-      const applicationData = {
-        user_id: user?.id || null,
-        applicant_name: form.applicant_name,
-        email: form.email,
-        phone: form.phone,
-        current_location: form.current_location,
-        experience: form.experience,
-        interested_department: form.interested_department,
-        current_position: form.current_position,
-        cover_letter: form.cover_letter,
-        resume_link: form.resume_link || null,
-        status: 'pending'
-      };
-
-      const { error } = await supabase
-        .from('job_applications')
-        .insert(applicationData);
-
-      if (error) {
-        console.error('Error submitting application:', error);
-        toast.error("Failed to submit application. Please try again.");
-        return;
-      }
-
-      // Send email notification
-      try {
-        await fetch(EMAIL_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "application",
-            applicationData: {
-              fullName: form.applicant_name,
-              email: form.email,
-              phone: form.phone,
-              currentLocation: form.current_location,
-              experience: form.experience,
-              interestedDepartment: form.interested_department,
-              currentRole: form.current_position,
-              coverLetter: form.cover_letter,
-              resume: form.resume_link
-            }
-          }),
-        });
-      } catch (emailError) {
-        console.error('Email sending failed:', emailError);
-      }
-
-      toast.success("Application submitted successfully! We'll review your application and get back to you.");
-      setForm({
-        applicant_name: "",
-        email: "",
-        phone: "",
-        current_location: "",
-        experience: "",
-        interested_department: "",
-        current_position: "",
-        cover_letter: "",
-        resume_link: "",
+  // Listen for real-time updates with improved subscription
+  useEffect(() => {
+    fetchJobs();
+    
+    console.log('Setting up real-time subscription for public careers...');
+    const channel = supabase
+      .channel('realtime-careers-public')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'careers',
+        },
+        (payload) => {
+          console.log('Real-time careers update received on public page:', payload);
+          fetchJobs(); // Re-fetch to ensure we only show active jobs
+        }
+      )
+      .subscribe((status) => {
+        console.log('Public careers subscription status:', status);
       });
-    } catch (err: any) {
-      console.error('Unexpected error:', err);
-      toast.error("An unexpected error occurred. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+    
+    return () => {
+      console.log('Cleaning up public careers subscription...');
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f0f4f8] to-[#d0e0f2] pt-24">
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Careers at Anantya Overseas</h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Join our dynamic team and be part of our mission to connect businesses globally through innovative trade solutions.
+    <div>
+      <div className="bg-brand-blue py-12">
+        <div className="container mx-auto px-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-white text-center">
+            Join the Team That Moves the World
+          </h1>
+          <p className="mt-4 text-lg text-white/80 text-center max-w-3xl mx-auto">
+            Anantya Overseas is built by people who believe in global impact. Check out our current openings in sourcing, logistics, tech, and customer support.
           </p>
         </div>
-
-        {loading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500"></div>
-          </div>
-        ) : (
-          <>
-            {careers.length > 0 && (
-              <div className="mb-12">
-                <h2 className="text-2xl font-semibold mb-6 text-center">Current Openings</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                  {careers.map((job) => (
-                    <div key={job.id} className="bg-white p-6 rounded-xl shadow-lg">
-                      <h3 className="text-xl font-semibold mb-2">{job.title}</h3>
-                      <p className="text-gray-600 mb-2">{job.department} • {job.location}</p>
-                      <p className="text-sm text-blue-600 mb-3">{job.type}</p>
-                      <p className="text-gray-700 text-sm mb-4">{job.description}</p>
-                    </div>
-                  ))}
+      </div>
+      
+      <div className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div className="col-span-2">
+              <h2 className="text-2xl font-bold text-brand-blue mb-8">
+                Current Openings
+              </h2>
+              {loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="animate-spin w-8 h-8 mr-2 text-brand-blue" />
+                  <span>Loading jobs…</span>
                 </div>
-              </div>
-            )}
-
-            <div className="max-w-2xl mx-auto">
-              <div className="bg-white p-8 rounded-xl shadow-lg">
-                <h2 className="text-2xl font-semibold mb-6">General Application</h2>
-                <p className="text-gray-600 mb-6">
-                  Don't see a specific role that matches your skills? Submit a general application and we'll consider you for future opportunities.
+              ) : (
+                <div className="space-y-6">
+                  {jobs.length === 0 ? (
+                    <div className="text-gray-500 text-center py-12">
+                      No active job openings found. Please check back later.
+                    </div>
+                  ) : (
+                    jobs.map((job) => (
+                      <div key={job.id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div className="p-6">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="text-xl font-semibold text-brand-blue">{job.title}</h3>
+                              <p className="text-gray-600 mt-1">{job.department} • {job.location} • {job.type}</p>
+                            </div>
+                            <div className="flex gap-2">
+                              {job.apply_link ? (
+                                <Button 
+                                  variant="outline" 
+                                  className="text-brand-teal border-brand-teal hover:bg-brand-teal hover:text-white"
+                                  onClick={() => window.open(job.apply_link!, '_blank')}
+                                >
+                                  Apply Now
+                                  <ExternalLink className="ml-2 h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button 
+                                  variant="outline" 
+                                  className="text-brand-teal border-brand-teal hover:bg-brand-teal hover:text-white"
+                                  onClick={() => setIsApplicationFormOpen(true)}
+                                >
+                                  Apply Now
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          <p className="mt-4 text-gray-700">{job.description}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+              <div className="mt-10 bg-gray-50 p-6 rounded-lg border">
+                <h3 className="text-xl font-semibold text-brand-blue">Don't see the right role?</h3>
+                <p className="mt-2 text-gray-700">
+                  We're always looking for talented individuals to join our team. Send us your resume and we'll keep you in mind for future opportunities.
                 </p>
-                
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      name="applicant_name"
-                      placeholder="Full Name *"
-                      value={form.applicant_name}
-                      onChange={handleChange}
-                      required
-                    />
-                    
-                    <Input
-                      name="email"
-                      placeholder="Email Address *"
-                      type="email"
-                      value={form.email}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      name="phone"
-                      placeholder="Phone Number *"
-                      value={form.phone}
-                      onChange={handleChange}
-                      required
-                    />
-                    
-                    <Input
-                      name="current_location"
-                      placeholder="Current Location *"
-                      value={form.current_location}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      name="experience"
-                      placeholder="Years of Experience *"
-                      value={form.experience}
-                      onChange={handleChange}
-                      required
-                    />
-                    
-                    <select
-                      name="interested_department"
-                      value={form.interested_department}
-                      onChange={handleChange}
-                      required
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <option value="">Select Department *</option>
-                      <option value="Sales">Sales</option>
-                      <option value="Marketing">Marketing</option>
-                      <option value="Operations">Operations</option>
-                      <option value="Finance">Finance</option>
-                      <option value="Human Resources">Human Resources</option>
-                      <option value="IT">Information Technology</option>
-                      <option value="Logistics">Logistics</option>
-                      <option value="Quality Assurance">Quality Assurance</option>
-                      <option value="Customer Service">Customer Service</option>
-                      <option value="Business Development">Business Development</option>
-                    </select>
-                  </div>
-                  
-                  <Input
-                    name="current_position"
-                    placeholder="Current Position/Role *"
-                    value={form.current_position}
-                    onChange={handleChange}
-                    required
-                  />
-                  
-                  <Input
-                    name="resume_link"
-                    placeholder="Resume Link (Google Drive, LinkedIn, etc.)"
-                    value={form.resume_link}
-                    onChange={handleChange}
-                  />
-                  
-                  <Textarea
-                    name="cover_letter"
-                    placeholder="Cover Letter - Tell us about yourself, your experience, and why you'd like to work with us *"
-                    value={form.cover_letter}
-                    onChange={handleChange}
-                    rows={6}
-                    required
-                  />
-                  
-                  <InteractiveHoverButton 
-                    type="submit" 
-                    text={submitting ? "Submitting..." : "Submit Application"} 
-                    disabled={submitting} 
-                  />
-                </form>
+                <Button 
+                  className="mt-4 bg-brand-teal hover:bg-brand-teal/90"
+                  onClick={() => setIsApplicationFormOpen(true)}
+                >
+                  Submit General Application
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
               </div>
             </div>
-          </>
-        )}
+            
+            <div>
+              <div className="bg-gray-50 p-6 rounded-lg border sticky top-6">
+                <h2 className="text-xl font-bold text-brand-blue mb-4">
+                  Why Work With Us?
+                </h2>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold">Global Impact</h3>
+                    <p className="text-gray-600 text-sm">
+                      Be part of a team that facilitates international trade and connects businesses across borders.
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Growth Opportunities</h3>
+                    <p className="text-gray-600 text-sm">
+                      Develop your skills in a fast-growing company with opportunities for advancement.
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Diverse Environment</h3>
+                    <p className="text-gray-600 text-sm">
+                      Work in a multicultural team with connections to businesses around the world.
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Competitive Benefits</h3>
+                    <p className="text-gray-600 text-sm">
+                      Enjoy competitive salary, health benefits, and performance bonuses.
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Work-Life Balance</h3>
+                    <p className="text-gray-600 text-sm">
+                      We believe in maintaining a healthy balance between work and personal life.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-6 pt-6 border-t">
+                  <h3 className="font-semibold mb-2">Our Culture</h3>
+                  <img
+                    src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80"
+                    alt="Team at Anantya Overseas"
+                    className="w-full h-auto rounded-md mb-4"
+                  />
+                  <p className="text-gray-600 text-sm">
+                    At Anantya Overseas, we foster a culture of collaboration, innovation, and respect for diverse perspectives.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,201 +1,306 @@
+import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
-import React, { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
-import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
-import { useAuth } from "@/hooks/useAuth";
-
+// Define the product interface
 export interface ProductInfo {
-  id: string;
+  id?: string;
   name: string;
-  category: string;
+  category?: string;
+  subcategory?: string;
 }
 
-interface CatalogFormData {
-  name: string;
-  email: string;
-  phone: string;
-  company: string;
-  product_category: string;
-  specific_products: string;
-  business_type: string;
-  additional_requirements: string;
-}
+// Form schema
+const catalogRequestSchema = z.object({
+  name: z.string().min(2, { message: 'Name is required' }),
+  email: z.string().email({ message: 'Valid email is required' }),
+  company: z.string().min(2, { message: 'Company name is required' }),
+  phone: z.string().min(5, { message: 'Valid phone number is required' }),
+  country: z.string().min(2, { message: 'Country is required' }),
+  message: z.string().optional(),
+  products: z.array(z.string()).optional(),
+  customCatalog: z.boolean().default(false),
+  agreeToTerms: z.boolean().refine(value => value === true, {
+    message: 'You must agree to the terms and conditions',
+  }),
+});
 
-interface CatalogRequestFormProps {
+type CatalogRequestFormProps = {
   preselectedProducts?: ProductInfo[];
   onSuccess?: () => void;
-}
+};
 
-export default function CatalogRequestForm({ preselectedProducts = [], onSuccess }: CatalogRequestFormProps) {
+const EMAIL_ENDPOINT = "https://lusfthgqlkgktplplqnv.functions.supabase.co/send-form-email";
+
+const CatalogRequestForm = ({ preselectedProducts = [], onSuccess }: CatalogRequestFormProps) => {
   const { user } = useAuth();
-  const [form, setForm] = useState<CatalogFormData>({
-    name: "",
-    email: "",
-    phone: "",
-    company: "",
-    product_category: "",
-    specific_products: preselectedProducts.map(p => p.name).join(", "),
-    business_type: "",
-    additional_requirements: "",
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [viewedProducts, setViewedProducts] = useState<ProductInfo[]>([]);
+  
+  // Get form methods
+  const form = useForm<z.infer<typeof catalogRequestSchema>>({
+    resolver: zodResolver(catalogRequestSchema),
+    defaultValues: {
+      name: user?.user_metadata?.full_name || '',
+      email: user?.email || '',
+      company: user?.user_metadata?.company || '',
+      phone: '',
+      country: user?.user_metadata?.country || '',
+      message: '',
+      products: preselectedProducts.map(p => p.id || ''),
+      customCatalog: preselectedProducts.length === 0,
+      agreeToTerms: false,
+    },
   });
-  const [submitting, setSubmitting] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+  // Effect to load recently viewed products from local storage
+  useEffect(() => {
+    try {
+      const storedProducts = localStorage.getItem('viewedProducts');
+      if (storedProducts) {
+        setViewedProducts(JSON.parse(storedProducts));
+      }
+    } catch (error) {
+      console.error('Error loading viewed products:', error);
+    }
+  }, []);
+
+  // Handle form submission
+  const onSubmit = async (values: z.infer<typeof catalogRequestSchema>) => {
+    setIsSubmitting(true);
+    
+    try {
+      // Compose minimal payload for email
+      const payload = {
+        ...values,
+        selectedProductNames: preselectedProducts.map(p => p.name).join(", "),
+        type: "catalog"
+      };
+      const response = await fetch(EMAIL_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (response.ok) {
+        toast.success('Catalog request submitted and sent via email!');
+        form.reset();
+        if (onSuccess) {
+          onSuccess();
+        }
+      } else {
+        toast.error("Failed to send email: " + (result?.error || ""));
+      }
+    } catch (error) {
+      toast.error('Failed to submit request. Please try again.');
+      console.error('Submission error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-
-    const { name, email, phone, product_category } = form;
-    if (!name || !email || !phone || !product_category) {
-      toast.error("Please fill in all required fields.");
-      setSubmitting(false);
-      return;
-    }
-
-    try {
-      const catalogData = {
-        user_id: user?.id || null,
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
-        company: form.company || null,
-        product_category: form.product_category,
-        specific_products: form.specific_products || null,
-        business_type: form.business_type || null,
-        additional_requirements: form.additional_requirements || null,
-        status: 'pending'
-      };
-
-      const { error } = await supabase
-        .from('catalog_requests')
-        .insert(catalogData);
-
-      if (error) {
-        console.error('Error submitting catalog request:', error);
-        toast.error("Failed to submit catalog request. Please try again.");
-        return;
-      }
-
-      toast.success("Catalog request submitted successfully! We will send you the catalog soon.");
-      setForm({
-        name: "",
-        email: "",
-        phone: "",
-        company: "",
-        product_category: "",
-        specific_products: "",
-        business_type: "",
-        additional_requirements: "",
-      });
-      
-      if (onSuccess) {
-        onSuccess();
-      }
-    } catch (err: any) {
-      console.error('Unexpected error:', err);
-      toast.error("An unexpected error occurred. Please try again.");
-    } finally {
-      setSubmitting(false);
+  // Toggle custom catalog selection
+  const toggleCustomCatalog = (checked: boolean) => {
+    if (checked) {
+      form.setValue('products', []);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-lg mx-auto space-y-6 bg-white p-6 rounded-xl shadow">
-      <h2 className="text-2xl font-semibold mb-2">Request Product Catalog</h2>
+    <div className="rounded-xl border border-blue-100 bg-white shadow-premium p-6 md:p-8">
+      <h2 className="text-2xl font-bold text-[#1a365d] mb-6">Request Product Catalog</h2>
       
-      <Input
-        name="name"
-        placeholder="Full Name *"
-        value={form.name}
-        onChange={handleChange}
-        required
-      />
+      {/* Display selected products if any */}
+      {!form.watch('customCatalog') && (preselectedProducts.length > 0 || viewedProducts.length > 0) && (
+        <div className="mb-6 bg-[#f7fafd] p-4 rounded-lg">
+          <h3 className="font-semibold text-[#2d6da3] mb-2">Selected Products</h3>
+          <ul className="space-y-1">
+            {preselectedProducts.length > 0 ? (
+              preselectedProducts.map((product, index) => (
+                <li key={`selected-${index}`} className="flex items-center">
+                  <span className="h-2 w-2 bg-[#2d6da3] rounded-full mr-2"></span>
+                  <span className="text-gray-700">{product.name}</span>
+                </li>
+              ))
+            ) : (
+              viewedProducts.slice(0, 3).map((product, index) => (
+                <li key={`viewed-${index}`} className="flex items-center">
+                  <span className="h-2 w-2 bg-[#2d6da3] rounded-full mr-2"></span>
+                  <span className="text-gray-700">{product.name}</span>
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+      )}
       
-      <Input
-        name="email"
-        placeholder="Email *"
-        type="email"
-        value={form.email}
-        onChange={handleChange}
-        required
-      />
-      
-      <Input
-        name="phone"
-        placeholder="Phone Number *"
-        value={form.phone}
-        onChange={handleChange}
-        required
-      />
-      
-      <Input
-        name="company"
-        placeholder="Company Name"
-        value={form.company}
-        onChange={handleChange}
-      />
-      
-      <select
-        name="product_category"
-        value={form.product_category}
-        onChange={handleChange}
-        required
-        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        <option value="">Select Product Category *</option>
-        <option value="electronics">Electronics</option>
-        <option value="textiles">Textiles</option>
-        <option value="machinery">Machinery</option>
-        <option value="chemicals">Chemicals</option>
-        <option value="food-products">Food Products</option>
-        <option value="automotive">Automotive</option>
-        <option value="home-garden">Home & Garden</option>
-        <option value="sports-recreation">Sports & Recreation</option>
-        <option value="others">Others</option>
-      </select>
-      
-      <Input
-        name="specific_products"
-        placeholder="Specific Products of Interest"
-        value={form.specific_products}
-        onChange={handleChange}
-      />
-      
-      <select
-        name="business_type"
-        value={form.business_type}
-        onChange={handleChange}
-        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        <option value="">Select Business Type</option>
-        <option value="retailer">Retailer</option>
-        <option value="wholesaler">Wholesaler</option>
-        <option value="distributor">Distributor</option>
-        <option value="manufacturer">Manufacturer</option>
-        <option value="startup">Startup</option>
-        <option value="individual">Individual</option>
-      </select>
-      
-      <Textarea
-        name="additional_requirements"
-        placeholder="Additional Requirements or Notes"
-        value={form.additional_requirements}
-        onChange={handleChange}
-        rows={4}
-      />
-      
-      <InteractiveHoverButton 
-        type="submit" 
-        text={submitting ? "Submitting..." : "Request Catalog"} 
-        disabled={submitting} 
-      />
-    </form>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {/* Custom Catalog Option */}
+          <FormField
+            control={form.control}
+            name="customCatalog"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 mb-6">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={(checked) => {
+                      field.onChange(checked);
+                      toggleCustomCatalog(checked as boolean);
+                    }}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel className="text-[#1a365d]">Request a custom catalog instead</FormLabel>
+                  <p className="text-sm text-gray-500">Our team will help you identify the best products for your needs</p>
+                </div>
+              </FormItem>
+            )}
+          />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700">Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="John Doe" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700">Email Address</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="you@company.com" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="company"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700">Company</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Your Company Name" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700">Phone Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="+1 (555) 123-4567" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          <FormField
+            control={form.control}
+            name="country"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-gray-700">Country</FormLabel>
+                <FormControl>
+                  <Input placeholder="United States" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="message"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-gray-700">Additional Requirements</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Tell us about your specific product requirements, quantities, or any other details that would help us prepare the right catalog for you." 
+                    className="min-h-[100px] border-gray-300 focus:border-blue-400 focus:ring-blue-300"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="agreeToTerms"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>
+                    I agree to the{" "}
+                    <a href="/terms" className="text-[#2d6da3] hover:underline">
+                      terms and conditions
+                    </a>
+                  </FormLabel>
+                  <FormMessage />
+                </div>
+              </FormItem>
+            )}
+          />
+          
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="w-full bg-gradient-to-r from-[#1a365d] to-[#2d6da3] hover:from-[#1a365d] hover:to-[#234069] text-white"
+          >
+            {isSubmitting ? (
+              <>
+                <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></span>
+                Submitting...
+              </>
+            ) : (
+              'Request Catalog'
+            )}
+          </Button>
+        </form>
+      </Form>
+    </div>
   );
-}
+};
+
+export default CatalogRequestForm;

@@ -1,366 +1,399 @@
 
-import React, { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useRealtimeSync } from "@/hooks/useRealtimeSync";
-import { toast } from "sonner";
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { 
+  FileText, 
+  Briefcase, 
+  Package, 
+  Handshake, 
+  Eye, 
+  Edit, 
+  RefreshCw,
+  MessageSquare
+} from 'lucide-react';
 
-interface DashboardStats {
-  totalQuotes: number;
-  pendingQuotes: number;
-  totalJobApplications: number;
-  pendingJobApplications: number;
-  totalCatalogRequests: number;
-  pendingCatalogRequests: number;
-  totalManufacturerPartnerships: number;
-  pendingManufacturerPartnerships: number;
-}
-
-interface QuoteRequest {
+interface RequestItem {
   id: string;
+  type: 'quote' | 'job' | 'catalog' | 'partnership';
+  title: string;
   name: string;
   email: string;
-  product_name: string;
   status: string;
   created_at: string;
+  details?: any;
 }
 
-interface JobApplication {
-  id: string;
-  applicant_name: string;
-  email: string;
-  interested_department: string;
-  status: string;
-  created_at: string;
-}
-
-interface CatalogRequest {
-  id: string;
-  name: string;
-  email: string;
-  product_category: string;
-  status: string;
-  created_at: string;
-}
-
-const AdminDashboard = () => {
-  const [stats, setStats] = useState<DashboardStats>({
-    totalQuotes: 0,
-    pendingQuotes: 0,
-    totalJobApplications: 0,
-    pendingJobApplications: 0,
-    totalCatalogRequests: 0,
-    pendingCatalogRequests: 0,
-    totalManufacturerPartnerships: 0,
-    pendingManufacturerPartnerships: 0,
-  });
-  const [recentQuotes, setRecentQuotes] = useState<QuoteRequest[]>([]);
-  const [recentJobApplications, setRecentJobApplications] = useState<JobApplication[]>([]);
-  const [recentCatalogRequests, setRecentCatalogRequests] = useState<CatalogRequest[]>([]);
+const AdminDashboard: React.FC = () => {
+  const { isAdmin } = useAuth();
+  const [requests, setRequests] = useState<RequestItem[]>([]);
+  const [selectedRequest, setSelectedRequest] = useState<RequestItem | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isStatusUpdateOpen, setIsStatusUpdateOpen] = useState(false);
+  const [newStatus, setNewStatus] = useState('');
+  const [adminResponse, setAdminResponse] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const fetchStats = async () => {
+  const fetchAllRequests = async () => {
+    if (!isAdmin) return;
+    
+    setLoading(true);
     try {
-      const [
-        quoteStats,
-        jobStats,
-        catalogStats,
-        manufacturerStats
-      ] = await Promise.all([
-        supabase.from('quote_requests').select('status', { count: 'exact' }),
-        supabase.from('job_applications').select('status', { count: 'exact' }),
-        supabase.from('catalog_requests').select('status', { count: 'exact' }),
-        supabase.from('manufacturer_partnerships').select('status', { count: 'exact' })
-      ]);
-
-      const pendingQuotes = await supabase
+      // Fetch quote requests
+      const { data: quotes } = await supabase
         .from('quote_requests')
-        .select('*', { count: 'exact' })
-        .eq('status', 'pending');
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      const pendingJobs = await supabase
+      // Fetch job applications
+      const { data: jobs } = await supabase
         .from('job_applications')
-        .select('*', { count: 'exact' })
-        .eq('status', 'pending');
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      const pendingCatalogs = await supabase
-        .from('catalog_requests')
-        .select('*', { count: 'exact' })
-        .eq('status', 'pending');
-
-      const pendingManufacturers = await supabase
+      // Fetch manufacturer partnerships
+      const { data: partnerships } = await supabase
         .from('manufacturer_partnerships')
-        .select('*', { count: 'exact' })
-        .eq('status', 'pending');
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      setStats({
-        totalQuotes: quoteStats.count || 0,
-        pendingQuotes: pendingQuotes.count || 0,
-        totalJobApplications: jobStats.count || 0,
-        pendingJobApplications: pendingJobs.count || 0,
-        totalCatalogRequests: catalogStats.count || 0,
-        pendingCatalogRequests: pendingCatalogs.count || 0,
-        totalManufacturerPartnerships: manufacturerStats.count || 0,
-        pendingManufacturerPartnerships: pendingManufacturers.count || 0,
-      });
+      // Combine all requests
+      const allRequests: RequestItem[] = [
+        ...(quotes || []).map(q => ({
+          id: q.id,
+          type: 'quote' as const,
+          title: q.product_name,
+          name: q.name,
+          email: q.email,
+          status: q.status || 'pending',
+          created_at: q.created_at,
+          details: q
+        })),
+        ...(jobs || []).map(j => ({
+          id: j.id,
+          type: 'job' as const,
+          title: j.interested_department,
+          name: j.applicant_name,
+          email: j.email,
+          status: j.status,
+          created_at: j.created_at,
+          details: j
+        })),
+        ...(partnerships || []).map(p => ({
+          id: p.id,
+          type: 'partnership' as const,
+          title: p.company_name,
+          name: p.representative_name,
+          email: p.email,
+          status: p.status,
+          created_at: p.created_at,
+          details: p
+        }))
+      ];
+
+      setRequests(allRequests.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      ));
     } catch (error) {
-      console.error('Error fetching stats:', error);
-      toast.error('Failed to load dashboard statistics');
-    }
-  };
-
-  const fetchRecentData = async () => {
-    try {
-      const [quotesData, jobsData, catalogsData] = await Promise.all([
-        supabase
-          .from('quote_requests')
-          .select('id, name, email, product_name, status, created_at')
-          .order('created_at', { ascending: false })
-          .limit(5),
-        supabase
-          .from('job_applications')
-          .select('id, applicant_name, email, interested_department, status, created_at')
-          .order('created_at', { ascending: false })
-          .limit(5),
-        supabase
-          .from('catalog_requests')
-          .select('id, name, email, product_category, status, created_at')
-          .order('created_at', { ascending: false })
-          .limit(5)
-      ]);
-
-      if (quotesData.data) setRecentQuotes(quotesData.data);
-      if (jobsData.data) setRecentJobApplications(jobsData.data);
-      if (catalogsData.data) setRecentCatalogRequests(catalogsData.data);
-    } catch (error) {
-      console.error('Error fetching recent data:', error);
+      console.error('Error fetching requests:', error);
+      toast.error('Failed to load requests');
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      await Promise.all([fetchStats(), fetchRecentData()]);
-      setLoading(false);
+    fetchAllRequests();
+
+    // Set up real-time subscriptions
+    const channels = [
+      supabase
+        .channel('admin-quote-requests')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'quote_requests' }, fetchAllRequests)
+        .subscribe(),
+      
+      supabase
+        .channel('admin-job-applications')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'job_applications' }, fetchAllRequests)
+        .subscribe(),
+      
+      supabase
+        .channel('admin-partnerships')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'manufacturer_partnerships' }, fetchAllRequests)
+        .subscribe()
+    ];
+
+    return () => {
+      channels.forEach(channel => supabase.removeChannel(channel));
     };
-    loadData();
-  }, []);
+  }, [isAdmin]);
 
-  // Set up real-time sync for quote requests
-  useRealtimeSync({
-    table: 'quote_requests',
-    onUpdate: () => {
-      fetchStats();
-      fetchRecentData();
-    },
-    onInsert: () => {
-      fetchStats();
-      fetchRecentData();
-    }
-  });
+  const handleStatusUpdate = async () => {
+    if (!selectedRequest || !newStatus) return;
 
-  // Set up real-time sync for job applications
-  useRealtimeSync({
-    table: 'job_applications',
-    onUpdate: () => {
-      fetchStats();
-      fetchRecentData();
-    },
-    onInsert: () => {
-      fetchStats();
-      fetchRecentData();
-    }
-  });
+    try {
+      let tableName = '';
+      let updateData: any = { status: newStatus };
 
-  // Set up real-time sync for catalog requests
-  useRealtimeSync({
-    table: 'catalog_requests',
-    onUpdate: () => {
-      fetchStats();
-      fetchRecentData();
-    },
-    onInsert: () => {
-      fetchStats();
-      fetchRecentData();
-    }
-  });
+      switch (selectedRequest.type) {
+        case 'quote':
+          tableName = 'quote_requests';
+          if (adminResponse.trim()) {
+            updateData.admin_response = adminResponse;
+          }
+          break;
+        case 'job':
+          tableName = 'job_applications';
+          if (adminResponse.trim()) {
+            updateData.admin_notes = adminResponse;
+          }
+          break;
+        case 'partnership':
+          tableName = 'manufacturer_partnerships';
+          break;
+      }
 
-  const getStatusBadgeColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'approved':
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'rejected':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+      const { error } = await supabase
+        .from(tableName)
+        .update(updateData)
+        .eq('id', selectedRequest.id);
+
+      if (error) throw error;
+
+      toast.success('Status updated successfully');
+      setIsStatusUpdateOpen(false);
+      setNewStatus('');
+      setAdminResponse('');
+      fetchAllRequests();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error('Failed to update status');
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'approved': case 'hired': case 'accepted': return 'bg-green-100 text-green-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
+      case 'contacted': case 'under_review': return 'bg-blue-100 text-blue-800';
+      case 'completed': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getRequestIcon = (type: string) => {
+    switch (type) {
+      case 'quote': return <FileText className="h-4 w-4" />;
+      case 'job': return <Briefcase className="h-4 w-4" />;
+      case 'catalog': return <Package className="h-4 w-4" />;
+      case 'partnership': return <Handshake className="h-4 w-4" />;
+      default: return <FileText className="h-4 w-4" />;
+    }
+  };
+
+  if (!isAdmin) {
+    return <div className="p-8 text-center">Access denied. Admin privileges required.</div>;
   }
+
+  const stats = {
+    total: requests.length,
+    pending: requests.filter(r => r.status === 'pending').length,
+    approved: requests.filter(r => ['approved', 'hired', 'accepted'].includes(r.status)).length,
+    rejected: requests.filter(r => r.status === 'rejected').length
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <Button onClick={fetchAllRequests} variant="outline">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Quote Requests</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Total Requests</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalQuotes}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.pendingQuotes} pending
-            </p>
+            <div className="text-2xl font-bold">{stats.total}</div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Job Applications</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Pending</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalJobApplications}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.pendingJobApplications} pending
-            </p>
+            <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Catalog Requests</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Approved</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalCatalogRequests}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.pendingCatalogRequests} pending
-            </p>
+            <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Partnerships</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Rejected</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalManufacturerPartnerships}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.pendingManufacturerPartnerships} pending
-            </p>
+            <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Activity Tabs */}
-      <Tabs defaultValue="quotes" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="quotes">Recent Quote Requests</TabsTrigger>
-          <TabsTrigger value="jobs">Recent Job Applications</TabsTrigger>
-          <TabsTrigger value="catalogs">Recent Catalog Requests</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="quotes" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Quote Requests</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentQuotes.map((quote) => (
-                  <div key={quote.id} className="flex items-center justify-between p-4 border rounded-lg">
+      {/* Requests List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>All Requests</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500"></div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {requests.map((request) => (
+                <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    {getRequestIcon(request.type)}
                     <div>
-                      <p className="font-medium">{quote.name}</p>
-                      <p className="text-sm text-gray-600">{quote.email}</p>
-                      <p className="text-sm text-gray-600">{quote.product_name}</p>
-                    </div>
-                    <div className="text-right">
-                      <Badge className={getStatusBadgeColor(quote.status)}>
-                        {quote.status}
-                      </Badge>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(quote.created_at).toLocaleDateString()}
+                      <h3 className="font-medium">{request.title}</h3>
+                      <p className="text-sm text-gray-500">{request.name} • {request.email}</p>
+                      <p className="text-xs text-gray-400">
+                        {new Date(request.created_at).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="jobs" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Job Applications</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentJobApplications.map((job) => (
-                  <div key={job.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{job.applicant_name}</p>
-                      <p className="text-sm text-gray-600">{job.email}</p>
-                      <p className="text-sm text-gray-600">{job.interested_department}</p>
-                    </div>
-                    <div className="text-right">
-                      <Badge className={getStatusBadgeColor(job.status)}>
-                        {job.status}
-                      </Badge>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(job.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
+                  <div className="flex items-center space-x-2">
+                    <Badge className={getStatusColor(request.status)}>
+                      {request.status}
+                    </Badge>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedRequest(request);
+                        setIsDetailsOpen(true);
+                      }}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setSelectedRequest(request);
+                        setNewStatus(request.status);
+                        setAdminResponse('');
+                        setIsStatusUpdateOpen(true);
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-        <TabsContent value="catalogs" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Catalog Requests</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentCatalogRequests.map((catalog) => (
-                  <div key={catalog.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{catalog.name}</p>
-                      <p className="text-sm text-gray-600">{catalog.email}</p>
-                      <p className="text-sm text-gray-600">{catalog.product_category}</p>
-                    </div>
-                    <div className="text-right">
-                      <Badge className={getStatusBadgeColor(catalog.status)}>
-                        {catalog.status}
-                      </Badge>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(catalog.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+      {/* Details Dialog */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Request Details</DialogTitle>
+          </DialogHeader>
+          {selectedRequest && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Type</Label>
+                  <p className="capitalize">{selectedRequest.type}</p>
+                </div>
+                <div>
+                  <Label>Status</Label>
+                  <Badge className={getStatusColor(selectedRequest.status)}>
+                    {selectedRequest.status}
+                  </Badge>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              <div className="space-y-2">
+                <Label>Details</Label>
+                <pre className="bg-gray-50 p-4 rounded text-sm overflow-auto">
+                  {JSON.stringify(selectedRequest.details, null, 2)}
+                </pre>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Status Update Dialog */}
+      <Dialog open={isStatusUpdateOpen} onOpenChange={setIsStatusUpdateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Status</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Status</Label>
+              <Select value={newStatus} onValueChange={setNewStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="contacted">Contacted</SelectItem>
+                  <SelectItem value="under_review">Under Review</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  {selectedRequest?.type === 'job' && (
+                    <>
+                      <SelectItem value="shortlisted">Shortlisted</SelectItem>
+                      <SelectItem value="hired">Hired</SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Admin Response/Notes</Label>
+              <Textarea
+                value={adminResponse}
+                onChange={(e) => setAdminResponse(e.target.value)}
+                placeholder="Add response or notes..."
+                rows={4}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setIsStatusUpdateOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleStatusUpdate}>
+                Update Status
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

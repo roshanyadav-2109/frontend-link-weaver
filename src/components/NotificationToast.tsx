@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -13,12 +12,15 @@ const NotificationToast: React.FC = () => {
   useEffect(() => {
     if (!user || isInitializedRef.current) return;
     
+    // Mark as initialized to prevent duplicate subscriptions
     isInitializedRef.current = true;
 
+    // Clean up existing channel
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
     }
 
+    // Subscribe to quote request updates with unique channel name
     channelRef.current = supabase
       .channel(`user-notifications-${user.id}-${Date.now()}`)
       .on(
@@ -33,19 +35,23 @@ const NotificationToast: React.FC = () => {
           const newRecord = payload.new as any;
           const oldRecord = payload.old as any;
           
+          // Create unique identifier for this notification
           const notificationId = `quote-${newRecord.id}-${newRecord.updated_at}-${newRecord.status}`;
           
+          // Skip if already processed
           if (processedNotifications.current.has(notificationId)) {
             return;
           }
           
           processedNotifications.current.add(notificationId);
           
+          // Clean up old notifications (keep only last 20)
           if (processedNotifications.current.size > 20) {
             const items = Array.from(processedNotifications.current);
             processedNotifications.current = new Set(items.slice(-10));
           }
           
+          // Show notification only for status changes
           if (newRecord.status !== oldRecord.status) {
             let message = '';
             switch (newRecord.status) {
@@ -70,6 +76,7 @@ const NotificationToast: React.FC = () => {
             });
           }
           
+          // Show response notification
           if (newRecord.admin_response && newRecord.admin_response !== oldRecord.admin_response) {
             const responseId = `response-${newRecord.id}-${newRecord.admin_response.slice(0, 20)}`;
             
