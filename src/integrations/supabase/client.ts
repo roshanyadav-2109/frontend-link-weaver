@@ -24,7 +24,6 @@ export const tables = {
   clients: () => supabase.from('clients'),
   notifications: () => supabase.from('notifications'),
   product_inquiries: () => supabase.from('product_inquiries'),
-  job_applications: () => supabase.from('job_applications'),
 }
 
 // Enhanced QuoteRequest interface with all new fields
@@ -123,26 +122,6 @@ export interface Client {
   preferred_payment_terms?: string[];
   required_certifications?: string[];
   target_markets?: string[];
-  created_at: string;
-  updated_at: string;
-}
-
-// Job Application interface
-export interface JobApplication {
-  id: string;
-  user_id: string;
-  job_id?: string | null;
-  applicant_name: string;
-  email: string;
-  phone: string;
-  current_location: string;
-  experience: string;
-  interested_department: string;
-  current_position: string;
-  cover_letter: string;
-  resume_link?: string | null;
-  status: string;
-  admin_notes?: string | null;
   created_at: string;
   updated_at: string;
 }

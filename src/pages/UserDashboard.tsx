@@ -9,12 +9,10 @@ import {
   Clock,
   AlertCircle,
   CheckCircle,
-  RefreshCw,
-  Briefcase
+  RefreshCw
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -29,19 +27,9 @@ interface QuoteRequest {
   admin_response?: string;
 }
 
-interface JobApplication {
-  id: string;
-  applicant_name: string;
-  interested_department: string;
-  status: string;
-  created_at: string;
-  admin_notes?: string;
-}
-
 const UserDashboard: React.FC = () => {
   const { user, profile } = useAuth();
   const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
-  const [jobApplications, setJobApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
@@ -51,7 +39,7 @@ const UserDashboard: React.FC = () => {
     try {
       setLoading(true);
 
-      // Fetch quote requests
+      // Fetch quote requests with real-time updates
       const { data: quotes, error: quotesError } = await supabase
         .from('quote_requests')
         .select('id, product_name, quantity, status, created_at, admin_response')
@@ -61,25 +49,11 @@ const UserDashboard: React.FC = () => {
 
       if (quotesError) {
         console.error('Error fetching quote requests:', quotesError);
+        toast.error('Failed to load quote requests');
       } else {
         setQuoteRequests(quotes || []);
+        setLastUpdated(new Date());
       }
-
-      // Fetch job applications
-      const { data: applications, error: applicationsError } = await supabase
-        .from('job_applications')
-        .select('id, applicant_name, interested_department, status, created_at, admin_notes')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (applicationsError) {
-        console.error('Error fetching job applications:', applicationsError);
-      } else {
-        setJobApplications(applications || []);
-      }
-
-      setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       toast.error('Failed to load dashboard data');
@@ -91,7 +65,7 @@ const UserDashboard: React.FC = () => {
   useEffect(() => {
     fetchDashboardData();
 
-    // Set up real-time subscriptions
+    // Set up real-time subscriptions for quote requests
     const quoteChannel = supabase
       .channel('user_dashboard_quotes')
       .on(
@@ -106,6 +80,7 @@ const UserDashboard: React.FC = () => {
           console.log('Quote request updated:', payload);
           fetchDashboardData();
           
+          // Show notification for status changes
           if (payload.eventType === 'UPDATE') {
             const newRecord = payload.new as QuoteRequest;
             toast.success(`Quote request "${newRecord.product_name}" status updated to: ${newRecord.status}`, {
@@ -116,33 +91,8 @@ const UserDashboard: React.FC = () => {
       )
       .subscribe();
 
-    const applicationChannel = supabase
-      .channel('user_dashboard_applications')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'job_applications',
-          filter: `user_id=eq.${user?.id}`
-        },
-        (payload) => {
-          console.log('Job application updated:', payload);
-          fetchDashboardData();
-          
-          if (payload.eventType === 'UPDATE') {
-            const newRecord = payload.new as JobApplication;
-            toast.success(`Your application for ${newRecord.interested_department} status updated to: ${newRecord.status.replace('_', ' ')}`, {
-              duration: 5000,
-            });
-          }
-        }
-      )
-      .subscribe();
-
     return () => {
       supabase.removeChannel(quoteChannel);
-      supabase.removeChannel(applicationChannel);
     };
   }, [user?.id]);
 
@@ -153,13 +103,6 @@ const UserDashboard: React.FC = () => {
       change: `${quoteRequests.filter(q => q.status === 'pending').length} pending`,
       icon: <FileText className="h-8 w-8 text-brand-blue" />,
       color: 'blue'
-    },
-    {
-      title: 'Job Applications',
-      value: jobApplications.length.toString(),
-      change: `${jobApplications.filter(a => a.status === 'pending').length} pending`,
-      icon: <Briefcase className="h-8 w-8 text-green-500" />,
-      color: 'green'
     },
     {
       title: 'Approved Quotes',
@@ -174,6 +117,13 @@ const UserDashboard: React.FC = () => {
       change: 'Being processed',
       icon: <Clock className="h-8 w-8 text-orange-500" />,
       color: 'orange'
+    },
+    {
+      title: 'Completed Orders',
+      value: quoteRequests.filter(q => q.status === 'completed').length.toString(),
+      change: 'Successfully completed',
+      icon: <Package className="h-8 w-8 text-purple-500" />,
+      color: 'purple'
     }
   ];
 
@@ -193,11 +143,8 @@ const UserDashboard: React.FC = () => {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'approved':
-      case 'shortlisted':
-      case 'hired':
         return 'bg-green-100 text-green-800 border-green-200';
       case 'contacted':
-      case 'under_review':
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'rejected':
         return 'bg-red-100 text-red-800 border-red-200';
@@ -213,11 +160,8 @@ const UserDashboard: React.FC = () => {
       case 'pending':
         return <Clock className="h-4 w-4" />;
       case 'approved':
-      case 'shortlisted':
-      case 'hired':
         return <CheckCircle className="h-4 w-4" />;
       case 'contacted':
-      case 'under_review':
         return <MessageSquare className="h-4 w-4" />;
       case 'rejected':
         return <AlertCircle className="h-4 w-4" />;
@@ -309,10 +253,10 @@ const UserDashboard: React.FC = () => {
                           )}
                         </div>
                         <div className="text-right ml-4">
-                          <Badge className={`text-xs px-3 py-1 rounded-full border flex items-center gap-1 ${getStatusColor(request.status)}`}>
+                          <span className={`text-xs px-3 py-1 rounded-full border flex items-center gap-1 ${getStatusColor(request.status)}`}>
                             {getStatusIcon(request.status)}
                             {request.status}
-                          </Badge>
+                          </span>
                           <p className="text-xs text-gray-500 mt-1">{formatDate(request.created_at)}</p>
                         </div>
                       </div>
@@ -340,96 +284,61 @@ const UserDashboard: React.FC = () => {
           <Card className="shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Briefcase className="h-5 w-5" />
-                Job Applications
-                <span className="ml-auto text-sm font-normal text-gray-500">
-                  Live Updates
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {jobApplications.length > 0 ? (
-                  jobApplications.map((application) => (
-                    <div key={application.id} className="p-4 bg-gray-50 rounded-lg border border-gray-100 hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-800">{application.interested_department}</p>
-                          <p className="text-sm text-gray-500">Applied: {formatDate(application.created_at)}</p>
-                          {application.admin_notes && (
-                            <p className="text-sm text-blue-600 mt-1 bg-blue-50 p-2 rounded">
-                              Notes: {application.admin_notes}
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right ml-4">
-                          <Badge className={`text-xs px-3 py-1 rounded-full border flex items-center gap-1 ${getStatusColor(application.status)}`}>
-                            {getStatusIcon(application.status)}
-                            {application.status.replace('_', ' ')}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Briefcase className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p className="font-medium">No job applications yet</p>
-                    <p className="text-sm">Check our careers page for opportunities</p>
-                  </div>
-                )}
-              </div>
-              <div className="mt-4 pt-4 border-t">
-                <Link to="/careers">
-                  <Button className="w-full" variant="outline">
-                    <Briefcase className="h-4 w-4 mr-2" />
-                    View Careers
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="mt-8">
-          <Card className="shadow-md">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5" />
                 Quick Actions
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-4">
                 <Link to="/request-quote" className="block">
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer text-center">
-                    <FileText className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                    <h3 className="font-medium text-gray-800 mb-1">Request Quote</h3>
-                    <p className="text-sm text-gray-600">Get pricing for products</p>
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer">
+                    <h3 className="font-medium text-gray-800 mb-2 flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                      Request a Quote
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">Get pricing for products you need</p>
+                    <span className="text-sm text-brand-blue hover:underline">
+                      Start Quote Request →
+                    </span>
                   </div>
                 </Link>
                 
                 <Link to="/products" className="block">
-                  <div className="p-4 bg-green-50 rounded-lg border border-green-100 hover:bg-green-100 transition-colors cursor-pointer text-center">
-                    <ShoppingCart className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                    <h3 className="font-medium text-gray-800 mb-1">Browse Products</h3>
-                    <p className="text-sm text-gray-600">Explore our catalog</p>
+                  <div className="p-4 bg-green-50 rounded-lg border border-green-100 hover:bg-green-100 transition-colors cursor-pointer">
+                    <h3 className="font-medium text-gray-800 mb-2 flex items-center gap-2">
+                      <ShoppingCart className="h-5 w-5 text-green-600" />
+                      Browse Products
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">Explore our product catalog</p>
+                    <span className="text-sm text-brand-blue hover:underline">
+                      View Products →
+                    </span>
                   </div>
                 </Link>
                 
                 <Link to="/catalog-request" className="block">
-                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-100 hover:bg-purple-100 transition-colors cursor-pointer text-center">
-                    <Package className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                    <h3 className="font-medium text-gray-800 mb-1">Request Catalog</h3>
-                    <p className="text-sm text-gray-600">Get detailed catalogs</p>
+                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-100 hover:bg-purple-100 transition-colors cursor-pointer">
+                    <h3 className="font-medium text-gray-800 mb-2 flex items-center gap-2">
+                      <Package className="h-5 w-5 text-purple-600" />
+                      Request Catalog
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">Get detailed product catalogs</p>
+                    <span className="text-sm text-brand-blue hover:underline">
+                      Request Catalog →
+                    </span>
                   </div>
                 </Link>
                 
                 <Link to="/contact" className="block">
-                  <div className="p-4 bg-orange-50 rounded-lg border border-orange-100 hover:bg-orange-100 transition-colors cursor-pointer text-center">
-                    <MessageSquare className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-                    <h3 className="font-medium text-gray-800 mb-1">Contact Support</h3>
-                    <p className="text-sm text-gray-600">Get help with orders</p>
+                  <div className="p-4 bg-orange-50 rounded-lg border border-orange-100 hover:bg-orange-100 transition-colors cursor-pointer">
+                    <h3 className="font-medium text-gray-800 mb-2 flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5 text-orange-600" />
+                      Contact Support
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">Get help with your orders</p>
+                    <span className="text-sm text-brand-blue hover:underline">
+                      Contact Us →
+                    </span>
                   </div>
                 </Link>
               </div>
