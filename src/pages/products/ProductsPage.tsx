@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Grid, List, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -15,10 +16,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { QuoteRequestModal } from '@/components/QuoteRequestModal';
-import PageTransition from '@/components/animations/PageTransition';
-import FadeInSection from '@/components/animations/FadeInSection';
-import SlideIn from '@/components/animations/SlideIn';
-import { motion } from 'framer-motion';
 
 interface Product {
   id: string;
@@ -82,13 +79,13 @@ const ProductsPage: React.FC = () => {
 
       if (error) {
         console.error('Error fetching products:', error);
-        toast.error('Failed to load products. Please refresh the page.');
+        toast.error('Failed to load products');
       } else {
         setProducts(data || []);
       }
     } catch (error) {
       console.error('Error fetching products:', error);
-      toast.error('Network error. Please check your connection and try again.');
+      toast.error('Failed to load products');
     } finally {
       setLoading(false);
     }
@@ -152,31 +149,27 @@ const ProductsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <PageTransition className="min-h-screen bg-gray-50 pt-24">
+      <div className="min-h-screen bg-gray-50 pt-24">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
-            <motion.div 
-              className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-blue"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            />
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-blue"></div>
           </div>
         </div>
-      </PageTransition>
+      </div>
     );
   }
 
   return (
-    <PageTransition className="min-h-screen bg-gray-50 pt-24">
+    <div className="min-h-screen bg-gray-50 pt-24">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <FadeInSection className="mb-8">
+        <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Our Products</h1>
           <p className="text-gray-600">Discover our extensive range of high-quality products</p>
-        </FadeInSection>
+        </div>
 
         {/* Advanced Filters */}
-        <SlideIn direction="up" delay={0.1} className="bg-white rounded-lg shadow-sm p-6 mb-8">
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
             {/* Search */}
             <div className="relative">
@@ -259,7 +252,7 @@ const ProductsPage: React.FC = () => {
           <div className="text-sm text-gray-600">
             Showing {filteredProducts.length} of {products.length} products
           </div>
-        </SlideIn>
+        </div>
 
         {/* Products Grid/List */}
         {filteredProducts.length > 0 ? (
@@ -267,134 +260,123 @@ const ProductsPage: React.FC = () => {
             ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
             : 'space-y-4'
           }>
-            {filteredProducts.map((product, index) => (
-              <SlideIn 
-                key={product.id} 
-                direction="up" 
-                delay={0.05 * index}
-              >
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Card className="group hover:shadow-lg transition-shadow duration-300">
-                    <CardContent className={viewMode === 'grid' ? 'p-4' : 'p-4 flex items-center space-x-4'}>
-                      {viewMode === 'grid' ? (
-                        <>
-                          <div className="aspect-square bg-gray-100 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
-                            {product.image ? (
-                              <img 
-                                src={product.image} 
-                                alt={product.name}
-                                className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
-                              />
-                            ) : (
-                              <div className="text-gray-400 text-center">
-                                <div className="text-4xl mb-2">📦</div>
-                                <div className="text-sm">No Image</div>
-                              </div>
-                            )}
+            {filteredProducts.map((product) => (
+              <Card key={product.id} className="group hover:shadow-lg transition-shadow duration-300">
+                <CardContent className={viewMode === 'grid' ? 'p-4' : 'p-4 flex items-center space-x-4'}>
+                  {viewMode === 'grid' ? (
+                    <>
+                      <div className="aspect-square bg-gray-100 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                        {product.image ? (
+                          <img 
+                            src={product.image} 
+                            alt={product.name}
+                            className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="text-gray-400 text-center">
+                            <div className="text-4xl mb-2">📦</div>
+                            <div className="text-sm">No Image</div>
                           </div>
-                          <div>
-                            <Badge variant="outline" className="mb-2 text-xs">
-                              {getCategoryLabel(product.category)}
-                            </Badge>
-                            <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-brand-blue transition-colors">
-                              {product.name}
-                            </h3>
-                            <p className="text-sm text-gray-600 mb-2">
-                              {getSubcategoryLabel(product.category, product.subcategory)}
-                            </p>
-                            <p className="text-sm text-gray-500 mb-3 line-clamp-2">
-                              {product.description}
-                            </p>
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="font-semibold text-brand-blue">{product.price}</span>
-                            </div>
-                            <div className="flex space-x-2">
+                        )}
+                      </div>
+                      <div>
+                        <Badge variant="outline" className="mb-2 text-xs">
+                          {getCategoryLabel(product.category)}
+                        </Badge>
+                        <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-brand-blue transition-colors">
+                          {product.name}
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-2">
+                          {getSubcategoryLabel(product.category, product.subcategory)}
+                        </p>
+                        <p className="text-sm text-gray-500 mb-3 line-clamp-2">
+                          {product.description}
+                        </p>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="font-semibold text-brand-blue">{product.price}</span>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            className="flex-1 bg-brand-blue hover:bg-brand-blue/90"
+                            onClick={() => handleRequestQuote(product.id, product.name)}
+                          >
+                            Request Quote
+                          </Button>
+                          <Link 
+                            to={`/products/${product.id}`}
+                            className="flex-1"
+                          >
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="w-full"
+                            >
+                              View Details
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        {product.image ? (
+                          <img 
+                            src={product.image} 
+                            alt={product.name}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        ) : (
+                          <div className="text-gray-400 text-center">
+                            <div className="text-2xl">📦</div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge variant="outline" className="text-xs">
+                            {getCategoryLabel(product.category)}
+                          </Badge>
+                        </div>
+                        <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-brand-blue transition-colors">
+                          {product.name}
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-1">
+                          {getSubcategoryLabel(product.category, product.subcategory)}
+                        </p>
+                        <p className="text-sm text-gray-500 mb-2 line-clamp-1">
+                          {product.description}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-brand-blue">{product.price}</span>
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              className="bg-brand-blue hover:bg-brand-blue/90"
+                              onClick={() => handleRequestQuote(product.id, product.name)}
+                            >
+                              Request Quote
+                            </Button>
+                            <Link to={`/products/${product.id}`}>
                               <Button
                                 size="sm"
-                                className="flex-1 bg-brand-blue hover:bg-brand-blue/90"
-                                onClick={() => handleRequestQuote(product.id, product.name)}
+                                variant="outline"
                               >
-                                Request Quote
+                                <ChevronRight className="h-4 w-4" />
                               </Button>
-                              <Link 
-                                to={`/products/${product.id}`}
-                                className="flex-1"
-                              >
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="w-full"
-                                >
-                                  View Details
-                                </Button>
-                              </Link>
-                            </div>
+                            </Link>
                           </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-                            {product.image ? (
-                              <img 
-                                src={product.image} 
-                                alt={product.name}
-                                className="w-full h-full object-cover rounded-lg"
-                              />
-                            ) : (
-                              <div className="text-gray-400 text-center">
-                                <div className="text-2xl">📦</div>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-2">
-                              <Badge variant="outline" className="text-xs">
-                                {getCategoryLabel(product.category)}
-                              </Badge>
-                            </div>
-                            <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-brand-blue transition-colors">
-                              {product.name}
-                            </h3>
-                            <p className="text-sm text-gray-600 mb-1">
-                              {getSubcategoryLabel(product.category, product.subcategory)}
-                            </p>
-                            <p className="text-sm text-gray-500 mb-2 line-clamp-1">
-                              {product.description}
-                            </p>
-                            <div className="flex items-center justify-between">
-                              <span className="font-semibold text-brand-blue">{product.price}</span>
-                              <div className="flex space-x-2">
-                                <Button
-                                  size="sm"
-                                  className="bg-brand-blue hover:bg-brand-blue/90"
-                                  onClick={() => handleRequestQuote(product.id, product.name)}
-                                >
-                                  Request Quote
-                                </Button>
-                                <Link to={`/products/${product.id}`}>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                  >
-                                    <ChevronRight className="h-4 w-4" />
-                                  </Button>
-                                </Link>
-                              </div>
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </SlideIn>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
             ))}
           </div>
         ) : (
-          <FadeInSection className="text-center py-12">
+          <div className="text-center py-12">
             <div className="text-gray-400 text-6xl mb-4">🔍</div>
             <h3 className="text-xl font-medium text-gray-900 mb-2">No products found</h3>
             <p className="text-gray-600 mb-4">
@@ -408,7 +390,7 @@ const ProductsPage: React.FC = () => {
             }}>
               Clear Filters
             </Button>
-          </FadeInSection>
+          </div>
         )}
 
         {/* Quote Request Modal */}
@@ -419,7 +401,7 @@ const ProductsPage: React.FC = () => {
           productName={selectedProduct?.name}
         />
       </div>
-    </PageTransition>
+    </div>
   );
 };
 

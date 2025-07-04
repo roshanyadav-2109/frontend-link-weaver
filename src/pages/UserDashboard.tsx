@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Package, 
@@ -90,9 +91,9 @@ const UserDashboard: React.FC = () => {
   useEffect(() => {
     fetchDashboardData();
 
-    // Set up real-time subscriptions with unique channel names
+    // Set up real-time subscriptions
     const quoteChannel = supabase
-      .channel(`user_quotes_${user?.id}_${Date.now()}`)
+      .channel('user_dashboard_quotes')
       .on(
         'postgres_changes',
         {
@@ -104,12 +105,19 @@ const UserDashboard: React.FC = () => {
         (payload) => {
           console.log('Quote request updated:', payload);
           fetchDashboardData();
+          
+          if (payload.eventType === 'UPDATE') {
+            const newRecord = payload.new as QuoteRequest;
+            toast.success(`Quote request "${newRecord.product_name}" status updated to: ${newRecord.status}`, {
+              duration: 5000,
+            });
+          }
         }
       )
       .subscribe();
 
     const applicationChannel = supabase
-      .channel(`user_apps_${user?.id}_${Date.now()}`)
+      .channel('user_dashboard_applications')
       .on(
         'postgres_changes',
         {
@@ -121,6 +129,13 @@ const UserDashboard: React.FC = () => {
         (payload) => {
           console.log('Job application updated:', payload);
           fetchDashboardData();
+          
+          if (payload.eventType === 'UPDATE') {
+            const newRecord = payload.new as JobApplication;
+            toast.success(`Your application for ${newRecord.interested_department} status updated to: ${newRecord.status.replace('_', ' ')}`, {
+              duration: 5000,
+            });
+          }
         }
       )
       .subscribe();

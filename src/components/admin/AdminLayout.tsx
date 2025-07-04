@@ -1,19 +1,32 @@
 
 import React from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, Navigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import AdminSidebar from './AdminSidebar';
+import { Loader2 } from 'lucide-react';
 
 const AdminLayout: React.FC = () => {
-  const location = useLocation();
+  const { isAuthenticated, isAdmin, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-blue" />
+      </div>
+    );
+  }
+  
+  // Redirect non-admins to the login page
+  if (!isAuthenticated || !isAdmin) {
+    return <Navigate to="/admin/login" replace />;
+  }
   
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="flex min-h-screen bg-gray-100">
       <AdminSidebar />
-      <main className="flex-1 p-6 ml-64">
-        <div className="max-w-7xl mx-auto">
-          <Outlet />
-        </div>
-      </main>
+      <div className="flex-1 p-6 lg:p-8">
+        <Outlet />
+      </div>
     </div>
   );
 };
