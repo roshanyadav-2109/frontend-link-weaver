@@ -1,268 +1,305 @@
-
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { X, Send, Package, User, Mail, Phone, Building, FileText } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
+// Define the product interface
 export interface ProductInfo {
-  id: string;
+  id?: string;
   name: string;
-  category: string;
-  subcategory: string;
+  category?: string;
+  subcategory?: string;
 }
 
-interface CatalogRequestFormProps {
+// Form schema
+const catalogRequestSchema = z.object({
+  name: z.string().min(2, { message: 'Name is required' }),
+  email: z.string().email({ message: 'Valid email is required' }),
+  company: z.string().min(2, { message: 'Company name is required' }),
+  phone: z.string().min(5, { message: 'Valid phone number is required' }),
+  country: z.string().min(2, { message: 'Country is required' }),
+  message: z.string().optional(),
+  products: z.array(z.string()).optional(),
+  customCatalog: z.boolean().default(false),
+  agreeToTerms: z.boolean().refine(value => value === true, {
+    message: 'You must agree to the terms and conditions',
+  }),
+});
+
+type CatalogRequestFormProps = {
   preselectedProducts?: ProductInfo[];
   onSuccess?: () => void;
-}
+};
 
-const CatalogRequestForm: React.FC<CatalogRequestFormProps> = ({ 
-  preselectedProducts = [], 
-  onSuccess 
-}) => {
+const EMAIL_ENDPOINT = "https://lusfthgqlkgktplplqnv.functions.supabase.co/send-form-email";
+
+const CatalogRequestForm = ({ preselectedProducts = [], onSuccess }: CatalogRequestFormProps) => {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    company: '',
-    businessType: '',
-    interestedProducts: preselectedProducts.map(p => p.name).join(', '),
-    specificRequirements: '',
-    additionalInfo: ''
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [viewedProducts, setViewedProducts] = useState<ProductInfo[]>([]);
+  
+  // Get form methods
+  const form = useForm<z.infer<typeof catalogRequestSchema>>({
+    resolver: zodResolver(catalogRequestSchema),
+    defaultValues: {
+      name: user?.user_metadata?.full_name || '',
+      email: user?.email || '',
+      company: user?.user_metadata?.company || '',
+      phone: '',
+      country: user?.user_metadata?.country || '',
+      message: '',
+      products: preselectedProducts.map(p => p.id || ''),
+      customCatalog: preselectedProducts.length === 0,
+      agreeToTerms: false,
+    },
   });
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  // Effect to load recently viewed products from local storage
+  useEffect(() => {
+    try {
+      const storedProducts = localStorage.getItem('viewedProducts');
+      if (storedProducts) {
+        setViewedProducts(JSON.parse(storedProducts));
+      }
+    } catch (error) {
+      console.error('Error loading viewed products:', error);
+    }
+  }, []);
+
+  // Handle form submission
+  const onSubmit = async (values: z.infer<typeof catalogRequestSchema>) => {
+    setIsSubmitting(true);
+    
+    try {
+      // Compose minimal payload for email
+      const payload = {
+        ...values,
+        selectedProductNames: preselectedProducts.map(p => p.name).join(", "),
+        type: "catalog"
+      };
+      const response = await fetch(EMAIL_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (response.ok) {
+        toast.success('Catalog request submitted and sent via email!');
+        form.reset();
+        if (onSuccess) {
+          onSuccess();
+        }
+      } else {
+        toast.error("Failed to send email: " + (result?.error || ""));
+      }
+    } catch (error) {
+      toast.error('Failed to submit request. Please try again.');
+      console.error('Submission error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.name || !formData.email || !formData.phone) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      // Save to database - create catalog_requests table if it doesn't exist
-      const catalogData = {
-        user_id: user?.id || null,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        company: formData.company,
-        business_type: formData.businessType,
-        interested_products: formData.interestedProducts,
-        specific_requirements: formData.specificRequirements,
-        additional_info: formData.additionalInfo,
-        status: 'pending'
-      };
-
-      // Insert into a generic requests table or create specific table
-      const { error } = await supabase
-        .from('quote_requests')
-        .insert({
-          user_id: user?.id || 'anonymous',
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          company: formData.company,
-          product_name: 'Catalog Request',
-          quantity: '1',
-          unit: 'catalog',
-          additional_details: JSON.stringify(catalogData),
-          status: 'pending'
-        });
-
-      if (error) throw error;
-
-      toast.success('Catalog request submitted successfully! We will send the catalog to your email shortly.');
-      
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        company: '',
-        businessType: '',
-        interestedProducts: '',
-        specificRequirements: '',
-        additionalInfo: ''
-      });
-
-      onSuccess?.();
-    } catch (error) {
-      console.error('Error submitting catalog request:', error);
-      toast.error('Failed to submit catalog request. Please try again.');
-    } finally {
-      setLoading(false);
+  // Toggle custom catalog selection
+  const toggleCustomCatalog = (checked: boolean) => {
+    if (checked) {
+      form.setValue('products', []);
     }
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-lg">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-2xl">
-          <Package className="h-6 w-6 text-blue-600" />
-          Request Product Catalog
-        </CardTitle>
-        <CardDescription>
-          Fill out the form below to receive our comprehensive product catalog
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Personal Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Contact Information
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  placeholder="Enter your full name"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email Address *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="your@email.com"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone Number *</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  placeholder="+1 (555) 123-4567"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="company">Company Name</Label>
-                <Input
-                  id="company"
-                  value={formData.company}
-                  onChange={(e) => handleInputChange('company', e.target.value)}
-                  placeholder="Your company name"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Business Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Building className="h-5 w-5" />
-              Business Information
-            </h3>
-            <div>
-              <Label htmlFor="businessType">Business Type</Label>
-              <Input
-                id="businessType"
-                value={formData.businessType}
-                onChange={(e) => handleInputChange('businessType', e.target.value)}
-                placeholder="e.g., Retailer, Wholesaler, Manufacturer"
-              />
-            </div>
-          </div>
-
-          {/* Product Interest */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Product Interest
-            </h3>
-            
-            {preselectedProducts.length > 0 && (
-              <div className="space-y-2">
-                <Label>Products you viewed:</Label>
-                <div className="flex flex-wrap gap-2">
-                  {preselectedProducts.map((product, index) => (
-                    <Badge key={index} variant="secondary" className="text-sm">
-                      {product.name}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
+    <div className="rounded-xl border border-blue-100 bg-white shadow-premium p-6 md:p-8">
+      <h2 className="text-2xl font-bold text-[#1a365d] mb-6">Request Product Catalog</h2>
+      
+      {/* Display selected products if any */}
+      {!form.watch('customCatalog') && (preselectedProducts.length > 0 || viewedProducts.length > 0) && (
+        <div className="mb-6 bg-[#f7fafd] p-4 rounded-lg">
+          <h3 className="font-semibold text-[#2d6da3] mb-2">Selected Products</h3>
+          <ul className="space-y-1">
+            {preselectedProducts.length > 0 ? (
+              preselectedProducts.map((product, index) => (
+                <li key={`selected-${index}`} className="flex items-center">
+                  <span className="h-2 w-2 bg-[#2d6da3] rounded-full mr-2"></span>
+                  <span className="text-gray-700">{product.name}</span>
+                </li>
+              ))
+            ) : (
+              viewedProducts.slice(0, 3).map((product, index) => (
+                <li key={`viewed-${index}`} className="flex items-center">
+                  <span className="h-2 w-2 bg-[#2d6da3] rounded-full mr-2"></span>
+                  <span className="text-gray-700">{product.name}</span>
+                </li>
+              ))
             )}
+          </ul>
+        </div>
+      )}
+      
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {/* Custom Catalog Option */}
+          <FormField
+            control={form.control}
+            name="customCatalog"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 mb-6">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={(checked) => {
+                      field.onChange(checked);
+                      toggleCustomCatalog(checked as boolean);
+                    }}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel className="text-[#1a365d]">Request a custom catalog instead</FormLabel>
+                  <p className="text-sm text-gray-500">Our team will help you identify the best products for your needs</p>
+                </div>
+              </FormItem>
+            )}
+          />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700">Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="John Doe" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
-            <div>
-              <Label htmlFor="interestedProducts">Interested Products/Categories</Label>
-              <Textarea
-                id="interestedProducts"
-                value={formData.interestedProducts}
-                onChange={(e) => handleInputChange('interestedProducts', e.target.value)}
-                placeholder="Specify the products or categories you're interested in..."
-                rows={3}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="specificRequirements">Specific Requirements</Label>
-              <Textarea
-                id="specificRequirements"
-                value={formData.specificRequirements}
-                onChange={(e) => handleInputChange('specificRequirements', e.target.value)}
-                placeholder="Any specific requirements, quantities, or customizations..."
-                rows={3}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="additionalInfo">Additional Information</Label>
-              <Textarea
-                id="additionalInfo"
-                value={formData.additionalInfo}
-                onChange={(e) => handleInputChange('additionalInfo', e.target.value)}
-                placeholder="Any other information that would help us serve you better..."
-                rows={3}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700">Email Address</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="you@company.com" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
-
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? (
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="company"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700">Company</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Your Company Name" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700">Phone Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="+1 (555) 123-4567" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          <FormField
+            control={form.control}
+            name="country"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-gray-700">Country</FormLabel>
+                <FormControl>
+                  <Input placeholder="United States" {...field} className="border-gray-300 focus:border-blue-400 focus:ring-blue-300" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="message"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-gray-700">Additional Requirements</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Tell us about your specific product requirements, quantities, or any other details that would help us prepare the right catalog for you." 
+                    className="min-h-[100px] border-gray-300 focus:border-blue-400 focus:ring-blue-300"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="agreeToTerms"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>
+                    I agree to the{" "}
+                    <a href="/terms" className="text-[#2d6da3] hover:underline">
+                      terms and conditions
+                    </a>
+                  </FormLabel>
+                  <FormMessage />
+                </div>
+              </FormItem>
+            )}
+          />
+          
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="w-full bg-gradient-to-r from-[#1a365d] to-[#2d6da3] hover:from-[#1a365d] hover:to-[#234069] text-white"
+          >
+            {isSubmitting ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white mr-2"></div>
-                Submitting Request...
+                <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></span>
+                Submitting...
               </>
             ) : (
-              <>
-                <Send className="h-4 w-4 mr-2" />
-                Submit Catalog Request
-              </>
+              'Request Catalog'
             )}
           </Button>
         </form>
-      </CardContent>
-    </Card>
+      </Form>
+    </div>
   );
 };
 

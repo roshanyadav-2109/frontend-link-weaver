@@ -1,75 +1,117 @@
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import React from 'react';
+import { LogOut, User, Settings, Shield, Home } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, Settings, LogOut, Shield } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const AvatarMenu: React.FC = () => {
-  const { user, profile, signOut, isAdmin } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
+  const { user, profile, isAdmin, isManufacturer } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSignOut = () => {
-    signOut();
-    setIsOpen(false);
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      toast.success('Logged out successfully');
+      navigate('/');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast.error('Error logging out');
+    }
   };
 
-  const getInitials = () => {
-    if (profile?.full_name) {
-      const names = profile.full_name.split(' ');
-      return names.map(name => name.charAt(0)).join('').toUpperCase();
-    }
-    return user?.email?.charAt(0).toUpperCase() || 'U';
+  const getInitials = (name: string) => {
+    if (!name) return 'U';
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-brand-blue/20 transition-all">
-          <AvatarFallback className="bg-brand-blue text-white font-medium">
-            {getInitials()}
+        <Avatar className="h-8 w-8 cursor-pointer hover:ring-2 hover:ring-brand-blue transition-all">
+          <AvatarFallback className="bg-brand-blue text-white text-sm">
+            {getInitials(profile?.full_name || user?.email || 'User')}
           </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <div className="px-2 py-1.5">
-          <p className="text-sm font-medium">
-            {profile?.full_name || user?.email?.split('@')[0]}
-          </p>
-          <p className="text-xs text-gray-500">{user?.email}</p>
-        </div>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">
+              {profile?.full_name || 'User'}
+            </p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {user?.email}
+            </p>
+            {profile?.company_name && (
+              <p className="text-xs leading-none text-muted-foreground">
+                {profile.company_name}
+              </p>
+            )}
+          </div>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link to="/dashboard" className="flex items-center">
-            <User className="mr-2 h-4 w-4" />
-            Dashboard
-          </Link>
+        
+        <DropdownMenuItem 
+          onClick={() => navigate('/')}
+          className="cursor-pointer"
+        >
+          <Home className="mr-2 h-4 w-4" />
+          <span>Website Home</span>
         </DropdownMenuItem>
+
+        <DropdownMenuItem 
+          onClick={() => navigate('/dashboard')}
+          className="cursor-pointer"
+        >
+          <User className="mr-2 h-4 w-4" />
+          <span>My Dashboard</span>
+        </DropdownMenuItem>
+
         {isAdmin && (
-          <DropdownMenuItem asChild>
-            <Link to="/admin" className="flex items-center">
-              <Shield className="mr-2 h-4 w-4" />
-              Admin Panel
-            </Link>
+          <DropdownMenuItem 
+            onClick={() => navigate('/admin')}
+            className="cursor-pointer"
+          >
+            <Shield className="mr-2 h-4 w-4" />
+            <span>Admin Panel</span>
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem asChild>
-          <Link to="/profile" className="flex items-center">
+
+        {isManufacturer && (
+          <DropdownMenuItem 
+            onClick={() => navigate('/manufacturer/dashboard')}
+            className="cursor-pointer"
+          >
             <Settings className="mr-2 h-4 w-4" />
-            Profile Settings
-          </Link>
-        </DropdownMenuItem>
+            <span>Manufacturer Dashboard</span>
+          </DropdownMenuItem>
+        )}
+
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+        
+        <DropdownMenuItem 
+          onClick={handleLogout}
+          className="cursor-pointer text-red-600 focus:text-red-600"
+        >
           <LogOut className="mr-2 h-4 w-4" />
-          Sign Out
+          <span>Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

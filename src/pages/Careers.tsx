@@ -1,30 +1,10 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowRight, Loader2, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
-import { 
-  Briefcase, 
-  MapPin, 
-  Clock, 
-  Building, 
-  Send,
-  User,
-  Mail,
-  Phone,
-  FileText,
-  Star
-} from 'lucide-react';
+import GeneralApplicationForm from '@/components/GeneralApplicationForm';
 
-interface Job {
+interface JobOpening {
   id: string;
   title: string;
   department: string;
@@ -32,421 +12,202 @@ interface Job {
   type: string;
   description: string;
   status: string;
+  apply_link?: string | null;
 }
 
-const Careers: React.FC = () => {
-  const { user } = useAuth();
-  const [jobs, setJobs] = useState<Job[]>([]);
+const Careers = () => {
+  const [jobs, setJobs] = useState<JobOpening[]>([]);
   const [loading, setLoading] = useState(true);
-  const [applicationLoading, setApplicationLoading] = useState(false);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    applicantName: '',
-    email: '',
-    phone: '',
-    currentLocation: '',
-    experience: '',
-    currentPosition: '',
-    interestedDepartment: '',
-    coverLetter: '',
-    resumeLink: ''
-  });
+  const [isApplicationFormOpen, setIsApplicationFormOpen] = useState(false);
 
-  useEffect(() => {
-    fetchJobs();
-  }, []);
-
+  // Fetch jobs from Supabase with improved error handling
   const fetchJobs = async () => {
     try {
+      console.log('Fetching active careers...');
       const { data, error } = await supabase
         .from('careers')
         .select('*')
         .eq('status', 'active')
         .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setJobs(data || []);
-    } catch (error) {
-      console.error('Error fetching jobs:', error);
-      toast.error('Failed to load job listings');
+      
+      if (error) {
+        console.error('Error fetching careers:', error);
+        throw error;
+      }
+      
+      console.log('Careers fetched successfully:', data);
+      setJobs(data as JobOpening[]);
+    } catch (err: any) {
+      console.error('Error in fetchJobs:', err);
+      setJobs([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Listen for real-time updates with improved subscription
+  useEffect(() => {
+    fetchJobs();
     
-    if (!formData.applicantName || !formData.email || !formData.phone || !formData.coverLetter || !formData.interestedDepartment) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
-    setApplicationLoading(true);
-
-    try {
-      const { error } = await supabase
-        .from('job_applications')
-        .insert({
-          user_id: user?.id || 'anonymous',
-          job_id: selectedJob?.id || null,
-          applicant_name: formData.applicantName,
-          email: formData.email,
-          phone: formData.phone,
-          current_location: formData.currentLocation,
-          experience: formData.experience,
-          current_position: formData.currentPosition,
-          interested_department: formData.interestedDepartment,
-          cover_letter: formData.coverLetter,
-          resume_link: formData.resumeLink || null,
-          status: 'pending'
-        });
-
-      if (error) throw error;
-
-      toast.success('Application submitted successfully! We will review your application and get back to you soon.');
-      
-      // Reset form and close dialog
-      setFormData({
-        applicantName: '',
-        email: '',
-        phone: '',
-        currentLocation: '',
-        experience: '',
-        currentPosition: '',
-        interestedDepartment: '',
-        coverLetter: '',
-        resumeLink: ''
+    console.log('Setting up real-time subscription for public careers...');
+    const channel = supabase
+      .channel('realtime-careers-public')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'careers',
+        },
+        (payload) => {
+          console.log('Real-time careers update received on public page:', payload);
+          fetchJobs(); // Re-fetch to ensure we only show active jobs
+        }
+      )
+      .subscribe((status) => {
+        console.log('Public careers subscription status:', status);
       });
-      setIsDialogOpen(false);
-      setSelectedJob(null);
-    } catch (error) {
-      console.error('Error submitting application:', error);
-      toast.error('Failed to submit application. Please try again.');
-    } finally {
-      setApplicationLoading(false);
-    }
-  };
-
-  const departments = [
-    'Sales & Marketing',
-    'Operations',
-    'Quality Assurance',
-    'Logistics',
-    'Finance',
-    'Human Resources',
-    'IT & Technology',
-    'Customer Service',
-    'Product Development',
-    'Supply Chain'
-  ];
+    
+    return () => {
+      console.log('Cleaning up public careers subscription...');
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
-      <div className="container mx-auto px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Join Our Team
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Build your career with a global leader in manufacturing and export. 
-              We offer exciting opportunities for growth and development.
-            </p>
-          </div>
-
-          {/* Company Benefits */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="h-6 w-6 text-yellow-500" />
-                  Growth Opportunities
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Continuous learning and development programs to advance your career
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building className="h-6 w-6 text-blue-600" />
-                  Global Exposure
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Work with international clients and expand your global perspective
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="h-6 w-6 text-green-600" />
-                  Competitive Benefits
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Comprehensive benefits package including health insurance and bonuses
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Job Listings */}
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Open Positions</h2>
-            
-            {loading ? (
-              <div className="flex justify-center p-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-600"></div>
-              </div>
-            ) : jobs.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {jobs.map((job) => (
-                  <Card key={job.id} className="shadow-lg hover:shadow-xl transition-shadow">
-                    <CardHeader>
-                      <CardTitle className="text-xl">{job.title}</CardTitle>
-                      <div className="flex flex-wrap gap-2">
-                        <Badge variant="secondary" className="flex items-center gap-1">
-                          <Building className="h-3 w-3" />
-                          {job.department}
-                        </Badge>
-                        <Badge variant="outline" className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {job.location}
-                        </Badge>
-                        <Badge variant="outline" className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {job.type}
-                        </Badge>
+    <div>
+      <div className="bg-brand-blue py-12">
+        <div className="container mx-auto px-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-white text-center">
+            Join the Team That Moves the World
+          </h1>
+          <p className="mt-4 text-lg text-white/80 text-center max-w-3xl mx-auto">
+            Anantya Overseas is built by people who believe in global impact. Check out our current openings in sourcing, logistics, tech, and customer support.
+          </p>
+        </div>
+      </div>
+      
+      <div className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div className="col-span-2">
+              <h2 className="text-2xl font-bold text-brand-blue mb-8">
+                Current Openings
+              </h2>
+              {loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="animate-spin w-8 h-8 mr-2 text-brand-blue" />
+                  <span>Loading jobs…</span>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {jobs.length === 0 ? (
+                    <div className="text-gray-500 text-center py-12">
+                      No active job openings found. Please check back later.
+                    </div>
+                  ) : (
+                    jobs.map((job) => (
+                      <div key={job.id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div className="p-6">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="text-xl font-semibold text-brand-blue">{job.title}</h3>
+                              <p className="text-gray-600 mt-1">{job.department} • {job.location} • {job.type}</p>
+                            </div>
+                            <div className="flex gap-2">
+                              {job.apply_link ? (
+                                <Button 
+                                  variant="outline" 
+                                  className="text-brand-teal border-brand-teal hover:bg-brand-teal hover:text-white"
+                                  onClick={() => window.open(job.apply_link!, '_blank')}
+                                >
+                                  Apply Now
+                                  <ExternalLink className="ml-2 h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button 
+                                  variant="outline" 
+                                  className="text-brand-teal border-brand-teal hover:bg-brand-teal hover:text-white"
+                                  onClick={() => setIsApplicationFormOpen(true)}
+                                >
+                                  Apply Now
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          <p className="mt-4 text-gray-700">{job.description}</p>
+                        </div>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-600 mb-4 line-clamp-3">{job.description}</p>
-                      <Button 
-                        onClick={() => {
-                          setSelectedJob(job);
-                          setFormData(prev => ({ ...prev, interestedDepartment: job.department }));
-                          setIsDialogOpen(true);
-                        }}
-                        className="w-full"
-                      >
-                        Apply Now
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card className="shadow-lg">
-                <CardContent className="text-center py-12">
-                  <Briefcase className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Current Openings</h3>
-                  <p className="text-gray-600 mb-6">
-                    We don't have any open positions right now, but we're always looking for talented individuals.
-                  </p>
-                  <Button 
-                    onClick={() => {
-                      setSelectedJob(null);
-                      setIsDialogOpen(true);
-                    }}
-                    variant="outline"
-                  >
-                    Submit General Application
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* General Application Button */}
-          <div className="text-center">
-            <Card className="shadow-lg">
-              <CardContent className="py-8">
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">Don't See the Right Position?</h3>
-                <p className="text-gray-600 mb-6">
-                  Submit a general application and we'll keep your profile on file for future opportunities
+                    ))
+                  )}
+                </div>
+              )}
+              <div className="mt-10 bg-gray-50 p-6 rounded-lg border">
+                <h3 className="text-xl font-semibold text-brand-blue">Don't see the right role?</h3>
+                <p className="mt-2 text-gray-700">
+                  We're always looking for talented individuals to join our team. Send us your resume and we'll keep you in mind for future opportunities.
                 </p>
                 <Button 
-                  onClick={() => {
-                    setSelectedJob(null);
-                    setIsDialogOpen(true);
-                  }}
-                  size="lg"
+                  className="mt-4 bg-brand-teal hover:bg-brand-teal/90"
+                  onClick={() => setIsApplicationFormOpen(true)}
                 >
                   Submit General Application
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+            
+            <div>
+              <div className="bg-gray-50 p-6 rounded-lg border sticky top-6">
+                <h2 className="text-xl font-bold text-brand-blue mb-4">
+                  Why Work With Us?
+                </h2>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold">Global Impact</h3>
+                    <p className="text-gray-600 text-sm">
+                      Be part of a team that facilitates international trade and connects businesses across borders.
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Growth Opportunities</h3>
+                    <p className="text-gray-600 text-sm">
+                      Develop your skills in a fast-growing company with opportunities for advancement.
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Diverse Environment</h3>
+                    <p className="text-gray-600 text-sm">
+                      Work in a multicultural team with connections to businesses around the world.
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Competitive Benefits</h3>
+                    <p className="text-gray-600 text-sm">
+                      Enjoy competitive salary, health benefits, and performance bonuses.
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Work-Life Balance</h3>
+                    <p className="text-gray-600 text-sm">
+                      We believe in maintaining a healthy balance between work and personal life.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-6 pt-6 border-t">
+                  <h3 className="font-semibold mb-2">Our Culture</h3>
+                  <img
+                    src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80"
+                    alt="Team at Anantya Overseas"
+                    className="w-full h-auto rounded-md mb-4"
+                  />
+                  <p className="text-gray-600 text-sm">
+                    At Anantya Overseas, we foster a culture of collaboration, innovation, and respect for diverse perspectives.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-
-          {/* Application Dialog */}
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Briefcase className="h-6 w-6 text-blue-600" />
-                  {selectedJob ? `Apply for ${selectedJob.title}` : 'General Application'}
-                </DialogTitle>
-              </DialogHeader>
-              
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Personal Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    Personal Information
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="applicantName">Full Name *</Label>
-                      <Input
-                        id="applicantName"
-                        value={formData.applicantName}
-                        onChange={(e) => handleInputChange('applicantName', e.target.value)}
-                        placeholder="Enter your full name"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="email">Email Address *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        placeholder="your@email.com"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="phone">Phone Number *</Label>
-                      <Input
-                        id="phone"
-                        value={formData.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                        placeholder="+1 (555) 123-4567"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="currentLocation">Current Location</Label>
-                      <Input
-                        id="currentLocation"
-                        value={formData.currentLocation}
-                        onChange={(e) => handleInputChange('currentLocation', e.target.value)}
-                        placeholder="City, State/Country"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Professional Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Professional Information
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="experience">Years of Experience</Label>
-                      <Input
-                        id="experience"
-                        value={formData.experience}
-                        onChange={(e) => handleInputChange('experience', e.target.value)}
-                        placeholder="e.g., 5 years"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="currentPosition">Current Position</Label>
-                      <Input
-                        id="currentPosition"
-                        value={formData.currentPosition}
-                        onChange={(e) => handleInputChange('currentPosition', e.target.value)}
-                        placeholder="Your current job title"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="interestedDepartment">Interested Department *</Label>
-                    <Select 
-                      value={formData.interestedDepartment} 
-                      onValueChange={(value) => handleInputChange('interestedDepartment', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {departments.map((dept) => (
-                          <SelectItem key={dept} value={dept}>
-                            {dept}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="resumeLink">Resume/CV Link</Label>
-                    <Input
-                      id="resumeLink"
-                      value={formData.resumeLink}
-                      onChange={(e) => handleInputChange('resumeLink', e.target.value)}
-                      placeholder="Google Drive, Dropbox, or LinkedIn profile link"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="coverLetter">Cover Letter *</Label>
-                    <Textarea
-                      id="coverLetter"
-                      value={formData.coverLetter}
-                      onChange={(e) => handleInputChange('coverLetter', e.target.value)}
-                      placeholder="Tell us why you're interested in this position and what makes you a great fit..."
-                      rows={6}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-4 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={applicationLoading} className="flex-1">
-                    {applicationLoading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white mr-2"></div>
-                        Submitting...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-4 w-4 mr-2" />
-                        Submit Application
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
     </div>

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,22 +7,22 @@ const NotificationToast: React.FC = () => {
   const { user } = useAuth();
   const channelRef = useRef<any>(null);
   const processedNotifications = useRef<Set<string>>(new Set());
-  const lastProcessedTime = useRef<number>(Date.now());
-  const toastShown = useRef<Set<string>>(new Set());
+  const isInitializedRef = useRef(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || isInitializedRef.current) return;
     
+    // Mark as initialized to prevent duplicate subscriptions
+    isInitializedRef.current = true;
+
     // Clean up existing channel
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
     }
 
-    // Create unique channel name with timestamp to prevent duplicates
-    const channelName = `notifications-${user.id}-${Date.now()}`;
-    
+    // Subscribe to quote request updates with unique channel name
     channelRef.current = supabase
-      .channel(channelName)
+      .channel(`user-notifications-${user.id}-${Date.now()}`)
       .on(
         'postgres_changes',
         {
@@ -36,18 +35,23 @@ const NotificationToast: React.FC = () => {
           const newRecord = payload.new as any;
           const oldRecord = payload.old as any;
           
-          // Only process recent updates to avoid old notifications
-          const updateTime = new Date(newRecord.updated_at).getTime();
-          if (updateTime <= lastProcessedTime.current) return;
+          // Create unique identifier for this notification
+          const notificationId = `quote-${newRecord.id}-${newRecord.updated_at}-${newRecord.status}`;
           
-          const notificationId = `quote-${newRecord.id}-${newRecord.status}-${updateTime}`;
-          
-          if (processedNotifications.current.has(notificationId) || toastShown.current.has(notificationId)) return;
+          // Skip if already processed
+          if (processedNotifications.current.has(notificationId)) {
+            return;
+          }
           
           processedNotifications.current.add(notificationId);
-          toastShown.current.add(notificationId);
           
-          // Status change notification
+          // Clean up old notifications (keep only last 20)
+          if (processedNotifications.current.size > 20) {
+            const items = Array.from(processedNotifications.current);
+            processedNotifications.current = new Set(items.slice(-10));
+          }
+          
+          // Show notification only for status changes
           if (newRecord.status !== oldRecord.status) {
             let message = '';
             switch (newRecord.status) {
@@ -55,28 +59,32 @@ const NotificationToast: React.FC = () => {
                 message = `Your quote request for "${newRecord.product_name}" is being reviewed.`;
                 break;
               case 'approved':
-                message = `Great news! Your quote request for "${newRecord.product_name}" has been approved!`;
+                message = `Your quote request for "${newRecord.product_name}" has been approved!`;
                 break;
               case 'completed':
                 message = `Your quote request for "${newRecord.product_name}" has been completed!`;
                 break;
               case 'rejected':
-                message = `Your quote request for "${newRecord.product_name}" status has been updated.`;
+                message = `Your quote request for "${newRecord.product_name}" has been updated.`;
                 break;
               default:
-                message = `Your quote request status: ${newRecord.status}`;
+                message = `Your quote request for "${newRecord.product_name}" status: ${newRecord.status}`;
             }
             
-            toast.success(message, { duration: 4000 });
+            toast.success(message, {
+              duration: 4000,
+            });
           }
           
-          // Admin response notification
+          // Show response notification
           if (newRecord.admin_response && newRecord.admin_response !== oldRecord.admin_response) {
-            const responseId = `response-${newRecord.id}-${updateTime}`;
-            if (!processedNotifications.current.has(responseId) && !toastShown.current.has(responseId)) {
+            const responseId = `response-${newRecord.id}-${newRecord.admin_response.slice(0, 20)}`;
+            
+            if (!processedNotifications.current.has(responseId)) {
               processedNotifications.current.add(responseId);
-              toastShown.current.add(responseId);
-              toast.info(`New response: "${newRecord.admin_response}"`, { duration: 5000 });
+              toast.info(`New response: "${newRecord.admin_response}"`, {
+                duration: 5000,
+              });
             }
           }
         }
@@ -93,17 +101,13 @@ const NotificationToast: React.FC = () => {
           const newRecord = payload.new as any;
           const oldRecord = payload.old as any;
           
-          const updateTime = new Date(newRecord.updated_at).getTime();
-          if (updateTime <= lastProcessedTime.current) return;
+          const notificationId = `job-${newRecord.id}-${newRecord.updated_at}-${newRecord.status}`;
           
-          const notificationId = `job-${newRecord.id}-${newRecord.status}-${updateTime}`;
-          
-          if (!processedNotifications.current.has(notificationId) && !toastShown.current.has(notificationId)) {
+          if (!processedNotifications.current.has(notificationId)) {
             processedNotifications.current.add(notificationId);
-            toastShown.current.add(notificationId);
             
             if (newRecord.status !== oldRecord.status) {
-              toast.success(`Your application status updated: ${newRecord.status.replace('_', ' ')}`, {
+              toast.success(`Your application for ${newRecord.interested_department} status: ${newRecord.status.replace('_', ' ')}`, {
                 duration: 4000,
               });
             }
@@ -112,13 +116,11 @@ const NotificationToast: React.FC = () => {
       )
       .subscribe();
 
-    // Update last processed time
-    lastProcessedTime.current = Date.now();
-
     return () => {
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
       }
+      isInitializedRef.current = false;
     };
   }, [user?.id]);
 
