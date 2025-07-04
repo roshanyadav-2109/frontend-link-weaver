@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Index from './pages/Index';
@@ -31,6 +30,7 @@ import AdminLogin from './pages/auth/AdminLogin';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import ManufacturerPartnerships from './pages/admin/ManufacturerPartnerships';
+import JobApplications from './pages/admin/JobApplications';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -103,6 +103,14 @@ const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute requireAdmin={true}>
             <ManufacturerPartnerships />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin/job-applications" 
+        element={
+          <ProtectedRoute requireAdmin={true}>
+            <JobApplications />
           </ProtectedRoute>
         } 
       />

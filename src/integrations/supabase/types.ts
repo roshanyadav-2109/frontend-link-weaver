@@ -98,6 +98,71 @@ export type Database = {
           },
         ]
       }
+      job_applications: {
+        Row: {
+          admin_notes: string | null
+          applicant_name: string
+          cover_letter: string
+          created_at: string
+          current_location: string
+          current_position: string
+          email: string
+          experience: string
+          id: string
+          interested_department: string
+          job_id: string | null
+          phone: string
+          resume_link: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          applicant_name: string
+          cover_letter: string
+          created_at?: string
+          current_location: string
+          current_position: string
+          email: string
+          experience: string
+          id?: string
+          interested_department: string
+          job_id?: string | null
+          phone: string
+          resume_link?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          applicant_name?: string
+          cover_letter?: string
+          created_at?: string
+          current_location?: string
+          current_position?: string
+          email?: string
+          experience?: string
+          id?: string
+          interested_department?: string
+          job_id?: string | null
+          phone?: string
+          resume_link?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "careers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       manufacturer_partnerships: {
         Row: {
           additional_info: string | null

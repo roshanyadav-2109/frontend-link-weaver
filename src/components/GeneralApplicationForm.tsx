@@ -10,6 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 const applicationSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name is required' }),
@@ -51,6 +53,7 @@ type GeneralApplicationFormProps = {
 
 const GeneralApplicationForm = ({ isOpen, onClose }: GeneralApplicationFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
 
   const form = useForm<z.infer<typeof applicationSchema>>({
     resolver: zodResolver(applicationSchema),
@@ -68,11 +71,39 @@ const GeneralApplicationForm = ({ isOpen, onClose }: GeneralApplicationFormProps
   });
 
   const onSubmit = async (values: z.infer<typeof applicationSchema>) => {
+    if (!user) {
+      toast.error('Please sign in to submit an application');
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
       console.log('Submitting general application:', values);
       
+      // Store in database
+      const { error: dbError } = await supabase
+        .from('job_applications')
+        .insert({
+          user_id: user.id,
+          applicant_name: values.fullName,
+          email: values.email,
+          phone: values.phone,
+          current_location: values.currentLocation,
+          experience: values.experience,
+          interested_department: values.interestedDepartment,
+          current_position: values.currentRole,
+          cover_letter: values.coverLetter,
+          resume_link: values.resume || null,
+          status: 'pending'
+        });
+
+      if (dbError) {
+        console.error('Database error:', dbError);
+        throw new Error('Failed to save application');
+      }
+
+      // Send email notifications
       const applicationData = {
         type: "application",
         applicationData: {
@@ -84,7 +115,7 @@ const GeneralApplicationForm = ({ isOpen, onClose }: GeneralApplicationFormProps
           interestedDepartment: values.interestedDepartment,
           currentRole: values.currentRole,
           coverLetter: values.coverLetter,
-          resume: values.resume || 'Not provided',
+          resume: values.resume || '',
         }
       };
 
@@ -94,20 +125,18 @@ const GeneralApplicationForm = ({ isOpen, onClose }: GeneralApplicationFormProps
         body: JSON.stringify(applicationData),
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
-        console.log('General application submitted successfully:', result);
-        toast.success('Application submitted successfully! We will review your application and get back to you soon.');
-        form.reset();
-        onClose();
-      } else {
-        console.error('Failed to submit application:', result);
-        toast.error('Failed to submit application: ' + (result?.error || 'Unknown error'));
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result?.error || 'Failed to send email notifications');
       }
-    } catch (err) {
+
+      console.log('Application submitted successfully');
+      toast.success('Application submitted successfully! We will review your application and get back to you soon.');
+      form.reset();
+      onClose();
+    } catch (err: any) {
       console.error('Unexpected error:', err);
-      toast.error('An unexpected error occurred. Please try again.');
+      toast.error(err.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

@@ -9,13 +9,32 @@ import AppLayout from "./components/layout/AppLayout";
 import NotificationToast from "./components/NotificationToast";
 import "./App.css";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 10, // 10 minutes (renamed from cacheTime)
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
+        <Toaster 
+          position="top-center"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#1a1a1a',
+              color: '#ffffff',
+              border: '1px solid #374151',
+            },
+          }}
+        />
         <BrowserRouter>
           <AuthProvider>
             <AppLayout>
