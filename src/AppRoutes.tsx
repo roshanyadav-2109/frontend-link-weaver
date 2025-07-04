@@ -1,8 +1,12 @@
+
 import { Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import UserDashboard from "./pages/UserDashboard";
 import RequestQuotePage from "./pages/RequestQuotePage";
 import CatalogRequest from "./pages/CatalogRequest";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import ManufacturerPartnership from "./pages/ManufacturerPartnership";
 import { useAuth } from "./hooks/useAuth";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -10,7 +14,6 @@ import QuoteRequestsManager from "./pages/admin/QuoteRequestsManager";
 import ProductsPage from "./pages/products/ProductsPage";
 import Careers from "./pages/Careers";
 import Contact from "./pages/Contact";
-import ManufacturerPartnership from "./pages/ManufacturerPartnership";
 import JobApplications from "./pages/admin/JobApplications";
 
 const AppRoutes = () => {
@@ -24,6 +27,8 @@ const AppRoutes = () => {
       <Route path="/products" element={<ProductsPage />} />
       <Route path="/careers" element={<Careers />} />
       <Route path="/contact" element={<Contact />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<Privacy />} />
       <Route path="/manufacturer-partnership" element={<ManufacturerPartnership />} />
       
       {isAuthenticated && (
