@@ -12,7 +12,9 @@ const ManufacturerPartnership = () => {
             Join our network of trusted manufacturers and expand your business globally through our platform.
           </p>
         </div>
-        <ManufacturerPartnershipForm />
+        <div className="max-w-4xl mx-auto">
+          <ManufacturerPartnershipForm isOpen={true} onClose={() => {}} />
+        </div>
       </div>
     </div>
   );

@@ -7,6 +7,12 @@ import { toast } from "sonner";
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
 import { useAuth } from "@/hooks/useAuth";
 
+export interface ProductInfo {
+  id: string;
+  name: string;
+  category: string;
+}
+
 interface CatalogFormData {
   name: string;
   email: string;
@@ -18,7 +24,12 @@ interface CatalogFormData {
   additional_requirements: string;
 }
 
-export default function CatalogRequestForm() {
+interface CatalogRequestFormProps {
+  preselectedProducts?: ProductInfo[];
+  onSuccess?: () => void;
+}
+
+export default function CatalogRequestForm({ preselectedProducts = [], onSuccess }: CatalogRequestFormProps) {
   const { user } = useAuth();
   const [form, setForm] = useState<CatalogFormData>({
     name: "",
@@ -26,7 +37,7 @@ export default function CatalogRequestForm() {
     phone: "",
     company: "",
     product_category: "",
-    specific_products: "",
+    specific_products: preselectedProducts.map(p => p.name).join(", "),
     business_type: "",
     additional_requirements: "",
   });
@@ -83,6 +94,10 @@ export default function CatalogRequestForm() {
         business_type: "",
         additional_requirements: "",
       });
+      
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (err: any) {
       console.error('Unexpected error:', err);
       toast.error("An unexpected error occurred. Please try again.");
