@@ -48,16 +48,11 @@ const handler = async (req: Request): Promise<Response> => {
       case "application":
         emailResponse = await handleJobApplication(requestData.applicationData);
         break;
-      case "quote":
-      case "catalog":
-      case "partnership":
-        // No emails sent for these types - only backend capture
-        return new Response(JSON.stringify({ success: true, message: "Request captured successfully" }), {
-          status: 200,
+      default:
+        return new Response(JSON.stringify({ error: "Invalid request type" }), {
+          status: 400,
           headers: { "Content-Type": "application/json", ...corsHeaders },
         });
-      default:
-        throw new Error("Invalid request type");
     }
 
     return new Response(JSON.stringify(emailResponse), {

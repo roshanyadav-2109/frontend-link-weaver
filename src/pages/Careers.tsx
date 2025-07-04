@@ -1,10 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, Loader2, ExternalLink } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import GeneralApplicationForm from '@/components/GeneralApplicationForm';
 
-interface JobOpening {
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
+import { Briefcase, MapPin, Clock, Users, Loader2 } from 'lucide-react';
+
+interface Career {
   id: string;
   title: string;
   department: string;
@@ -12,201 +20,491 @@ interface JobOpening {
   type: string;
   description: string;
   status: string;
-  apply_link?: string | null;
 }
 
-const Careers = () => {
-  const [jobs, setJobs] = useState<JobOpening[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isApplicationFormOpen, setIsApplicationFormOpen] = useState(false);
+const Careers: React.FC = () => {
+  const { user } = useAuth();
+  const [careers, setCareers] = useState<Career[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [applicationData, setApplicationData] = useState({
+    applicant_name: '',
+    email: '',
+    phone: '',
+    current_location: '',
+    experience: '',
+    interested_department: '',
+    current_position: '',
+    cover_letter: '',
+    resume_link: ''
+  });
 
-  // Fetch jobs from Supabase with improved error handling
-  const fetchJobs = async () => {
+  useEffect(() => {
+    fetchCareers();
+  }, []);
+
+  const fetchCareers = async () => {
     try {
-      console.log('Fetching active careers...');
       const { data, error } = await supabase
         .from('careers')
         .select('*')
         .eq('status', 'active')
         .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error('Error fetching careers:', error);
-        throw error;
-      }
-      
-      console.log('Careers fetched successfully:', data);
-      setJobs(data as JobOpening[]);
-    } catch (err: any) {
-      console.error('Error in fetchJobs:', err);
-      setJobs([]);
-    } finally {
-      setLoading(false);
+
+      if (error) throw error;
+      setCareers(data || []);
+    } catch (error) {
+      console.error('Error fetching careers:', error);
     }
   };
 
-  // Listen for real-time updates with improved subscription
-  useEffect(() => {
-    fetchJobs();
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setApplicationData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setApplicationData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmitApplication = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    console.log('Setting up real-time subscription for public careers...');
-    const channel = supabase
-      .channel('realtime-careers-public')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'careers',
-        },
-        (payload) => {
-          console.log('Real-time careers update received on public page:', payload);
-          fetchJobs(); // Re-fetch to ensure we only show active jobs
+    if (!applicationData.applicant_name || !applicationData.email || !applicationData.phone || !applicationData.interested_department) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Submit to job_applications table
+      const { error: dbError } = await supabase
+        .from('job_applications')
+        .insert({
+          user_id: user?.id || 'anonymous',
+          ...applicationData,
+          status: 'pending'
+        });
+
+      if (dbError) throw dbError;
+
+      // Send email notification
+      const { error: emailError } = await supabase.functions.invoke('send-form-email', {
+        body: {
+          type: 'application',
+          applicationData: {
+            fullName: applicationData.applicant_name,
+            email: applicationData.email,
+            phone: applicationData.phone,
+            currentLocation: applicationData.current_location,
+            experience: applicationData.experience,
+            interestedDepartment: applicationData.interested_department,
+            currentRole: applicationData.current_position,
+            coverLetter: applicationData.cover_letter,
+            resume: applicationData.resume_link
+          }
         }
-      )
-      .subscribe((status) => {
-        console.log('Public careers subscription status:', status);
       });
-    
-    return () => {
-      console.log('Cleaning up public careers subscription...');
-      supabase.removeChannel(channel);
-    };
-  }, []);
+
+      if (emailError) {
+        console.error('Email error:', emailError);
+        // Don't throw error for email, just log it
+      }
+
+      toast.success('Application submitted successfully!');
+      
+      // Reset form
+      setApplicationData({
+        applicant_name: '',
+        email: '',
+        phone: '',
+        current_location: '',
+        experience: '',
+        interested_department: '',
+        current_position: '',
+        cover_letter: '',
+        resume_link: ''
+      });
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      toast.error('Failed to submit application. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const departments = [
+    'Sales & Marketing',
+    'Operations',
+    'Supply Chain',
+    'Quality Assurance',
+    'Customer Service',
+    'Human Resources',
+    'Finance & Accounting',
+    'Information Technology',
+    'Research & Development'
+  ];
 
   return (
-    <div>
-      <div className="bg-brand-blue py-12">
-        <div className="container mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl font-bold text-white text-center">
-            Join the Team That Moves the World
-          </h1>
-          <p className="mt-4 text-lg text-white/80 text-center max-w-3xl mx-auto">
-            Anantya Overseas is built by people who believe in global impact. Check out our current openings in sourcing, logistics, tech, and customer support.
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 pt-24 pb-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-800 mb-4">Join Our Team</h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Be part of our growing company and help us connect businesses worldwide through quality products and exceptional service.
           </p>
         </div>
-      </div>
-      
-      <div className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <div className="col-span-2">
-              <h2 className="text-2xl font-bold text-brand-blue mb-8">
-                Current Openings
-              </h2>
-              {loading ? (
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="animate-spin w-8 h-8 mr-2 text-brand-blue" />
-                  <span>Loading jobs…</span>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {jobs.length === 0 ? (
-                    <div className="text-gray-500 text-center py-12">
-                      No active job openings found. Please check back later.
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Job Listings */}
+          <div className="lg:col-span-2 space-y-6">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Current Openings</h2>
+            
+            {careers.length > 0 ? (
+              careers.map((career) => (
+                <Card key={career.id} className="shadow-lg hover:shadow-xl transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-start justify-between">
+                      <div>
+                        <h3 className="text-xl font-semibold text-gray-800">{career.title}</h3>
+                        <p className="text-blue-600 font-medium">{career.department}</p>
+                      </div>
+                      <Briefcase className="h-6 w-6 text-blue-600" />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-4 mb-4">
+                      <div className="flex items-center text-gray-600">
+                        <MapPin className="h-4 w-4 mr-2" />
+                        {career.location}
+                      </div>
+                      <div className="flex items-center text-gray-600">
+                        <Clock className="h-4 w-4 mr-2" />
+                        {career.type}
+                      </div>
                     </div>
-                  ) : (
-                    jobs.map((job) => (
-                      <div key={job.id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                        <div className="p-6">
-                          <div className="flex justify-between items-start">
+                    <p className="text-gray-600 mb-4 line-clamp-3">{career.description}</p>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="w-full">Apply Now</Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle>Apply for {career.title}</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleSubmitApplication} className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <h3 className="text-xl font-semibold text-brand-blue">{job.title}</h3>
-                              <p className="text-gray-600 mt-1">{job.department} • {job.location} • {job.type}</p>
+                              <Label htmlFor="applicant_name">Full Name *</Label>
+                              <Input
+                                id="applicant_name"
+                                name="applicant_name"
+                                value={applicationData.applicant_name}
+                                onChange={handleInputChange}
+                                required
+                              />
                             </div>
-                            <div className="flex gap-2">
-                              {job.apply_link ? (
-                                <Button 
-                                  variant="outline" 
-                                  className="text-brand-teal border-brand-teal hover:bg-brand-teal hover:text-white"
-                                  onClick={() => window.open(job.apply_link!, '_blank')}
-                                >
-                                  Apply Now
-                                  <ExternalLink className="ml-2 h-4 w-4" />
-                                </Button>
-                              ) : (
-                                <Button 
-                                  variant="outline" 
-                                  className="text-brand-teal border-brand-teal hover:bg-brand-teal hover:text-white"
-                                  onClick={() => setIsApplicationFormOpen(true)}
-                                >
-                                  Apply Now
-                                </Button>
-                              )}
+                            <div>
+                              <Label htmlFor="email">Email *</Label>
+                              <Input
+                                id="email"
+                                name="email"
+                                type="email"
+                                value={applicationData.email}
+                                onChange={handleInputChange}
+                                required
+                              />
                             </div>
                           </div>
-                          <p className="mt-4 text-gray-700">{job.description}</p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-              <div className="mt-10 bg-gray-50 p-6 rounded-lg border">
-                <h3 className="text-xl font-semibold text-brand-blue">Don't see the right role?</h3>
-                <p className="mt-2 text-gray-700">
-                  We're always looking for talented individuals to join our team. Send us your resume and we'll keep you in mind for future opportunities.
-                </p>
-                <Button 
-                  className="mt-4 bg-brand-teal hover:bg-brand-teal/90"
-                  onClick={() => setIsApplicationFormOpen(true)}
-                >
-                  Submit General Application
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            
-            <div>
-              <div className="bg-gray-50 p-6 rounded-lg border sticky top-6">
-                <h2 className="text-xl font-bold text-brand-blue mb-4">
-                  Why Work With Us?
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-semibold">Global Impact</h3>
-                    <p className="text-gray-600 text-sm">
-                      Be part of a team that facilitates international trade and connects businesses across borders.
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Growth Opportunities</h3>
-                    <p className="text-gray-600 text-sm">
-                      Develop your skills in a fast-growing company with opportunities for advancement.
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Diverse Environment</h3>
-                    <p className="text-gray-600 text-sm">
-                      Work in a multicultural team with connections to businesses around the world.
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Competitive Benefits</h3>
-                    <p className="text-gray-600 text-sm">
-                      Enjoy competitive salary, health benefits, and performance bonuses.
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Work-Life Balance</h3>
-                    <p className="text-gray-600 text-sm">
-                      We believe in maintaining a healthy balance between work and personal life.
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-6 pt-6 border-t">
-                  <h3 className="font-semibold mb-2">Our Culture</h3>
-                  <img
-                    src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80"
-                    alt="Team at Anantya Overseas"
-                    className="w-full h-auto rounded-md mb-4"
-                  />
-                  <p className="text-gray-600 text-sm">
-                    At Anantya Overseas, we foster a culture of collaboration, innovation, and respect for diverse perspectives.
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="phone">Phone *</Label>
+                              <Input
+                                id="phone"
+                                name="phone"
+                                value={applicationData.phone}
+                                onChange={handleInputChange}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="current_location">Current Location *</Label>
+                              <Input
+                                id="current_location"
+                                name="current_location"
+                                value={applicationData.current_location}
+                                onChange={handleInputChange}
+                                required
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <Label htmlFor="interested_department">Department *</Label>
+                            <Select onValueChange={(value) => handleSelectChange('interested_department', value)}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select department" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {departments.map((dept) => (
+                                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="experience">Years of Experience</Label>
+                              <Input
+                                id="experience"
+                                name="experience"
+                                value={applicationData.experience}
+                                onChange={handleInputChange}
+                                placeholder="e.g., 3 years"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="current_position">Current Position</Label>
+                              <Input
+                                id="current_position"
+                                name="current_position"
+                                value={applicationData.current_position}
+                                onChange={handleInputChange}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <Label htmlFor="resume_link">Resume Link (Google Drive, Dropbox, etc.)</Label>
+                            <Input
+                              id="resume_link"
+                              name="resume_link"
+                              type="url"
+                              value={applicationData.resume_link}
+                              onChange={handleInputChange}
+                              placeholder="https://drive.google.com/..."
+                            />
+                          </div>
+
+                          <div>
+                            <Label htmlFor="cover_letter">Cover Letter</Label>
+                            <Textarea
+                              id="cover_letter"
+                              name="cover_letter"
+                              value={applicationData.cover_letter}
+                              onChange={handleInputChange}
+                              rows={4}
+                              placeholder="Tell us why you're interested in this position..."
+                            />
+                          </div>
+
+                          <Button type="submit" disabled={isSubmitting} className="w-full">
+                            {isSubmitting ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Submitting Application...
+                              </>
+                            ) : (
+                              'Submit Application'
+                            )}
+                          </Button>
+                        </form>
+                      </DialogContent>
+                    </Dialog>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <Card className="shadow-lg">
+                <CardContent className="text-center py-12">
+                  <Briefcase className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-600 mb-2">No Current Openings</h3>
+                  <p className="text-gray-500 mb-6">
+                    We don't have any open positions right now, but we're always looking for talented individuals to join our team.
                   </p>
-                </div>
-              </div>
-            </div>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button>Submit General Application</Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>General Application</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={handleSubmitApplication} className="space-y-4">
+                        {/* Same form fields as above */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="applicant_name">Full Name *</Label>
+                            <Input
+                              id="applicant_name"
+                              name="applicant_name"
+                              value={applicationData.applicant_name}
+                              onChange={handleInputChange}
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="email">Email *</Label>
+                            <Input
+                              id="email"
+                              name="email"
+                              type="email"
+                              value={applicationData.email}
+                              onChange={handleInputChange}
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="phone">Phone *</Label>
+                            <Input
+                              id="phone"
+                              name="phone"
+                              value={applicationData.phone}
+                              onChange={handleInputChange}
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="current_location">Current Location *</Label>
+                            <Input
+                              id="current_location"
+                              name="current_location"
+                              value={applicationData.current_location}
+                              onChange={handleInputChange}
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="interested_department">Interested Department *</Label>
+                          <Select onValueChange={(value) => handleSelectChange('interested_department', value)}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select department" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {departments.map((dept) => (
+                                <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="experience">Years of Experience</Label>
+                            <Input
+                              id="experience"
+                              name="experience"
+                              value={applicationData.experience}
+                              onChange={handleInputChange}
+                              placeholder="e.g., 3 years"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="current_position">Current Position</Label>
+                            <Input
+                              id="current_position"
+                              name="current_position"
+                              value={applicationData.current_position}
+                              onChange={handleInputChange}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="resume_link">Resume Link (Google Drive, Dropbox, etc.)</Label>
+                          <Input
+                            id="resume_link"
+                            name="resume_link"
+                            type="url"
+                            value={applicationData.resume_link}
+                            onChange={handleInputChange}
+                            placeholder="https://drive.google.com/..."
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="cover_letter">Cover Letter</Label>
+                          <Textarea
+                            id="cover_letter"
+                            name="cover_letter"
+                            value={applicationData.cover_letter}
+                            onChange={handleInputChange}
+                            rows={4}
+                            placeholder="Tell us about yourself and why you'd like to work with us..."
+                          />
+                        </div>
+
+                        <Button type="submit" disabled={isSubmitting} className="w-full">
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Submitting Application...
+                            </>
+                          ) : (
+                            'Submit Application'
+                          )}
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Company Info Sidebar */}
+          <div className="space-y-6">
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Users className="h-5 w-5 mr-2" />
+                  Why Work With Us?
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  <li className="flex items-start">
+                    <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3"></span>
+                    <span className="text-gray-600">Competitive salary and benefits</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3"></span>
+                    <span className="text-gray-600">Professional development opportunities</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3"></span>
+                    <span className="text-gray-600">Collaborative work environment</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3"></span>
+                    <span className="text-gray-600">Work-life balance</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3"></span>
+                    <span className="text-gray-600">Global business exposure</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold mb-3">Ready to Join Us?</h3>
+                <p className="text-sm mb-4">
+                  Even if you don't see a perfect match above, we're always interested in hearing from talented individuals.
+                </p>
+                <p className="text-sm">
+                  Send us your resume at <strong>careers@anantyaoverseas.com</strong>
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
