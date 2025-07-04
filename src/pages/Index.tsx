@@ -11,7 +11,7 @@ import { ArrowRight, Check, Star, Shield, Globe, TrendingUp } from 'lucide-react
 
 const Index: React.FC = () => {
   return (
-    <div className="relative min-h-screen w-full">
+    <div className="relative min-h-screen w-full -mt-16">
       <BeamsBackground intensity="strong" />
       <div className="relative z-10">
         <Hero />
@@ -65,7 +65,7 @@ const Index: React.FC = () => {
                     </div>
                   ))}
                 </div>
-                <Link to="/categories">
+                <Link to="/products">
                   <Button 
                     className="bg-gradient-to-r from-brand-blue to-brand-teal text-white px-10 py-6 text-xl font-semibold rounded-xl shadow-2xl hover:from-brand-teal hover:to-brand-blue focus-visible:ring-4 focus-visible:ring-brand-blue/40 border-2 border-white/80 hover:border-brand-blue transition-all duration-300"
                     style={{
