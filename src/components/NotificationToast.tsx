@@ -9,6 +9,7 @@ const NotificationToast: React.FC = () => {
   const channelRef = useRef<any>(null);
   const processedNotifications = useRef<Set<string>>(new Set());
   const lastProcessedTime = useRef<number>(Date.now());
+  const toastShown = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!user) return;
@@ -41,8 +42,10 @@ const NotificationToast: React.FC = () => {
           
           const notificationId = `quote-${newRecord.id}-${newRecord.status}-${updateTime}`;
           
-          if (processedNotifications.current.has(notificationId)) return;
+          if (processedNotifications.current.has(notificationId) || toastShown.current.has(notificationId)) return;
+          
           processedNotifications.current.add(notificationId);
+          toastShown.current.add(notificationId);
           
           // Status change notification
           if (newRecord.status !== oldRecord.status) {
@@ -70,8 +73,9 @@ const NotificationToast: React.FC = () => {
           // Admin response notification
           if (newRecord.admin_response && newRecord.admin_response !== oldRecord.admin_response) {
             const responseId = `response-${newRecord.id}-${updateTime}`;
-            if (!processedNotifications.current.has(responseId)) {
+            if (!processedNotifications.current.has(responseId) && !toastShown.current.has(responseId)) {
               processedNotifications.current.add(responseId);
+              toastShown.current.add(responseId);
               toast.info(`New response: "${newRecord.admin_response}"`, { duration: 5000 });
             }
           }
@@ -94,8 +98,9 @@ const NotificationToast: React.FC = () => {
           
           const notificationId = `job-${newRecord.id}-${newRecord.status}-${updateTime}`;
           
-          if (!processedNotifications.current.has(notificationId)) {
+          if (!processedNotifications.current.has(notificationId) && !toastShown.current.has(notificationId)) {
             processedNotifications.current.add(notificationId);
+            toastShown.current.add(notificationId);
             
             if (newRecord.status !== oldRecord.status) {
               toast.success(`Your application status updated: ${newRecord.status.replace('_', ' ')}`, {

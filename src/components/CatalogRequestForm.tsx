@@ -1,19 +1,21 @@
 
 import React, { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { Loader2, Package } from 'lucide-react';
+import { X, Send, Package, User, Mail, Phone, Building, FileText } from 'lucide-react';
 
 export interface ProductInfo {
   id: string;
   name: string;
   category: string;
+  subcategory: string;
 }
 
 interface CatalogRequestFormProps {
@@ -26,22 +28,23 @@ const CatalogRequestForm: React.FC<CatalogRequestFormProps> = ({
   onSuccess 
 }) => {
   const { user } = useAuth();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     company: '',
-    business_type: '',
-    products_of_interest: preselectedProducts.map(p => p.name).join(', '),
-    specific_requirements: '',
-    annual_volume: '',
-    target_markets: ''
+    businessType: '',
+    interestedProducts: preselectedProducts.map(p => p.name).join(', '),
+    specificRequirements: '',
+    additionalInfo: ''
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,10 +55,24 @@ const CatalogRequestForm: React.FC<CatalogRequestFormProps> = ({
       return;
     }
 
-    setIsSubmitting(true);
+    setLoading(true);
 
     try {
-      // Store catalog request data
+      // Save to database - create catalog_requests table if it doesn't exist
+      const catalogData = {
+        user_id: user?.id || null,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        company: formData.company,
+        business_type: formData.businessType,
+        interested_products: formData.interestedProducts,
+        specific_requirements: formData.specificRequirements,
+        additional_info: formData.additionalInfo,
+        status: 'pending'
+      };
+
+      // Insert into a generic requests table or create specific table
       const { error } = await supabase
         .from('quote_requests')
         .insert({
@@ -63,21 +80,17 @@ const CatalogRequestForm: React.FC<CatalogRequestFormProps> = ({
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          company: formData.company || null,
-          product_name: `Catalog Request: ${formData.products_of_interest || 'General'}`,
+          company: formData.company,
+          product_name: 'Catalog Request',
           quantity: '1',
           unit: 'catalog',
-          additional_details: `Business Type: ${formData.business_type}
-Products of Interest: ${formData.products_of_interest}
-Specific Requirements: ${formData.specific_requirements}
-Annual Volume: ${formData.annual_volume}
-Target Markets: ${formData.target_markets}`,
+          additional_details: JSON.stringify(catalogData),
           status: 'pending'
         });
 
       if (error) throw error;
 
-      toast.success('Catalog request submitted successfully!');
+      toast.success('Catalog request submitted successfully! We will send the catalog to your email shortly.');
       
       // Reset form
       setFormData({
@@ -85,11 +98,10 @@ Target Markets: ${formData.target_markets}`,
         email: '',
         phone: '',
         company: '',
-        business_type: '',
-        products_of_interest: '',
-        specific_requirements: '',
-        annual_volume: '',
-        target_markets: ''
+        businessType: '',
+        interestedProducts: '',
+        specificRequirements: '',
+        additionalInfo: ''
       });
 
       onSuccess?.();
@@ -97,135 +109,155 @@ Target Markets: ${formData.target_markets}`,
       console.error('Error submitting catalog request:', error);
       toast.error('Failed to submit catalog request. Please try again.');
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full max-w-2xl mx-auto shadow-lg">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Package className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-2xl">
+          <Package className="h-6 w-6 text-blue-600" />
           Request Product Catalog
         </CardTitle>
+        <CardDescription>
+          Fill out the form below to receive our comprehensive product catalog
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name *</Label>
+          {/* Personal Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Contact Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="name">Full Name *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  placeholder="Enter your full name"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="email">Email Address *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="your@email.com"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="phone">Phone Number *</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  placeholder="+1 (555) 123-4567"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="company">Company Name</Label>
+                <Input
+                  id="company"
+                  value={formData.company}
+                  onChange={(e) => handleInputChange('company', e.target.value)}
+                  placeholder="Your company name"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Business Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Business Information
+            </h3>
+            <div>
+              <Label htmlFor="businessType">Business Type</Label>
               <Input
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
+                id="businessType"
+                value={formData.businessType}
+                onChange={(e) => handleInputChange('businessType', e.target.value)}
+                placeholder="e.g., Retailer, Wholesaler, Manufacturer"
+              />
+            </div>
+          </div>
+
+          {/* Product Interest */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Product Interest
+            </h3>
+            
+            {preselectedProducts.length > 0 && (
+              <div className="space-y-2">
+                <Label>Products you viewed:</Label>
+                <div className="flex flex-wrap gap-2">
+                  {preselectedProducts.map((product, index) => (
+                    <Badge key={index} variant="secondary" className="text-sm">
+                      {product.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            <div>
+              <Label htmlFor="interestedProducts">Interested Products/Categories</Label>
+              <Textarea
+                id="interestedProducts"
+                value={formData.interestedProducts}
+                onChange={(e) => handleInputChange('interestedProducts', e.target.value)}
+                placeholder="Specify the products or categories you're interested in..."
+                rows={3}
               />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address *</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number *</Label>
-              <Input
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                required
+            <div>
+              <Label htmlFor="specificRequirements">Specific Requirements</Label>
+              <Textarea
+                id="specificRequirements"
+                value={formData.specificRequirements}
+                onChange={(e) => handleInputChange('specificRequirements', e.target.value)}
+                placeholder="Any specific requirements, quantities, or customizations..."
+                rows={3}
               />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="company">Company Name</Label>
-              <Input
-                id="company"
-                name="company"
-                value={formData.company}
-                onChange={handleInputChange}
+            <div>
+              <Label htmlFor="additionalInfo">Additional Information</Label>
+              <Textarea
+                id="additionalInfo"
+                value={formData.additionalInfo}
+                onChange={(e) => handleInputChange('additionalInfo', e.target.value)}
+                placeholder="Any other information that would help us serve you better..."
+                rows={3}
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="business_type">Business Type</Label>
-            <Input
-              id="business_type"
-              name="business_type"
-              placeholder="e.g., Retailer, Distributor, Manufacturer"
-              value={formData.business_type}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="products_of_interest">Products of Interest</Label>
-            <Textarea
-              id="products_of_interest"
-              name="products_of_interest"
-              placeholder="Specify the products or categories you're interested in"
-              value={formData.products_of_interest}
-              onChange={handleInputChange}
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="specific_requirements">Specific Requirements</Label>
-            <Textarea
-              id="specific_requirements"
-              name="specific_requirements"
-              placeholder="Any specific requirements, certifications, or customizations needed"
-              value={formData.specific_requirements}
-              onChange={handleInputChange}
-              rows={3}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="annual_volume">Expected Annual Volume</Label>
-              <Input
-                id="annual_volume"
-                name="annual_volume"
-                placeholder="e.g., 10,000 units"
-                value={formData.annual_volume}
-                onChange={handleInputChange}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="target_markets">Target Markets</Label>
-              <Input
-                id="target_markets"
-                name="target_markets"
-                placeholder="e.g., USA, Europe, Asia"
-                value={formData.target_markets}
-                onChange={handleInputChange}
-              />
-            </div>
-          </div>
-
-          <Button type="submit" disabled={isSubmitting} className="w-full">
-            {isSubmitting ? (
+          <Button type="submit" disabled={loading} className="w-full">
+            {loading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white mr-2"></div>
                 Submitting Request...
               </>
             ) : (
-              'Submit Catalog Request'
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Submit Catalog Request
+              </>
             )}
           </Button>
         </form>

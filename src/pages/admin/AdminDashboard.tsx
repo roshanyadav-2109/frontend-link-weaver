@@ -18,7 +18,8 @@ import {
   Eye, 
   Edit, 
   RefreshCw,
-  MessageSquare
+  MessageSquare,
+  Users
 } from 'lucide-react';
 
 interface RequestItem {
@@ -162,7 +163,7 @@ const AdminDashboard: React.FC = () => {
       }
 
       const { error } = await supabase
-        .from(tableName)
+        .from(tableName as 'quote_requests' | 'job_applications' | 'manufacturer_partnerships')
         .update(updateData)
         .eq('id', selectedRequest.id);
 
