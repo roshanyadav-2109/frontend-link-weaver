@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -82,25 +83,25 @@ const ManufacturerPartnershipForm: React.FC<ManufacturerPartnershipFormProps> = 
           representative_name: formData.representativeName,
           email: formData.email,
           phone: formData.phone,
-          address: formData.address || null,
-          city: formData.city || null,
-          state: formData.state || null,
-          country: formData.country || null,
-          product_category: formData.productCategory || null,
-          years_in_business: formData.yearsInBusiness ? parseInt(formData.yearsInBusiness) : null,
-          annual_turnover: formData.annualTurnover || null,
-          manufacturing_capacity: formData.manufacturingCapacity || null,
-          export_experience: formData.exportExperience || null,
-          certifications: formData.certifications || null,
-          previous_deals: formData.previousDeals || null,
-          target_markets: formData.targetMarkets || null,
-          additional_info: formData.additionalInfo || null,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          country: formData.country,
+          product_category: formData.productCategory,
+          years_in_business: parseInt(formData.yearsInBusiness) || null,
+          annual_turnover: formData.annualTurnover,
+          manufacturing_capacity: formData.manufacturingCapacity,
+          export_experience: formData.exportExperience,
+          certifications: formData.certifications,
+          previous_deals: formData.previousDeals,
+          target_markets: formData.targetMarkets,
+          additional_info: formData.additionalInfo,
           status: 'pending'
         })
         .select();
 
       if (error) {
-        console.error('Database error:', error);
+        console.error('Error submitting partnership to database:', error);
         toast.error('Failed to submit partnership application. Please try again.');
         return;
       }
@@ -122,13 +123,9 @@ const ManufacturerPartnershipForm: React.FC<ManufacturerPartnershipFormProps> = 
           body: JSON.stringify(emailPayload),
         });
 
-        if (!emailResponse.ok) {
-          throw new Error(`HTTP error! status: ${emailResponse.status}`);
-        }
-
         const emailResult = await emailResponse.json();
         
-        if (emailResult.success) {
+        if (emailResponse.ok) {
           console.log('Email sent successfully:', emailResult);
           toast.success('Partnership application submitted successfully! We will contact you soon.');
         } else {

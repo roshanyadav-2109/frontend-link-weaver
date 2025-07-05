@@ -39,6 +39,7 @@ const ContactForm = () => {
     try {
       console.log('Submitting contact form:', values);
       
+      // Send email notification directly since we don't have a contact_submissions table
       const emailPayload = {
         type: "contact",
         ...values
@@ -52,13 +53,9 @@ const ContactForm = () => {
         body: JSON.stringify(emailPayload),
       });
 
-      if (!emailResponse.ok) {
-        throw new Error(`HTTP error! status: ${emailResponse.status}`);
-      }
-
       const emailResult = await emailResponse.json();
       
-      if (emailResult.success && emailResult.sent) {
+      if (emailResponse.ok) {
         console.log('Email sent successfully:', emailResult);
         toast.success('Your message has been sent successfully! We will get back to you soon.');
         form.reset();
@@ -67,7 +64,7 @@ const ContactForm = () => {
         toast.error('Failed to send your message. Please try again.');
       }
     } catch (err: any) {
-      console.error('Contact form error:', err);
+      console.error('Unexpected error:', err);
       toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
