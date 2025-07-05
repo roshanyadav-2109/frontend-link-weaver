@@ -127,25 +127,6 @@ const Footer: React.FC = () => {
                 <span className="text-gray-300 text-sm">Ahmedabad, Gujarat, India</span>
               </div>
             </div>
-            
-            {/* Authentication Links */}
-            <div className="space-y-2">
-              <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wide">Account</h4>
-              <div className="space-y-1">
-                <Link 
-                  to="/auth/initial" 
-                  className="block text-gray-300 text-sm hover:text-white transition-colors"
-                >
-                  Sign In
-                </Link>
-                <Link 
-                  to="/auth/initial" 
-                  className="block text-gray-300 text-sm hover:text-white transition-colors"
-                >
-                  Create Account
-                </Link>
-              </div>
-            </div>
           </div>
         </div>
 
