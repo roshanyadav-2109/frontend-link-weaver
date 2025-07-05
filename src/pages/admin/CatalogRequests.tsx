@@ -9,18 +9,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Eye, Mail, Phone, Building, Calendar, Package } from 'lucide-react';
 
+// Update interface to match actual database schema
 interface CatalogRequest {
   id: string;
   user_id?: string;
-  product_category: string;
-  company_name?: string;
-  contact_person: string;
+  name: string; // This is the contact person name in the database
   email: string;
   phone: string;
-  requirements?: string;
-  quantity_range?: string;
-  budget_range?: string;
-  timeline?: string;
+  company?: string; // This maps to company field in database
+  product_category: string;
+  specific_products?: string;
+  business_type?: string;
+  additional_requirements?: string;
   status: string;
   created_at: string;
   updated_at: string;
@@ -154,7 +154,7 @@ const CatalogRequests: React.FC = () => {
                       <Package className="h-5 w-5 text-purple-600" />
                       {request.product_category}
                     </CardTitle>
-                    <p className="text-sm text-gray-600">Contact: {request.contact_person}</p>
+                    <p className="text-sm text-gray-600">Contact: {request.name}</p>
                     <div className="flex items-center gap-4 text-xs text-gray-500">
                       <span className="flex items-center gap-1">
                         <Mail className="h-3 w-3" />
@@ -164,10 +164,10 @@ const CatalogRequests: React.FC = () => {
                         <Phone className="h-3 w-3" />
                         {request.phone}
                       </span>
-                      {request.company_name && (
+                      {request.company && (
                         <span className="flex items-center gap-1">
                           <Building className="h-3 w-3" />
-                          {request.company_name}
+                          {request.company}
                         </span>
                       )}
                     </div>
@@ -208,21 +208,16 @@ const CatalogRequests: React.FC = () => {
                       <Calendar className="h-3 w-3" />
                       {formatDate(request.created_at)}
                     </span>
-                    {request.quantity_range && (
+                    {request.business_type && (
                       <span className="text-sm text-gray-500">
-                        Qty: {request.quantity_range}
-                      </span>
-                    )}
-                    {request.timeline && (
-                      <span className="text-sm text-gray-500">
-                        Timeline: {request.timeline}
+                        Type: {request.business_type}
                       </span>
                     )}
                   </div>
                 </div>
-                {request.requirements && (
+                {request.additional_requirements && (
                   <p className="text-sm text-gray-700 mt-2 line-clamp-2">
-                    {request.requirements}
+                    {request.additional_requirements}
                   </p>
                 )}
               </CardContent>
@@ -244,11 +239,11 @@ const CatalogRequests: React.FC = () => {
                 <div>
                   <h3 className="font-semibold mb-2">Contact Information</h3>
                   <div className="space-y-2 text-sm">
-                    <p><strong>Contact Person:</strong> {selectedRequest.contact_person}</p>
+                    <p><strong>Contact Person:</strong> {selectedRequest.name}</p>
                     <p><strong>Email:</strong> {selectedRequest.email}</p>
                     <p><strong>Phone:</strong> {selectedRequest.phone}</p>
-                    {selectedRequest.company_name && (
-                      <p><strong>Company:</strong> {selectedRequest.company_name}</p>
+                    {selectedRequest.company && (
+                      <p><strong>Company:</strong> {selectedRequest.company}</p>
                     )}
                   </div>
                 </div>
@@ -267,32 +262,26 @@ const CatalogRequests: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {selectedRequest.quantity_range && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {selectedRequest.business_type && (
                   <div>
-                    <h4 className="font-medium text-sm">Quantity Range</h4>
-                    <p className="text-sm text-gray-600">{selectedRequest.quantity_range}</p>
+                    <h4 className="font-medium text-sm">Business Type</h4>
+                    <p className="text-sm text-gray-600">{selectedRequest.business_type}</p>
                   </div>
                 )}
-                {selectedRequest.budget_range && (
+                {selectedRequest.specific_products && (
                   <div>
-                    <h4 className="font-medium text-sm">Budget Range</h4>
-                    <p className="text-sm text-gray-600">{selectedRequest.budget_range}</p>
-                  </div>
-                )}
-                {selectedRequest.timeline && (
-                  <div>
-                    <h4 className="font-medium text-sm">Timeline</h4>
-                    <p className="text-sm text-gray-600">{selectedRequest.timeline}</p>
+                    <h4 className="font-medium text-sm">Specific Products</h4>
+                    <p className="text-sm text-gray-600">{selectedRequest.specific_products}</p>
                   </div>
                 )}
               </div>
 
-              {selectedRequest.requirements && (
+              {selectedRequest.additional_requirements && (
                 <div>
-                  <h3 className="font-semibold mb-2">Requirements</h3>
+                  <h3 className="font-semibold mb-2">Additional Requirements</h3>
                   <div className="bg-gray-50 p-4 rounded-lg text-sm">
-                    {selectedRequest.requirements}
+                    {selectedRequest.additional_requirements}
                   </div>
                 </div>
               )}

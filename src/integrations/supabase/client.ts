@@ -26,7 +26,6 @@ export const tables = {
   product_inquiries: () => supabase.from('product_inquiries'),
   job_applications: () => supabase.from('job_applications'),
   catalog_requests: () => supabase.from('catalog_requests'),
-  contact_submissions: () => supabase.from('contact_submissions'),
 }
 
 // Enhanced QuoteRequest interface with all new fields
@@ -58,25 +57,24 @@ export interface QuoteRequest {
   attachments?: string[] | null;
 }
 
-// Catalog Request interface
+// Catalog Request interface - Updated to match database schema
 export interface CatalogRequest {
   id: string;
   user_id?: string | null;
-  product_category: string;
-  company_name?: string | null;
-  contact_person: string;
+  name: string;
   email: string;
   phone: string;
-  requirements?: string | null;
-  quantity_range?: string | null;
-  budget_range?: string | null;
-  timeline?: string | null;
+  company?: string | null;
+  product_category: string;
+  specific_products?: string | null;
+  business_type?: string | null;
+  additional_requirements?: string | null;
   status: string;
   created_at: string;
   updated_at: string;
 }
 
-// Contact Submission interface
+// Contact Submission interface - Simplified to match existing functionality
 export interface ContactSubmission {
   id: string;
   name: string;
