@@ -297,33 +297,6 @@ const AboutUs: React.FC = () => {
           </div>
         </div>
       </section>
-
-      {/* Contact CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-brand-blue to-brand-teal text-white">
-        <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-bold mb-6">Ready to Transform Your Business?</h2>
-            <p className="text-xl mb-8 leading-relaxed">
-              Let's discuss how Anantya Overseas can help you access global markets and achieve your business goals.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a 
-                href="/contact" 
-                className="bg-white text-brand-blue px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-colors inline-flex items-center justify-center"
-              >
-                Get In Touch
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </a>
-              <a 
-                href="/request-quote" 
-                className="border-2 border-white text-white px-8 py-4 rounded-xl font-semibold hover:bg-white hover:text-brand-blue transition-colors inline-flex items-center justify-center"
-              >
-                Request Quote
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };
