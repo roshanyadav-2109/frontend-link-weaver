@@ -19,6 +19,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { QuoteRequestForm } from '@/components/QuoteRequestForm';
 
 interface QuoteRequest {
   id: string;
@@ -44,6 +46,9 @@ const UserDashboard: React.FC = () => {
   const [jobApplications, setJobApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [showAllQuotes, setShowAllQuotes] = useState(false);
+  const [showAllApplications, setShowAllApplications] = useState(false);
+  const [showQuoteForm, setShowQuoteForm] = useState(false);
 
   const fetchDashboardData = async () => {
     if (!user) return;
@@ -56,8 +61,7 @@ const UserDashboard: React.FC = () => {
         .from('quote_requests')
         .select('id, product_name, quantity, status, created_at, admin_response')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
+        .order('created_at', { ascending: false });
 
       if (quotesError) {
         console.error('Error fetching quote requests:', quotesError);
@@ -70,8 +74,7 @@ const UserDashboard: React.FC = () => {
         .from('job_applications')
         .select('id, applicant_name, interested_department, status, created_at, admin_notes')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
+        .order('created_at', { ascending: false });
 
       if (applicationsError) {
         console.error('Error fetching job applications:', applicationsError);
@@ -228,6 +231,9 @@ const UserDashboard: React.FC = () => {
     }
   };
 
+  const displayedQuotes = showAllQuotes ? quoteRequests : quoteRequests.slice(0, 5);
+  const displayedApplications = showAllApplications ? jobApplications : jobApplications.slice(0, 5);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 pt-24">
@@ -295,8 +301,8 @@ const UserDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4 max-h-96 overflow-y-auto">
-                {quoteRequests.length > 0 ? (
-                  quoteRequests.map((request) => (
+                {displayedQuotes.length > 0 ? (
+                  displayedQuotes.map((request) => (
                     <div key={request.id} className="p-4 bg-gray-50 rounded-lg border border-gray-100 hover:shadow-md transition-shadow">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
@@ -326,13 +332,16 @@ const UserDashboard: React.FC = () => {
                   </div>
                 )}
               </div>
-              <div className="mt-4 pt-4 border-t">
-                <Link to="/request-quote">
-                  <Button className="w-full">
-                    <FileText className="h-4 w-4 mr-2" />
-                    New Quote Request
+              <div className="mt-4 pt-4 border-t flex gap-2">
+                <Button onClick={() => setShowQuoteForm(true)} className="flex-1">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Custom Quote Request
+                </Button>
+                {quoteRequests.length > 5 && (
+                  <Button variant="outline" onClick={() => setShowAllQuotes(!showAllQuotes)}>
+                    {showAllQuotes ? 'Show Less' : 'View All'}
                   </Button>
-                </Link>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -349,8 +358,8 @@ const UserDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4 max-h-96 overflow-y-auto">
-                {jobApplications.length > 0 ? (
-                  jobApplications.map((application) => (
+                {displayedApplications.length > 0 ? (
+                  displayedApplications.map((application) => (
                     <div key={application.id} className="p-4 bg-gray-50 rounded-lg border border-gray-100 hover:shadow-md transition-shadow">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
@@ -379,13 +388,18 @@ const UserDashboard: React.FC = () => {
                   </div>
                 )}
               </div>
-              <div className="mt-4 pt-4 border-t">
-                <Link to="/careers">
-                  <Button className="w-full" variant="outline">
+              <div className="mt-4 pt-4 border-t flex gap-2">
+                <Link to="/careers" className="flex-1">
+                  <Button variant="outline" className="w-full">
                     <Briefcase className="h-4 w-4 mr-2" />
                     View Careers
                   </Button>
                 </Link>
+                {jobApplications.length > 5 && (
+                  <Button variant="outline" onClick={() => setShowAllApplications(!showAllApplications)}>
+                    {showAllApplications ? 'Show Less' : 'View All'}
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -401,13 +415,11 @@ const UserDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Link to="/request-quote" className="block">
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer text-center">
-                    <FileText className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                    <h3 className="font-medium text-gray-800 mb-1">Request Quote</h3>
-                    <p className="text-sm text-gray-600">Get pricing for products</p>
-                  </div>
-                </Link>
+                <div onClick={() => setShowQuoteForm(true)} className="p-4 bg-blue-50 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer text-center">
+                  <FileText className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                  <h3 className="font-medium text-gray-800 mb-1">Custom Quote Request</h3>
+                  <p className="text-sm text-gray-600">Get pricing for any product</p>
+                </div>
                 
                 <Link to="/products" className="block">
                   <div className="p-4 bg-green-50 rounded-lg border border-green-100 hover:bg-green-100 transition-colors cursor-pointer text-center">
@@ -437,6 +449,24 @@ const UserDashboard: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {/* Quote Request Dialog */}
+      <Dialog open={showQuoteForm} onOpenChange={setShowQuoteForm}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-brand-blue">
+              Custom Quote Request
+            </DialogTitle>
+          </DialogHeader>
+          <QuoteRequestForm 
+            userId={user?.id}
+            onSuccess={() => {
+              setShowQuoteForm(false);
+              fetchDashboardData();
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

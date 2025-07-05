@@ -57,23 +57,24 @@ const ModernNavbar = () => {
 
     if (profile?.is_admin) {
       return [
-        { name: 'DASHBOARD', href: '/admin' },
+        { name: 'ADMIN DASHBOARD', href: '/admin' },
         { name: 'PRODUCTS', href: '/admin/products' },
         { name: 'QUOTES', href: '/admin/quote-requests' },
         { name: 'CAREERS', href: '/admin/careers' },
       ];
     } else if (profile?.user_type === 'manufacturer') {
       return [
+        { name: 'HOME', href: '/' },
         { name: 'DASHBOARD', href: '/manufacturer/dashboard' },
         { name: 'PRODUCTS', href: '/products' },
-        { name: 'CATALOG REQUESTS', href: '/manufacturer/catalog-requests' },
+        { name: 'CAREERS', href: '/careers' },
         { name: 'CONTACT', href: '/contact' },
       ];
     } else {
       return [
-        { name: 'DASHBOARD', href: '/dashboard' },
+        { name: 'HOME', href: '/' },
         { name: 'PRODUCTS', href: '/products' },
-        { name: 'QUOTE REQUEST', href: '/request-quote' },
+        { name: 'CAREERS', href: '/careers' },
         { name: 'CONTACT', href: '/contact' },
       ];
     }

@@ -15,6 +15,8 @@ interface ManufacturerPartnershipFormProps {
   onClose: () => void;
 }
 
+const EMAIL_ENDPOINT = "https://lusfthgqlkgktplplqnv.functions.supabase.co/send-form-email";
+
 const ManufacturerPartnershipForm: React.FC<ManufacturerPartnershipFormProps> = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -70,8 +72,10 @@ const ManufacturerPartnershipForm: React.FC<ManufacturerPartnershipFormProps> = 
     setLoading(true);
 
     try {
-      // Save to database using the generic from method
-      const { error } = await supabase
+      console.log('Submitting manufacturer partnership:', formData);
+      
+      // Save to database
+      const { data, error } = await supabase
         .from('manufacturer_partnerships')
         .insert({
           gstin: formData.gstin,
@@ -93,19 +97,46 @@ const ManufacturerPartnershipForm: React.FC<ManufacturerPartnershipFormProps> = 
           target_markets: formData.targetMarkets,
           additional_info: formData.additionalInfo,
           status: 'pending'
-        });
+        })
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error submitting partnership to database:', error);
+        toast.error('Failed to submit partnership application. Please try again.');
+        return;
+      }
+
+      console.log('Partnership saved to database:', data);
 
       // Send email notification
-      await supabase.functions.invoke('send-form-email', {
-        body: {
+      try {
+        const emailPayload = {
           type: 'manufacturer_partnership',
           data: formData
-        }
-      });
+        };
 
-      toast.success('Partnership application submitted successfully! We will contact you soon.');
+        console.log('Sending email with payload:', emailPayload);
+
+        const emailResponse = await fetch(EMAIL_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(emailPayload),
+        });
+
+        const emailResult = await emailResponse.json();
+        
+        if (emailResponse.ok) {
+          console.log('Email sent successfully:', emailResult);
+          toast.success('Partnership application submitted successfully! We will contact you soon.');
+        } else {
+          console.error('Email sending failed:', emailResult);
+          toast.warning('Partnership application saved but email notification failed. We have received your application.');
+        }
+      } catch (emailError) {
+        console.error('Email sending error:', emailError);
+        toast.warning('Partnership application saved but email notification failed. We have received your application.');
+      }
+
       onClose();
       
       // Reset form

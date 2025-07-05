@@ -82,7 +82,7 @@ const GeneralApplicationForm = ({ isOpen, onClose }: GeneralApplicationFormProps
       console.log('Submitting general application:', values);
       
       // Store in database
-      const { error: dbError } = await supabase
+      const { data, error } = await supabase
         .from('job_applications')
         .insert({
           user_id: user.id,
@@ -96,47 +96,61 @@ const GeneralApplicationForm = ({ isOpen, onClose }: GeneralApplicationFormProps
           cover_letter: values.coverLetter,
           resume_link: values.resume || null,
           status: 'pending'
-        });
+        })
+        .select();
 
-      if (dbError) {
-        console.error('Database error:', dbError);
-        throw new Error('Failed to save application');
+      if (error) {
+        console.error('Database error:', error);
+        toast.error('Failed to save application. Please try again.');
+        return;
       }
+
+      console.log('Application saved to database:', data);
 
       // Send email notifications
-      const applicationData = {
-        type: "application",
-        applicationData: {
-          fullName: values.fullName,
-          email: values.email,
-          phone: values.phone,
-          currentLocation: values.currentLocation,
-          experience: values.experience,
-          interestedDepartment: values.interestedDepartment,
-          currentRole: values.currentRole,
-          coverLetter: values.coverLetter,
-          resume: values.resume || '',
-        }
-      };
+      try {
+        const applicationData = {
+          type: "application",
+          applicationData: {
+            fullName: values.fullName,
+            email: values.email,
+            phone: values.phone,
+            currentLocation: values.currentLocation,
+            experience: values.experience,
+            interestedDepartment: values.interestedDepartment,
+            currentRole: values.currentRole,
+            coverLetter: values.coverLetter,
+            resume: values.resume || '',
+          }
+        };
 
-      const response = await fetch(EMAIL_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(applicationData),
-      });
+        console.log('Sending email with payload:', applicationData);
 
-      if (!response.ok) {
+        const response = await fetch(EMAIL_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(applicationData),
+        });
+
         const result = await response.json();
-        throw new Error(result?.error || 'Failed to send email notifications');
+
+        if (response.ok) {
+          console.log('Email sent successfully:', result);
+          toast.success('Application submitted successfully! We will review your application and get back to you soon.');
+        } else {
+          console.error('Email sending failed:', result);
+          toast.warning('Application saved but email notification failed. We have received your application.');
+        }
+      } catch (emailError) {
+        console.error('Email sending error:', emailError);
+        toast.warning('Application saved but email notification failed. We have received your application.');
       }
 
-      console.log('Application submitted successfully');
-      toast.success('Application submitted successfully! We will review your application and get back to you soon.');
       form.reset();
       onClose();
     } catch (err: any) {
       console.error('Unexpected error:', err);
-      toast.error(err.message || 'An unexpected error occurred. Please try again.');
+      toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
