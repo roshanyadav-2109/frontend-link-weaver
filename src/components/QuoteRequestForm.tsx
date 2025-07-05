@@ -1,279 +1,239 @@
 
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { X } from 'lucide-react';
 
-const quoteRequestSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
-  phone: z.string().min(10, { message: 'Please enter a valid phone number.' }),
-  company: z.string().optional(),
-  product_name: z.string().min(1, { message: 'Product name is required.' }),
-  quantity: z.string().min(1, { message: 'Please specify the quantity.' }),
-  unit: z.string().min(1, { message: 'Unit is required.' }),
-  additional_details: z.string().optional(),
-});
-
-type QuoteRequestFormProps = {
-  productId?: string;
+interface QuoteRequestFormProps {
+  isOpen: boolean;
+  onClose: () => void;
   productName?: string;
-  onSuccess?: () => void;
-  userId?: string;
-};
+  productId?: string;
+}
 
-const EMAIL_ENDPOINT = "https://lusfthgqlkgktplplqnv.functions.supabase.co/send-form-email";
-
-export function QuoteRequestForm({ 
-  productId,
-  productName = '',
-  onSuccess,
-  userId
-}: QuoteRequestFormProps) {
-  const form = useForm<z.infer<typeof quoteRequestSchema>>({
-    resolver: zodResolver(quoteRequestSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      phone: '',
-      company: '',
-      product_name: productName,
-      quantity: '',
-      unit: 'units',
-      additional_details: '',
-    },
+const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({ 
+  isOpen, 
+  onClose, 
+  productName = '', 
+  productId 
+}) => {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    productName: productName,
+    quantity: '',
+    unit: '',
+    additionalDetails: ''
   });
 
-  async function onSubmit(values: z.infer<typeof quoteRequestSchema>) {
-    if (!userId) {
-      toast.error('You must be logged in to submit a quote request.');
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.email || !formData.phone || !formData.productName || !formData.quantity || !formData.unit) {
+      toast.error('Please fill in all required fields including phone number');
       return;
     }
-    
-    try {
-      console.log('Submitting quote request:', values);
-      
-      const quoteRequestData = {
-        name: values.name,
-        email: values.email,
-        phone: values.phone,
-        company: values.company || null,
-        product_id: productId || null,
-        product_name: values.product_name,
-        quantity: values.quantity,
-        unit: values.unit,
-        additional_details: values.additional_details || null,
-        status: 'pending',
-        user_id: userId
-      };
 
-      // First save to database
+    if (!user) {
+      toast.error('Please sign in to submit a quote request');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      console.log('Submitting quote request:', formData);
+      
       const { data, error } = await supabase
         .from('quote_requests')
-        .insert(quoteRequestData)
+        .insert({
+          user_id: user.id,
+          product_id: productId || null,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          company: formData.company || null,
+          product_name: formData.productName,
+          quantity: formData.quantity,
+          unit: formData.unit,
+          additional_details: formData.additionalDetails || null,
+          status: 'pending'
+        })
         .select();
 
       if (error) {
-        console.error('Error submitting quote request to database:', error);
-        toast.error('Failed to submit quote request. Please try again.');
+        console.error('Quote request submission error:', error);
+        toast.error(`Failed to submit quote request: ${error.message}`);
         return;
       }
 
-      console.log('Quote request saved to database:', data);
-
-      // Then send email notification
-      try {
-        const emailPayload = {
-          type: "quote",
-          ...values,
-          company: values.company || 'Not provided',
-          additional_details: values.additional_details || 'None provided'
-        };
-
-        console.log('Sending email with payload:', emailPayload);
-
-        const emailResponse = await fetch(EMAIL_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(emailPayload),
-        });
-
-        const emailResult = await emailResponse.json();
-        
-        if (emailResponse.ok) {
-          console.log('Email sent successfully:', emailResult);
-          toast.success('Quote request submitted successfully! We will get back to you soon.');
-        } else {
-          console.error('Email sending failed:', emailResult);
-          toast.warning('Quote request saved but email notification failed. We have received your request.');
-        }
-      } catch (emailError) {
-        console.error('Email sending error:', emailError);
-        toast.warning('Quote request saved but email notification failed. We have received your request.');
-      }
-
-      form.reset();
-      if (onSuccess) onSuccess();
-    } catch (err) {
-      console.error('Unexpected error:', err);
-      toast.error('An unexpected error occurred. Please try again.');
+      console.log('Quote request submitted successfully:', data);
+      toast.success('Quote request submitted successfully! We will get back to you soon.');
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        company: '',
+        productName: productName,
+        quantity: '',
+        unit: '',
+        additionalDetails: ''
+      });
+      
+      onClose();
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast.error('Failed to submit quote request. Please try again.');
+    } finally {
+      setLoading(false);
     }
-  }
+  };
+
+  if (!isOpen) return null;
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Your Name*</FormLabel>
-                <FormControl>
-                  <Input placeholder="John Doe" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email Address*</FormLabel>
-                <FormControl>
-                  <Input type="email" placeholder="john@example.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Phone Number*</FormLabel>
-                <FormControl>
-                  <Input placeholder="+1 (123) 456-7890" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="company"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Company Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Your Company Ltd." {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="product_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Product Name*</FormLabel>
-              <FormControl>
-                <Input placeholder="Product Name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="quantity"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Quantity*</FormLabel>
-                <FormControl>
-                  <Input placeholder="100" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="unit"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Unit*</FormLabel>
-                <Select 
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select unit" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="units">Units</SelectItem>
-                    <SelectItem value="kg">Kilograms</SelectItem>
-                    <SelectItem value="meters">Meters</SelectItem>
-                    <SelectItem value="liters">Liters</SelectItem>
-                    <SelectItem value="pieces">Pieces</SelectItem>
-                    <SelectItem value="tons">Tons</SelectItem>
-                    <SelectItem value="boxes">Boxes</SelectItem>
-                    <SelectItem value="containers">Containers</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="additional_details"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Additional Details</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="Please provide any specific requirements, specifications, or questions you have about the product."
-                  className="min-h-[100px]"
-                  {...field}
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <CardHeader className="relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute right-4 top-4"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+          <CardTitle>Request a Quote</CardTitle>
+          <CardDescription>
+            Fill out the form below and we'll get back to you with a detailed quote
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="name">Full Name *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  placeholder="Your full name"
+                  required
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <Button 
-          type="submit" 
-          className="w-full bg-brand-teal hover:bg-brand-teal/90"
-          disabled={form.formState.isSubmitting}
-        >
-          {form.formState.isSubmitting ? 'Submitting...' : 'Request Quote'}
-        </Button>
-      </form>
-    </Form>
+              </div>
+              <div>
+                <Label htmlFor="email">Email Address *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="your@email.com"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="phone">Phone Number *</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  placeholder="+91 XXXXXXXXXX"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="company">Company Name</Label>
+                <Input
+                  id="company"
+                  value={formData.company}
+                  onChange={(e) => handleInputChange('company', e.target.value)}
+                  placeholder="Your company name"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="productName">Product Name *</Label>
+              <Input
+                id="productName"
+                value={formData.productName}
+                onChange={(e) => handleInputChange('productName', e.target.value)}
+                placeholder="What product are you interested in?"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="quantity">Quantity *</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  value={formData.quantity}
+                  onChange={(e) => handleInputChange('quantity', e.target.value)}
+                  placeholder="100"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="unit">Unit *</Label>
+                <Input
+                  id="unit"
+                  value={formData.unit}
+                  onChange={(e) => handleInputChange('unit', e.target.value)}
+                  placeholder="pieces, kg, tons, etc."
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="additionalDetails">Additional Details</Label>
+              <Textarea
+                id="additionalDetails"
+                value={formData.additionalDetails}
+                onChange={(e) => handleInputChange('additionalDetails', e.target.value)}
+                placeholder="Any specific requirements, delivery timeline, or other details..."
+                rows={4}
+              />
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading} className="flex-1 bg-brand-blue hover:bg-brand-blue/90">
+                {loading ? 'Submitting...' : 'Submit Quote Request'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
-}
+};
+
+export default QuoteRequestForm;

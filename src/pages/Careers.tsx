@@ -24,31 +24,32 @@ const Careers: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('Fetching active careers...');
+    console.log('Careers: Fetching active careers...');
     fetchCareers();
     
     // Set up real-time subscription
-    console.log('Setting up real-time subscription for public careers...');
+    console.log('Careers: Setting up real-time subscription...');
     const subscription = supabase
       .channel('public-careers')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'careers' }, 
         (payload) => {
-          console.log('Real-time update received:', payload);
+          console.log('Careers: Real-time update received:', payload);
           fetchCareers();
         }
       )
       .subscribe((status) => {
-        console.log('Public careers subscription status:', status);
+        console.log('Careers: Subscription status:', status);
       });
 
     return () => {
-      console.log('Cleaning up public careers subscription...');
+      console.log('Careers: Cleaning up subscription...');
       supabase.removeChannel(subscription);
     };
   }, []);
 
   const fetchCareers = async () => {
     try {
+      console.log('Careers: Fetching careers from database...');
       const { data, error } = await supabase
         .from('careers')
         .select('*')
@@ -56,15 +57,15 @@ const Careers: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching careers:', error);
+        console.error('Careers: Error fetching careers:', error);
         toast.error('Failed to load career opportunities');
         return;
       }
 
-      console.log('Careers fetched successfully:', data);
+      console.log('Careers: Careers fetched successfully:', data?.length || 0);
       setCareers(data || []);
     } catch (error) {
-      console.error('Unexpected error fetching careers:', error);
+      console.error('Careers: Unexpected error:', error);
       toast.error('Failed to load career opportunities');
     } finally {
       setLoading(false);

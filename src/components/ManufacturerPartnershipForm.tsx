@@ -26,7 +26,7 @@ const ManufacturerPartnershipForm: React.FC<ManufacturerPartnershipFormProps> = 
     address: '',
     city: '',
     state: '',
-    country: '',
+    country: 'India',
     productCategory: '',
     yearsInBusiness: '',
     annualTurnover: '',
@@ -70,9 +70,8 @@ const ManufacturerPartnershipForm: React.FC<ManufacturerPartnershipFormProps> = 
     setLoading(true);
 
     try {
-      console.log('Submitting manufacturer partnership:', formData);
+      console.log('Submitting manufacturer partnership data:', formData);
       
-      // Save to database with real-time sync
       const { data, error } = await supabase
         .from('manufacturer_partnerships')
         .insert({
@@ -81,34 +80,31 @@ const ManufacturerPartnershipForm: React.FC<ManufacturerPartnershipFormProps> = 
           representative_name: formData.representativeName,
           email: formData.email,
           phone: formData.phone,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          country: formData.country,
-          product_category: formData.productCategory,
-          years_in_business: parseInt(formData.yearsInBusiness) || null,
-          annual_turnover: formData.annualTurnover,
-          manufacturing_capacity: formData.manufacturingCapacity,
-          export_experience: formData.exportExperience,
-          certifications: formData.certifications,
-          previous_deals: formData.previousDeals,
-          target_markets: formData.targetMarkets,
-          additional_info: formData.additionalInfo,
+          address: formData.address || null,
+          city: formData.city || null,
+          state: formData.state || null,
+          country: formData.country || null,
+          product_category: formData.productCategory || null,
+          years_in_business: formData.yearsInBusiness ? parseInt(formData.yearsInBusiness) : null,
+          annual_turnover: formData.annualTurnover || null,
+          manufacturing_capacity: formData.manufacturingCapacity || null,
+          export_experience: formData.exportExperience || null,
+          certifications: formData.certifications || null,
+          previous_deals: formData.previousDeals || null,
+          target_markets: formData.targetMarkets || null,
+          additional_info: formData.additionalInfo || null,
           status: 'pending'
         })
-        .select()
-        .single();
+        .select();
 
       if (error) {
-        console.error('Error submitting partnership to database:', error);
-        toast.error('Failed to submit partnership application. Please try again.');
+        console.error('Supabase error:', error);
+        toast.error(`Failed to submit partnership application: ${error.message}`);
         return;
       }
 
-      console.log('Partnership saved to database successfully:', data);
+      console.log('Partnership data saved successfully:', data);
       toast.success('Partnership application submitted successfully! We will contact you soon.');
-      
-      onClose();
       
       // Reset form
       setFormData({
@@ -120,7 +116,7 @@ const ManufacturerPartnershipForm: React.FC<ManufacturerPartnershipFormProps> = 
         address: '',
         city: '',
         state: '',
-        country: '',
+        country: 'India',
         productCategory: '',
         yearsInBusiness: '',
         annualTurnover: '',
@@ -131,9 +127,11 @@ const ManufacturerPartnershipForm: React.FC<ManufacturerPartnershipFormProps> = 
         targetMarkets: '',
         additionalInfo: ''
       });
+      
+      onClose();
     } catch (error) {
-      console.error('Error submitting partnership form:', error);
-      toast.error('Failed to submit partnership application. Please try again.');
+      console.error('Unexpected error:', error);
+      toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -389,7 +387,7 @@ const ManufacturerPartnershipForm: React.FC<ManufacturerPartnershipFormProps> = 
               <Button type="button" variant="outline" onClick={onClose} className="flex-1">
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading} className="flex-1">
+              <Button type="submit" disabled={loading} className="flex-1 bg-brand-blue hover:bg-brand-blue/90">
                 {loading ? 'Submitting...' : 'Submit Partnership Application'}
               </Button>
             </div>
