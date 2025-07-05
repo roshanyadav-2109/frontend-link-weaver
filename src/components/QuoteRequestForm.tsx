@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 const quoteRequestSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email address.' }),
-  phone: z.string().min(10, { message: 'Please enter a valid phone number.' }),
+  phone: z.string().min(10, { message: 'Phone number is required and must be at least 10 digits.' }),
   company: z.string().optional(),
   product_name: z.string().min(1, { message: 'Product name is required.' }),
   quantity: z.string().min(1, { message: 'Please specify the quantity.' }),
@@ -52,11 +52,6 @@ export function QuoteRequestForm({
   });
 
   async function onSubmit(values: z.infer<typeof quoteRequestSchema>) {
-    if (!userId) {
-      toast.error('You must be logged in to submit a quote request.');
-      return;
-    }
-    
     try {
       console.log('Submitting quote request:', values);
       
@@ -71,7 +66,7 @@ export function QuoteRequestForm({
         unit: values.unit,
         additional_details: values.additional_details || null,
         status: 'pending',
-        user_id: userId
+        user_id: userId || null
       };
 
       // First save to database
@@ -81,7 +76,7 @@ export function QuoteRequestForm({
         .select();
 
       if (error) {
-        console.error('Error submitting quote request to database:', error);
+        console.error('Database error:', error);
         toast.error('Failed to submit quote request. Please try again.');
         return;
       }
@@ -105,9 +100,13 @@ export function QuoteRequestForm({
           body: JSON.stringify(emailPayload),
         });
 
+        if (!emailResponse.ok) {
+          throw new Error(`HTTP error! status: ${emailResponse.status}`);
+        }
+
         const emailResult = await emailResponse.json();
         
-        if (emailResponse.ok) {
+        if (emailResult.success) {
           console.log('Email sent successfully:', emailResult);
           toast.success('Quote request submitted successfully! We will get back to you soon.');
         } else {
