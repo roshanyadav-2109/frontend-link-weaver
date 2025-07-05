@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,9 +8,6 @@ import { Link } from 'react-router-dom';
 import { User, ShoppingCart, FileText, Settings, Bell, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import PageTransition from '@/components/animations/PageTransition';
-import FadeInSection from '@/components/animations/FadeInSection';
-import SlideIn from '@/components/animations/SlideIn';
 
 interface QuoteRequest {
   id: string;
@@ -72,18 +70,16 @@ const UserDashboard: React.FC = () => {
   useEffect(() => {
     fetchUserData();
 
-    // Set up real-time subscriptions only once
-    if (!user?.id) return;
-
+    // Set up real-time subscriptions
     const quotesChannel = supabase
-      .channel(`user-quotes-${user.id}`)
+      .channel('user-quotes-realtime')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'quote_requests',
-          filter: `user_id=eq.${user.id}`
+          filter: `user_id=eq.${user?.id}`
         },
         (payload) => {
           console.log('Real-time quote update:', payload);
@@ -100,14 +96,14 @@ const UserDashboard: React.FC = () => {
       .subscribe();
 
     const notificationsChannel = supabase
-      .channel(`user-notifications-${user.id}`)
+      .channel('user-notifications-realtime')
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'notifications',
-          filter: `user_id=eq.${user.id}`
+          filter: `user_id=eq.${user?.id}`
         },
         (payload) => {
           console.log('New notification:', payload);
@@ -155,164 +151,195 @@ const UserDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <PageTransition className="min-h-screen bg-gray-50 pt-20">
+      <div className="min-h-screen bg-gray-50 pt-20">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-blue"></div>
           </div>
         </div>
-      </PageTransition>
+      </div>
     );
   }
 
   return (
-    <PageTransition className="min-h-screen bg-gray-50 pt-20">
+    <div className="min-h-screen bg-gray-50 pt-20">
       <div className="container mx-auto px-4 py-8">
-        <FadeInSection className="mb-8">
+        <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Welcome back!</h1>
           <p className="text-gray-600 mt-2">Manage your account and track your activities</p>
-        </FadeInSection>
+        </div>
 
         {/* Recent Activity Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Recent Quote Requests */}
-          <SlideIn direction="left" delay={0.1}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-lg">
-                  <ShoppingCart className="h-5 w-5 mr-2 text-brand-blue" />
-                  Recent Quote Requests
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {quoteRequests.length > 0 ? (
-                  <div className="space-y-3">
-                    {quoteRequests.map((quote) => (
-                      <div key={quote.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{quote.product_name}</p>
-                          <p className="text-xs text-gray-600">Qty: {quote.quantity}</p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(quote.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {getStatusIcon(quote.status)}
-                          <Badge className={`text-xs ${getStatusColor(quote.status)}`}>
-                            {quote.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                    <Link to="/request-quote">
-                      <Button variant="outline" size="sm" className="w-full mt-3">
-                        View All Requests
-                      </Button>
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="text-center py-6">
-                    <p className="text-gray-500 text-sm">No quote requests yet</p>
-                    <Link to="/request-quote">
-                      <Button size="sm" className="mt-2">
-                        Request Your First Quote
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </SlideIn>
-
-          {/* Recent Notifications */}
-          <SlideIn direction="right" delay={0.2}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-lg">
-                  <Bell className="h-5 w-5 mr-2 text-brand-blue" />
-                  Recent Notifications
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {notifications.length > 0 ? (
-                  <div className="space-y-3">
-                    {notifications.map((notification) => (
-                      <div key={notification.id} className={`p-3 rounded-lg ${
-                        notification.is_read ? 'bg-gray-50' : 'bg-blue-50 border-l-4 border-brand-blue'
-                      }`}>
-                        <p className="font-medium text-sm">{notification.title}</p>
-                        <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(notification.created_at).toLocaleDateString()}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center text-lg">
+                <ShoppingCart className="h-5 w-5 mr-2 text-brand-blue" />
+                Recent Quote Requests
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {quoteRequests.length > 0 ? (
+                <div className="space-y-3">
+                  {quoteRequests.map((quote) => (
+                    <div key={quote.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{quote.product_name}</p>
+                        <p className="text-xs text-gray-600">Qty: {quote.quantity}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(quote.created_at).toLocaleDateString()}
                         </p>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-6">
-                    <p className="text-gray-500 text-sm">No notifications yet</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </SlideIn>
+                      <div className="flex items-center space-x-2">
+                        {getStatusIcon(quote.status)}
+                        <Badge className={`text-xs ${getStatusColor(quote.status)}`}>
+                          {quote.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                  <Link to="/request-quote">
+                    <Button variant="outline" size="sm" className="w-full mt-3">
+                      View All Requests
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-gray-500 text-sm">No quote requests yet</p>
+                  <Link to="/request-quote">
+                    <Button size="sm" className="mt-2">
+                      Request Your First Quote
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Recent Notifications */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center text-lg">
+                <Bell className="h-5 w-5 mr-2 text-brand-blue" />
+                Recent Notifications
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {notifications.length > 0 ? (
+                <div className="space-y-3">
+                  {notifications.map((notification) => (
+                    <div key={notification.id} className={`p-3 rounded-lg ${
+                      notification.is_read ? 'bg-gray-50' : 'bg-blue-50 border-l-4 border-brand-blue'
+                    }`}>
+                      <p className="font-medium text-sm">{notification.title}</p>
+                      <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(notification.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-gray-500 text-sm">No notifications yet</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Main Action Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {[
-            { icon: User, title: 'Profile', desc: 'Manage your personal information and preferences', link: '/auth/update-profile-client', button: 'Update Profile' },
-            { icon: ShoppingCart, title: 'Quote Requests', desc: 'View and track your product quote requests', link: '/request-quote', button: 'New Quote Request' },
-            { icon: FileText, title: 'Catalog Requests', desc: 'Request product catalogs from manufacturers', link: '/catalog-request', button: 'Request Catalog' }
-          ].map((item, index) => (
-            <SlideIn key={item.title} direction="up" delay={0.1 * (index + 3)}>
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center text-lg">
-                    <item.icon className="h-5 w-5 mr-2 text-brand-blue" />
-                    {item.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">{item.desc}</p>
-                  <Link to={item.link}>
-                    <Button variant="outline" className="w-full">
-                      {item.button}
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            </SlideIn>
-          ))}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center text-lg">
+                <User className="h-5 w-5 mr-2 text-brand-blue" />
+                Profile
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">Manage your personal information and preferences</p>
+              <Link to="/auth/update-profile-client">
+                <Button variant="outline" className="w-full">
+                  Update Profile
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center text-lg">
+                <ShoppingCart className="h-5 w-5 mr-2 text-brand-blue" />
+                Quote Requests
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">View and track your product quote requests</p>
+              <Link to="/request-quote">
+                <Button variant="outline" className="w-full">
+                  New Quote Request
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center text-lg">
+                <FileText className="h-5 w-5 mr-2 text-brand-blue" />
+                Catalog Requests
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">Request product catalogs from manufacturers</p>
+              <Link to="/catalog-request">
+                <Button variant="outline" className="w-full">
+                  Request Catalog
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Quick Actions */}
-        <SlideIn direction="up" delay={0.6}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { icon: ShoppingCart, text: 'Browse Products', link: '/products' },
-                  { icon: FileText, text: 'Contact Us', link: '/contact' },
-                  { icon: User, text: 'Careers', link: '/careers' },
-                  { icon: Settings, text: 'About Us', link: '/about' }
-                ].map((action) => (
-                  <Link key={action.text} to={action.link}>
-                    <Button variant="ghost" className="w-full h-auto p-4 flex flex-col items-center">
-                      <action.icon className="h-6 w-6 mb-2" />
-                      {action.text}
-                    </Button>
-                  </Link>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </SlideIn>
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Link to="/products">
+                <Button variant="ghost" className="w-full h-auto p-4 flex flex-col items-center">
+                  <ShoppingCart className="h-6 w-6 mb-2" />
+                  Browse Products
+                </Button>
+              </Link>
+              <Link to="/contact">
+                <Button variant="ghost" className="w-full h-auto p-4 flex flex-col items-center">
+                  <FileText className="h-6 w-6 mb-2" />
+                  Contact Us
+                </Button>
+              </Link>
+              <Link to="/careers">
+                <Button variant="ghost" className="w-full h-auto p-4 flex flex-col items-center">
+                  <User className="h-6 w-6 mb-2" />
+                  Careers
+                </Button>
+              </Link>
+              <Link to="/about">
+                <Button variant="ghost" className="w-full h-auto p-4 flex flex-col items-center">
+                  <Settings className="h-6 w-6 mb-2" />
+                  About Us
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </PageTransition>
+    </div>
   );
 };
 
