@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -39,10 +38,16 @@ const ContactForm = () => {
     try {
       console.log('Submitting contact form:', values);
       
-      // Send email notification directly since we don't have a contact_submissions table
+      // Fixed: Wrap the form data in contactData object to match backend expectations
       const emailPayload = {
         type: "contact",
-        ...values
+        contactData: {
+          name: values.name,
+          email: values.email,
+          phone: values.phone,
+          subject: values.subject,
+          message: values.message
+        }
       };
 
       console.log('Sending email with payload:', emailPayload);
