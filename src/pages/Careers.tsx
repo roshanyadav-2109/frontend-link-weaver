@@ -1,15 +1,10 @@
-
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { CareerApplicationForm } from '@/components/CareerApplicationForm';
+import { ArrowRight, Loader2, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { MapPin, Clock, Briefcase, Calendar } from 'lucide-react';
+import GeneralApplicationForm from '@/components/GeneralApplicationForm';
 
-interface Job {
+interface JobOpening {
   id: string;
   title: string;
   department: string;
@@ -17,212 +12,203 @@ interface Job {
   type: string;
   description: string;
   status: string;
-  created_at: string;
+  apply_link?: string | null;
 }
 
-const Careers: React.FC = () => {
-  const [jobs, setJobs] = useState<Job[]>([]);
+const Careers = () => {
+  const [jobs, setJobs] = useState<JobOpening[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [isApplicationOpen, setIsApplicationOpen] = useState(false);
-  const [isGeneralApplicationOpen, setIsGeneralApplicationOpen] = useState(false);
+  const [isApplicationFormOpen, setIsApplicationFormOpen] = useState(false);
 
-  useEffect(() => {
-    fetchJobs();
-  }, []);
-
+  // Fetch jobs from Supabase with improved error handling
   const fetchJobs = async () => {
     try {
+      console.log('Fetching active careers...');
       const { data, error } = await supabase
         .from('careers')
         .select('*')
         .eq('status', 'active')
         .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setJobs(data || []);
-    } catch (error) {
-      console.error('Error fetching jobs:', error);
-      toast.error('Failed to load job listings');
+      
+      if (error) {
+        console.error('Error fetching careers:', error);
+        throw error;
+      }
+      
+      console.log('Careers fetched successfully:', data);
+      setJobs(data as JobOpening[]);
+    } catch (err: any) {
+      console.error('Error in fetchJobs:', err);
+      setJobs([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleApply = (job: Job) => {
-    setSelectedJob(job);
-    setIsApplicationOpen(true);
-  };
-
-  const handleApplicationSuccess = () => {
-    setIsApplicationOpen(false);
-    setIsGeneralApplicationOpen(false);
-    setSelectedJob(null);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-blue"></div>
-      </div>
-    );
-  }
+  // Listen for real-time updates with improved subscription
+  useEffect(() => {
+    fetchJobs();
+    
+    console.log('Setting up real-time subscription for public careers...');
+    const channel = supabase
+      .channel('realtime-careers-public')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'careers',
+        },
+        (payload) => {
+          console.log('Real-time careers update received on public page:', payload);
+          fetchJobs(); // Re-fetch to ensure we only show active jobs
+        }
+      )
+      .subscribe((status) => {
+        console.log('Public careers subscription status:', status);
+      });
+    
+    return () => {
+      console.log('Cleaning up public careers subscription...');
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">Join Our Team</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-            Build your career with us and be part of a global sourcing revolution
+    <div>
+      <div className="bg-brand-blue py-12">
+        <div className="container mx-auto px-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-white text-center">
+            Join the Team That Moves the World
+          </h1>
+          <p className="mt-4 text-lg text-white/80 text-center max-w-3xl mx-auto">
+            Anantya Overseas is built by people who believe in global impact. Check out our current openings in sourcing, logistics, tech, and customer support.
           </p>
-          <Button 
-            onClick={() => setIsGeneralApplicationOpen(true)}
-            className="bg-brand-teal hover:bg-brand-teal/90"
-          >
-            Submit General Application
-          </Button>
         </div>
-
-        {/* Company Culture Section */}
-        <div className="mb-12">
-          <Card className="shadow-lg">
-            <CardContent className="pt-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-3xl">🌍</span>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Global Impact</h3>
-                  <p className="text-gray-600">
-                    Work on projects that connect businesses across continents and make a real difference
-                  </p>
+      </div>
+      
+      <div className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div className="col-span-2">
+              <h2 className="text-2xl font-bold text-brand-blue mb-8">
+                Current Openings
+              </h2>
+              {loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="animate-spin w-8 h-8 mr-2 text-brand-blue" />
+                  <span>Loading jobs…</span>
                 </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-3xl">🚀</span>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Growth Opportunities</h3>
-                  <p className="text-gray-600">
-                    Advance your career with comprehensive training programs and mentorship
-                  </p>
+              ) : (
+                <div className="space-y-6">
+                  {jobs.length === 0 ? (
+                    <div className="text-gray-500 text-center py-12">
+                      No active job openings found. Please check back later.
+                    </div>
+                  ) : (
+                    jobs.map((job) => (
+                      <div key={job.id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div className="p-6">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="text-xl font-semibold text-brand-blue">{job.title}</h3>
+                              <p className="text-gray-600 mt-1">{job.department} • {job.location} • {job.type}</p>
+                            </div>
+                            <div className="flex gap-2">
+                              {job.apply_link ? (
+                                <Button 
+                                  variant="outline" 
+                                  className="text-brand-teal border-brand-teal hover:bg-brand-teal hover:text-white"
+                                  onClick={() => window.open(job.apply_link!, '_blank')}
+                                >
+                                  Apply Now
+                                  <ExternalLink className="ml-2 h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button 
+                                  variant="outline" 
+                                  className="text-brand-teal border-brand-teal hover:bg-brand-teal hover:text-white"
+                                  onClick={() => setIsApplicationFormOpen(true)}
+                                >
+                                  Apply Now
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          <p className="mt-4 text-gray-700">{job.description}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-3xl">🤝</span>
+              )}
+              <div className="mt-10 bg-gray-50 p-6 rounded-lg border">
+                <h3 className="text-xl font-semibold text-brand-blue">Don't see the right role?</h3>
+                <p className="mt-2 text-gray-700">
+                  We're always looking for talented individuals to join our team. Send us your resume and we'll keep you in mind for future opportunities.
+                </p>
+                <Button 
+                  className="mt-4 bg-brand-teal hover:bg-brand-teal/90"
+                  onClick={() => setIsApplicationFormOpen(true)}
+                >
+                  Submit General Application
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            <div>
+              <div className="bg-gray-50 p-6 rounded-lg border sticky top-6">
+                <h2 className="text-xl font-bold text-brand-blue mb-4">
+                  Why Work With Us?
+                </h2>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold">Global Impact</h3>
+                    <p className="text-gray-600 text-sm">
+                      Be part of a team that facilitates international trade and connects businesses across borders.
+                    </p>
                   </div>
-                  <h3 className="text-xl font-semibold mb-2">Collaborative Culture</h3>
-                  <p className="text-gray-600">
-                    Join a diverse team that values innovation, collaboration, and excellence
+                  <div>
+                    <h3 className="font-semibold">Growth Opportunities</h3>
+                    <p className="text-gray-600 text-sm">
+                      Develop your skills in a fast-growing company with opportunities for advancement.
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Diverse Environment</h3>
+                    <p className="text-gray-600 text-sm">
+                      Work in a multicultural team with connections to businesses around the world.
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Competitive Benefits</h3>
+                    <p className="text-gray-600 text-sm">
+                      Enjoy competitive salary, health benefits, and performance bonuses.
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Work-Life Balance</h3>
+                    <p className="text-gray-600 text-sm">
+                      We believe in maintaining a healthy balance between work and personal life.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-6 pt-6 border-t">
+                  <h3 className="font-semibold mb-2">Our Culture</h3>
+                  <img
+                    src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80"
+                    alt="Team at Anantya Overseas"
+                    className="w-full h-auto rounded-md mb-4"
+                  />
+                  <p className="text-gray-600 text-sm">
+                    At Anantya Overseas, we foster a culture of collaboration, innovation, and respect for diverse perspectives.
                   </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Job Listings */}
-        <div className="space-y-6">
-          <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">Open Positions</h2>
-          
-          {jobs.length === 0 ? (
-            <Card className="shadow-lg">
-              <CardContent className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Briefcase className="h-8 w-8 text-gray-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">No Open Positions</h3>
-                <p className="text-gray-600 mb-6">
-                  We don't have any specific positions open right now, but we're always looking for talented individuals.
-                </p>
-                <Button 
-                  onClick={() => setIsGeneralApplicationOpen(true)}
-                  className="bg-brand-teal hover:bg-brand-teal/90"
-                >
-                  Submit General Application
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-6">
-              {jobs.map((job) => (
-                <Card key={job.id} className="shadow-lg hover:shadow-xl transition-shadow">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-xl mb-2">{job.title}</CardTitle>
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          <Badge variant="outline" className="flex items-center gap-1">
-                            <Briefcase className="h-3 w-3" />
-                            {job.department}
-                          </Badge>
-                          <Badge variant="outline" className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {job.location}
-                          </Badge>
-                          <Badge variant="outline" className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {job.type}
-                          </Badge>
-                          <Badge variant="outline" className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(job.created_at)}
-                          </Badge>
-                        </div>
-                      </div>
-                      <Button 
-                        onClick={() => handleApply(job)}
-                        className="bg-brand-teal hover:bg-brand-teal/90"
-                      >
-                        Apply Now
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="prose max-w-none">
-                      <p className="text-gray-700 whitespace-pre-line">{job.description}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
             </div>
-          )}
+          </div>
         </div>
-
-        {/* Application Dialog */}
-        <Dialog open={isApplicationOpen} onOpenChange={setIsApplicationOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                Apply for {selectedJob?.title}
-              </DialogTitle>
-            </DialogHeader>
-            {selectedJob && (
-              <CareerApplicationForm 
-                jobId={selectedJob.id} 
-                onSuccess={handleApplicationSuccess}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
-
-        {/* General Application Dialog */}
-        <Dialog open={isGeneralApplicationOpen} onOpenChange={setIsGeneralApplicationOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>General Application</DialogTitle>
-            </DialogHeader>
-            <CareerApplicationForm onSuccess={handleApplicationSuccess} />
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );
