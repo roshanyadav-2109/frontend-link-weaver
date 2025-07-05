@@ -37,71 +37,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isNavigating, setIsNavigating] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   
   useEffect(() => {
     let mounted = true;
 
-    // Set up the auth state listener with optimized performance
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         if (!mounted) return;
         
         console.log('Auth state change:', event, currentSession?.user?.email);
-        
-        // Batch state updates for better performance
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        if (currentSession?.user) {
-          // Use setTimeout to prevent blocking the auth callback
-          setTimeout(async () => {
-            if (!mounted) return;
-            
-            const { data: profileData, error } = await supabase
-              .from('profiles')
-              .select('is_admin, user_type, gstin, full_name, company_name, phone, address')
-              .eq('id', currentSession.user.id)
-              .single();
-            
-            if (error) {
-              console.error('Error fetching profile:', error);
-              setProfile(null);
-            } else {
-              const typedProfile: Profile = {
-                is_admin: profileData.is_admin || false,
-                user_type: profileData.user_type as 'manufacturer' | 'client' | undefined,
-                gstin: profileData.gstin || undefined,
-                full_name: profileData.full_name || undefined,
-                company_name: profileData.company_name || undefined,
-                phone: profileData.phone || undefined,
-                address: profileData.address || undefined,
-              };
-              setProfile(typedProfile);
-              
-              // Handle post-authentication navigation
-              if (event === 'SIGNED_IN' && profileData) {
-                setTimeout(() => {
-                  handlePostAuthNavigation(typedProfile);
-                }, 100);
-              }
-            }
-          }, 0);
-        } else {
-          setProfile(null);
-        }
-        
-        setLoading(false);
-      }
-    );
-    
-    // Check for existing session with optimized loading
-    const initializeAuth = async () => {
-      try {
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        
-        if (!mounted) return;
         
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
@@ -129,9 +76,52 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               address: profileData.address || undefined,
             };
             setProfile(typedProfile);
+            
+            // Only navigate on SIGNED_IN event and if not already navigating
+            if (event === 'SIGNED_IN' && !isNavigating && !location.pathname.includes('/auth/')) {
+              setIsNavigating(true);
+              setTimeout(() => {
+                handlePostAuthNavigation(typedProfile);
+                setIsNavigating(false);
+              }, 100);
+            }
           }
         } else {
           setProfile(null);
+        }
+        
+        setLoading(false);
+      }
+    );
+    
+    // Check for existing session
+    const initializeAuth = async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        if (currentSession?.user) {
+          const { data: profileData, error } = await supabase
+            .from('profiles')
+            .select('is_admin, user_type, gstin, full_name, company_name, phone, address')
+            .eq('id', currentSession.user.id)
+            .single();
+          
+          if (!mounted) return;
+          
+          if (!error && profileData) {
+            const typedProfile: Profile = {
+              is_admin: profileData.is_admin || false,
+              user_type: profileData.user_type as 'manufacturer' | 'client' | undefined,
+              gstin: profileData.gstin || undefined,
+              full_name: profileData.full_name || undefined,
+              company_name: profileData.company_name || undefined,
+              phone: profileData.phone || undefined,
+              address: profileData.address || undefined,
+            };
+            setProfile(typedProfile);
+          }
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -151,8 +141,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const handlePostAuthNavigation = (profileData: Profile) => {
-    // Don't redirect if already on auth-related pages
-    if (location.pathname.includes('/auth/') || location.pathname.includes('/profile-completion')) {
+    // Don't redirect if on specific pages
+    const currentPath = location.pathname;
+    if (currentPath.includes('/auth/') || 
+        currentPath.includes('/profile-completion') ||
+        currentPath === '/' ||
+        currentPath.includes('/products') ||
+        currentPath.includes('/about') ||
+        currentPath.includes('/contact') ||
+        currentPath.includes('/careers')) {
       return;
     }
 
@@ -164,13 +161,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Redirect based on user type
-    if (profileData.is_admin) {
-      navigate('/admin');
-    } else if (profileData.user_type === 'manufacturer') {
-      navigate('/manufacturer/dashboard');
-    } else {
-      navigate('/dashboard');
+    // Only redirect to dashboard if specifically requested
+    if (currentPath.includes('/dashboard') || currentPath.includes('/admin') || currentPath.includes('/manufacturer')) {
+      if (profileData.is_admin) {
+        navigate('/admin');
+      } else if (profileData.user_type === 'manufacturer') {  
+        navigate('/manufacturer/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     }
   };
 
@@ -235,12 +234,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       
-      // Clear local state immediately for better UX
       setUser(null);
       setProfile(null);
       setSession(null);
       
-      // Sign out from Supabase
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -249,7 +246,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       
-      // Navigate to home page
       navigate('/', { replace: true });
       
       toast.success('Successfully signed out', {

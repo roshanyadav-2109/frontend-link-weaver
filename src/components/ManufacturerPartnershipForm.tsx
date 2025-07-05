@@ -15,8 +15,6 @@ interface ManufacturerPartnershipFormProps {
   onClose: () => void;
 }
 
-const EMAIL_ENDPOINT = "https://lusfthgqlkgktplplqnv.functions.supabase.co/send-form-email";
-
 const ManufacturerPartnershipForm: React.FC<ManufacturerPartnershipFormProps> = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -74,7 +72,7 @@ const ManufacturerPartnershipForm: React.FC<ManufacturerPartnershipFormProps> = 
     try {
       console.log('Submitting manufacturer partnership:', formData);
       
-      // Save to database
+      // Save to database with real-time sync
       const { data, error } = await supabase
         .from('manufacturer_partnerships')
         .insert({
@@ -98,7 +96,8 @@ const ManufacturerPartnershipForm: React.FC<ManufacturerPartnershipFormProps> = 
           additional_info: formData.additionalInfo,
           status: 'pending'
         })
-        .select();
+        .select()
+        .single();
 
       if (error) {
         console.error('Error submitting partnership to database:', error);
@@ -106,37 +105,9 @@ const ManufacturerPartnershipForm: React.FC<ManufacturerPartnershipFormProps> = 
         return;
       }
 
-      console.log('Partnership saved to database:', data);
-
-      // Send email notification
-      try {
-        const emailPayload = {
-          type: 'manufacturer_partnership',
-          data: formData
-        };
-
-        console.log('Sending email with payload:', emailPayload);
-
-        const emailResponse = await fetch(EMAIL_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(emailPayload),
-        });
-
-        const emailResult = await emailResponse.json();
-        
-        if (emailResponse.ok) {
-          console.log('Email sent successfully:', emailResult);
-          toast.success('Partnership application submitted successfully! We will contact you soon.');
-        } else {
-          console.error('Email sending failed:', emailResult);
-          toast.warning('Partnership application saved but email notification failed. We have received your application.');
-        }
-      } catch (emailError) {
-        console.error('Email sending error:', emailError);
-        toast.warning('Partnership application saved but email notification failed. We have received your application.');
-      }
-
+      console.log('Partnership saved to database successfully:', data);
+      toast.success('Partnership application submitted successfully! We will contact you soon.');
+      
       onClose();
       
       // Reset form

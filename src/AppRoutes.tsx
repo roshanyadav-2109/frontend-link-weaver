@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Index from './pages/Index';
@@ -7,7 +8,6 @@ import ProductDetails from './pages/products/ProductDetails';
 import ProductsPage from './pages/products/ProductsPage';
 import Careers from './pages/Careers';
 import RequestQuotePage from './pages/RequestQuotePage';
-import CatalogRequest from './pages/CatalogRequest';
 import RemoveBackground from './pages/RemoveBackground';
 import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -25,7 +25,6 @@ import QuoteRequests from './pages/admin/QuoteRequests';
 import CareersManager from './pages/admin/CareersManager';
 import Settings from './pages/admin/Settings';
 import ManufacturerDashboard from './pages/manufacturer/ManufacturerDashboard';
-import CatalogRequests from './pages/manufacturer/CatalogRequests';
 import AdminLogin from './pages/auth/AdminLogin';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -49,7 +48,6 @@ const AppRoutes: React.FC = () => {
       <Route path="/product/:id" element={<ProductDetails />} />
       <Route path="/careers" element={<Careers />} />
       <Route path="/request-quote" element={<RequestQuotePage />} />
-      <Route path="/catalog-request" element={<CatalogRequest />} />
       <Route path="/remove-background" element={<RemoveBackground />} />
       <Route path="/terms" element={<TermsAndConditions />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
@@ -137,14 +135,6 @@ const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute requireManufacturer={true}>
             <ManufacturerDashboard />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/manufacturer/catalog-requests" 
-        element={
-          <ProtectedRoute requireManufacturer={true}>
-            <CatalogRequests />
           </ProtectedRoute>
         } 
       />
