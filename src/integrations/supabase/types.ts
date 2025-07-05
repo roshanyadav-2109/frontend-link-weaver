@@ -48,6 +48,54 @@ export type Database = {
         }
         Relationships: []
       }
+      catalog_requests: {
+        Row: {
+          additional_requirements: string | null
+          business_type: string | null
+          company: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string
+          product_category: string
+          specific_products: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          additional_requirements?: string | null
+          business_type?: string | null
+          company?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          phone: string
+          product_category: string
+          specific_products?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          additional_requirements?: string | null
+          business_type?: string | null
+          company?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string
+          product_category?: string
+          specific_products?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           annual_import_volume: string | null

@@ -25,6 +25,8 @@ export const tables = {
   notifications: () => supabase.from('notifications'),
   product_inquiries: () => supabase.from('product_inquiries'),
   job_applications: () => supabase.from('job_applications'),
+  catalog_requests: () => supabase.from('catalog_requests'),
+  contact_submissions: () => supabase.from('contact_submissions'),
 }
 
 // Enhanced QuoteRequest interface with all new fields
@@ -54,6 +56,39 @@ export interface QuoteRequest {
   shipping_terms?: string | null;
   priority_level?: string | null;
   attachments?: string[] | null;
+}
+
+// Catalog Request interface
+export interface CatalogRequest {
+  id: string;
+  user_id?: string | null;
+  product_category: string;
+  company_name?: string | null;
+  contact_person: string;
+  email: string;
+  phone: string;
+  requirements?: string | null;
+  quantity_range?: string | null;
+  budget_range?: string | null;
+  timeline?: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Contact Submission interface
+export interface ContactSubmission {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+  company_name?: string | null;
+  preferred_contact?: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
 }
 
 // Product Inquiry interface for detailed quotes
@@ -127,7 +162,7 @@ export interface Client {
   updated_at: string;
 }
 
-// Job Application interface
+// Enhanced Job Application interface
 export interface JobApplication {
   id: string;
   user_id: string;
@@ -143,6 +178,12 @@ export interface JobApplication {
   resume_link?: string | null;
   status: string;
   admin_notes?: string | null;
+  education?: string | null;
+  expected_salary?: string | null;
+  notice_period?: string | null;
+  linkedin_profile?: string | null;
+  portfolio_url?: string | null;
+  skills?: string[] | null;
   created_at: string;
   updated_at: string;
 }

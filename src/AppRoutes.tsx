@@ -1,36 +1,53 @@
+
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
+import { ProtectedRoute } from './components/ProtectedRoute';
+
+// Public pages
 import Index from './pages/Index';
 import AboutUs from './pages/AboutUs';
 import Contact from './pages/Contact';
-import ProductDetails from './pages/products/ProductDetails';
-import ProductsPage from './pages/products/ProductsPage';
 import Careers from './pages/Careers';
-import RequestQuotePage from './pages/RequestQuotePage';
 import CatalogRequest from './pages/CatalogRequest';
-import RemoveBackground from './pages/RemoveBackground';
+import RequestQuotePage from './pages/RequestQuotePage';
 import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import NotFound from './pages/NotFound';
+
+// Products
+import ProductsPage from './pages/products/ProductsPage';
+import ProductDetails from './pages/products/ProductDetails';
+
+// Auth pages
 import InitialAuth from './pages/auth/InitialAuth';
 import ClientAuth from './pages/auth/ClientAuth';
 import ManufacturerAuth from './pages/auth/ManufacturerAuth';
-import ProfileCompletion from './pages/auth/ProfileCompletion';
+import AdminLogin from './pages/auth/AdminLogin';
 import AuthCallback from './pages/auth/AuthCallback';
+import ProfileCompletion from './pages/auth/ProfileCompletion';
 import UpdateProfileClient from './pages/auth/UpdateProfileClient';
 import UpdateProfileManufacturer from './pages/auth/UpdateProfileManufacturer';
-import UserDashboard from './pages/user/UserDashboard';
-import Dashboard from './pages/admin/Dashboard';
+
+// Dashboard
+import UserDashboard from './pages/UserDashboard';
+
+// Admin pages
+import AdminLayout from './components/admin/AdminLayout';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminLogin from './pages/admin/Login';
 import ProductsManager from './pages/admin/ProductsManager';
+import QuoteRequestsManager from './pages/admin/QuoteRequestsManager';
 import QuoteRequests from './pages/admin/QuoteRequests';
+import JobApplications from './pages/admin/JobApplications';
+import CatalogRequests from './pages/admin/CatalogRequests';
+import ContactSubmissions from './pages/admin/ContactSubmissions';
+import ManufacturerPartnerships from './pages/admin/ManufacturerPartnerships';
 import CareersManager from './pages/admin/CareersManager';
 import Settings from './pages/admin/Settings';
+
+// Manufacturer pages
+import ManufacturerLayout from './components/manufacturer/ManufacturerLayout';
 import ManufacturerDashboard from './pages/manufacturer/ManufacturerDashboard';
-import CatalogRequests from './pages/manufacturer/CatalogRequests';
-import AdminLogin from './pages/auth/AdminLogin';
-import NotFound from './pages/NotFound';
-import ProtectedRoute from './components/ProtectedRoute';
-import ManufacturerPartnerships from './pages/admin/ManufacturerPartnerships';
-import JobApplications from './pages/admin/JobApplications';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -39,120 +56,75 @@ const AppRoutes: React.FC = () => {
       <Route path="/" element={<Index />} />
       <Route path="/about" element={<AboutUs />} />
       <Route path="/contact" element={<Contact />} />
-      
-      {/* Redirect all categories routes to products */}
-      <Route path="/categories" element={<Navigate to="/products" replace />} />
-      <Route path="/categories/*" element={<Navigate to="/products" replace />} />
-      
-      <Route path="/products" element={<ProductsPage />} />
-      <Route path="/products/:id" element={<ProductDetails />} />
-      <Route path="/product/:id" element={<ProductDetails />} />
       <Route path="/careers" element={<Careers />} />
-      <Route path="/request-quote" element={<RequestQuotePage />} />
       <Route path="/catalog-request" element={<CatalogRequest />} />
-      <Route path="/remove-background" element={<RemoveBackground />} />
+      <Route path="/request-quote" element={<RequestQuotePage />} />
       <Route path="/terms" element={<TermsAndConditions />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
+      
+      {/* Products */}
+      <Route path="/products" element={<ProductsPage />} />
+      <Route path="/product/:id" element={<ProductDetails />} />
 
-      {/* Authentication Routes */}
-      <Route path="/auth/initial" element={<InitialAuth />} />
-      <Route path="/auth/client" element={<ClientAuth />} />
-      <Route path="/auth/manufacturer" element={<ManufacturerAuth />} />
-      <Route path="/auth/profile-completion" element={<ProfileCompletion />} />
+      {/* Auth Routes */}
+      <Route path="/auth/initial-auth" element={<InitialAuth />} />
+      <Route path="/auth/client-auth" element={<ClientAuth />} />
+      <Route path="/auth/manufacturer-auth" element={<ManufacturerAuth />} />
+      <Route path="/auth/admin-login" element={<AdminLogin />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/auth/profile-completion" element={<ProfileCompletion />} />
       <Route path="/auth/update-profile-client" element={<UpdateProfileClient />} />
       <Route path="/auth/update-profile-manufacturer" element={<UpdateProfileManufacturer />} />
 
-      {/* Protected Routes - User Dashboard */}
-      <Route 
-        path="/dashboard" 
+      {/* Protected User Dashboard */}
+      <Route
+        path="/dashboard"
         element={
           <ProtectedRoute>
             <UserDashboard />
           </ProtectedRoute>
-        } 
+        }
       />
 
-      {/* Protected Routes - Admin */}
-      <Route 
-        path="/admin" 
-        element={
-          <ProtectedRoute requireAdmin={true}>
-            <Dashboard />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/admin/products" 
-        element={
-          <ProtectedRoute requireAdmin={true}>
-            <ProductsManager />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/admin/quote-requests" 
-        element={
-          <ProtectedRoute requireAdmin={true}>
-            <QuoteRequests />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/admin/manufacturer-partnerships" 
-        element={
-          <ProtectedRoute requireAdmin={true}>
-            <ManufacturerPartnerships />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/admin/job-applications" 
-        element={
-          <ProtectedRoute requireAdmin={true}>
-            <JobApplications />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/admin/careers" 
-        element={
-          <ProtectedRoute requireAdmin={true}>
-            <CareersManager />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/admin/settings" 
-        element={
-          <ProtectedRoute requireAdmin={true}>
-            <Settings />
-          </ProtectedRoute>
-        } 
-      />
-
-      {/* Protected Routes - Manufacturer */}
-      <Route 
-        path="/manufacturer/dashboard" 
-        element={
-          <ProtectedRoute requireManufacturer={true}>
-            <ManufacturerDashboard />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/manufacturer/catalog-requests" 
-        element={
-          <ProtectedRoute requireManufacturer={true}>
-            <CatalogRequests />
-          </ProtectedRoute>
-        } 
-      />
-
-      {/* Admin Login (separate route) */}
+      {/* Admin Routes */}
       <Route path="/admin/login" element={<AdminLogin />} />
+      <Route
+        path="/admin/*"
+        element={
+          <ProtectedRoute requireAdmin>
+            <AdminLayout>
+              <Routes>
+                <Route path="/" element={<AdminDashboard />} />
+                <Route path="/products" element={<ProductsManager />} />
+                <Route path="/quote-requests-manager" element={<QuoteRequestsManager />} />
+                <Route path="/quote-requests" element={<QuoteRequests />} />
+                <Route path="/job-applications" element={<JobApplications />} />
+                <Route path="/catalog-requests" element={<CatalogRequests />} />
+                <Route path="/contact-submissions" element={<ContactSubmissions />} />
+                <Route path="/manufacturer-partnerships" element={<ManufacturerPartnerships />} />
+                <Route path="/careers" element={<CareersManager />} />
+                <Route path="/settings" element={<Settings />} />
+              </Routes>
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
 
-      {/* Catch all route */}
+      {/* Manufacturer Routes */}
+      <Route
+        path="/manufacturer/*"
+        element={
+          <ProtectedRoute requireManufacturer>
+            <ManufacturerLayout>
+              <Routes>
+                <Route path="/" element={<ManufacturerDashboard />} />
+              </Routes>
+            </ManufacturerLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 404 Route */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

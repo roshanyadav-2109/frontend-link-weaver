@@ -8,7 +8,9 @@ import {
   Briefcase, 
   Settings, 
   Users,
-  UserCheck
+  UserCheck,
+  MessageSquare,
+  BookOpen
 } from 'lucide-react';
 
 const AdminSidebar: React.FC = () => {
@@ -18,6 +20,8 @@ const AdminSidebar: React.FC = () => {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
     { icon: Package, label: 'Products', path: '/admin/products' },
     { icon: FileText, label: 'Quote Requests', path: '/admin/quote-requests' },
+    { icon: BookOpen, label: 'Catalog Requests', path: '/admin/catalog-requests' },
+    { icon: MessageSquare, label: 'Contact Messages', path: '/admin/contact-submissions' },
     { icon: Users, label: 'Manufacturer Partnerships', path: '/admin/manufacturer-partnerships' },
     { icon: UserCheck, label: 'Job Applications', path: '/admin/job-applications' },
     { icon: Briefcase, label: 'Careers', path: '/admin/careers' },
