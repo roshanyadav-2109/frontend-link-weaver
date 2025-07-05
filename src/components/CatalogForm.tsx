@@ -13,15 +13,14 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 
 const catalogFormSchema = z.object({
-  contact_person: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
+  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email address.' }),
   phone: z.string().min(10, { message: 'Please enter a valid phone number.' }),
-  company_name: z.string().min(2, { message: 'Company name is required.' }),
+  company: z.string().min(2, { message: 'Company name is required.' }),
   product_category: z.string().min(1, { message: 'Please select a product category.' }),
-  requirements: z.string().optional(),
-  quantity_range: z.string().optional(),
-  budget_range: z.string().optional(),
-  timeline: z.string().optional(),
+  specific_products: z.string().optional(),
+  business_type: z.string().optional(),
+  additional_requirements: z.string().optional(),
 });
 
 type CatalogFormProps = {
@@ -48,6 +47,17 @@ const productCategories = [
   'Other'
 ];
 
+const businessTypes = [
+  'Manufacturer',
+  'Trader',
+  'Retailer',
+  'Wholesaler',
+  'Importer',
+  'Exporter',
+  'Service Provider',
+  'Other'
+];
+
 export function CatalogForm({ onSuccess }: CatalogFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
@@ -55,15 +65,14 @@ export function CatalogForm({ onSuccess }: CatalogFormProps) {
   const form = useForm<z.infer<typeof catalogFormSchema>>({
     resolver: zodResolver(catalogFormSchema),
     defaultValues: {
-      contact_person: user?.user_metadata?.full_name || '',
+      name: user?.user_metadata?.full_name || '',
       email: user?.email || '',
       phone: '',
-      company_name: user?.user_metadata?.company_name || '',
+      company: user?.user_metadata?.company_name || '',
       product_category: '',
-      requirements: '',
-      quantity_range: '',
-      budget_range: '',
-      timeline: '',
+      specific_products: '',
+      business_type: '',
+      additional_requirements: '',
     },
   });
 
@@ -77,15 +86,14 @@ export function CatalogForm({ onSuccess }: CatalogFormProps) {
         .from('catalog_requests')
         .insert({
           user_id: user?.id || null,
-          contact_person: values.contact_person,
+          name: values.name,
           email: values.email,
           phone: values.phone,
-          company_name: values.company_name,
+          company: values.company,
           product_category: values.product_category,
-          requirements: values.requirements || null,
-          quantity_range: values.quantity_range || null,
-          budget_range: values.budget_range || null,
-          timeline: values.timeline || null,
+          specific_products: values.specific_products || null,
+          business_type: values.business_type || null,
+          additional_requirements: values.additional_requirements || null,
           status: 'pending'
         })
         .select();
@@ -114,7 +122,7 @@ export function CatalogForm({ onSuccess }: CatalogFormProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="contact_person"
+            name="name"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Contact Person*</FormLabel>
@@ -156,7 +164,7 @@ export function CatalogForm({ onSuccess }: CatalogFormProps) {
           />
           <FormField
             control={form.control}
-            name="company_name"
+            name="company"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Company Name*</FormLabel>
@@ -197,98 +205,61 @@ export function CatalogForm({ onSuccess }: CatalogFormProps) {
           )}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FormField
-            control={form.control}
-            name="quantity_range"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Quantity Range</FormLabel>
-                <Select 
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select quantity" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="1-100">1-100 units</SelectItem>
-                    <SelectItem value="100-1000">100-1,000 units</SelectItem>
-                    <SelectItem value="1000-10000">1,000-10,000 units</SelectItem>
-                    <SelectItem value="10000+">10,000+ units</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="budget_range"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Budget Range</FormLabel>
-                <Select 
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select budget" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="under-1000">Under $1,000</SelectItem>
-                    <SelectItem value="1000-5000">$1,000 - $5,000</SelectItem>
-                    <SelectItem value="5000-25000">$5,000 - $25,000</SelectItem>
-                    <SelectItem value="25000-100000">$25,000 - $100,000</SelectItem>
-                    <SelectItem value="100000+">$100,000+</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="timeline"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Timeline</FormLabel>
-                <Select 
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select timeline" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="immediate">Immediate</SelectItem>
-                    <SelectItem value="1-month">Within 1 month</SelectItem>
-                    <SelectItem value="3-months">Within 3 months</SelectItem>
-                    <SelectItem value="6-months">Within 6 months</SelectItem>
-                    <SelectItem value="flexible">Flexible</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="business_type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Business Type</FormLabel>
+              <Select 
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select business type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {businessTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
-          name="requirements"
+          name="specific_products"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Specific Requirements</FormLabel>
+              <FormLabel>Specific Products of Interest</FormLabel>
               <FormControl>
                 <Textarea 
-                  placeholder="Please describe your specific product requirements, certifications needed, quality standards, or any other details..."
+                  placeholder="Please specify the products you're interested in..."
+                  className="min-h-[80px]"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="additional_requirements"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Additional Requirements</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Please describe any additional requirements, certifications needed, quality standards, or other details..."
                   className="min-h-[120px]"
                   {...field}
                 />

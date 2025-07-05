@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { ProtectedRoute } from './components/ProtectedRoute';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Public pages
 import Index from './pages/Index';
@@ -34,7 +34,6 @@ import UserDashboard from './pages/UserDashboard';
 // Admin pages
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './pages/admin/Dashboard';
-import AdminLogin from './pages/admin/Login';
 import ProductsManager from './pages/admin/ProductsManager';
 import QuoteRequestsManager from './pages/admin/QuoteRequestsManager';
 import QuoteRequests from './pages/admin/QuoteRequests';
@@ -87,25 +86,22 @@ const AppRoutes: React.FC = () => {
       />
 
       {/* Admin Routes */}
-      <Route path="/admin/login" element={<AdminLogin />} />
       <Route
         path="/admin/*"
         element={
           <ProtectedRoute requireAdmin>
-            <AdminLayout>
-              <Routes>
-                <Route path="/" element={<AdminDashboard />} />
-                <Route path="/products" element={<ProductsManager />} />
-                <Route path="/quote-requests-manager" element={<QuoteRequestsManager />} />
-                <Route path="/quote-requests" element={<QuoteRequests />} />
-                <Route path="/job-applications" element={<JobApplications />} />
-                <Route path="/catalog-requests" element={<CatalogRequests />} />
-                <Route path="/contact-submissions" element={<ContactSubmissions />} />
-                <Route path="/manufacturer-partnerships" element={<ManufacturerPartnerships />} />
-                <Route path="/careers" element={<CareersManager />} />
-                <Route path="/settings" element={<Settings />} />
-              </Routes>
-            </AdminLayout>
+            <Routes>
+              <Route path="/" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
+              <Route path="/products" element={<AdminLayout><ProductsManager /></AdminLayout>} />
+              <Route path="/quote-requests-manager" element={<AdminLayout><QuoteRequestsManager /></AdminLayout>} />
+              <Route path="/quote-requests" element={<AdminLayout><QuoteRequests /></AdminLayout>} />
+              <Route path="/job-applications" element={<AdminLayout><JobApplications /></AdminLayout>} />
+              <Route path="/catalog-requests" element={<AdminLayout><CatalogRequests /></AdminLayout>} />
+              <Route path="/contact-submissions" element={<AdminLayout><ContactSubmissions /></AdminLayout>} />
+              <Route path="/manufacturer-partnerships" element={<AdminLayout><ManufacturerPartnerships /></AdminLayout>} />
+              <Route path="/careers" element={<AdminLayout><CareersManager /></AdminLayout>} />
+              <Route path="/settings" element={<AdminLayout><Settings /></AdminLayout>} />
+            </Routes>
           </ProtectedRoute>
         }
       />
@@ -115,11 +111,9 @@ const AppRoutes: React.FC = () => {
         path="/manufacturer/*"
         element={
           <ProtectedRoute requireManufacturer>
-            <ManufacturerLayout>
-              <Routes>
-                <Route path="/" element={<ManufacturerDashboard />} />
-              </Routes>
-            </ManufacturerLayout>
+            <Routes>
+              <Route path="/" element={<ManufacturerLayout><ManufacturerDashboard /></ManufacturerLayout>} />
+            </Routes>
           </ProtectedRoute>
         }
       />

@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const contactFormSchema = z.object({
@@ -45,29 +44,9 @@ export function ContactForm({ onSuccess }: ContactFormProps) {
     setIsSubmitting(true);
     
     try {
-      console.log('Submitting contact form:', values);
-      
-      const { data, error } = await supabase
-        .from('contact_submissions')
-        .insert({
-          name: values.name,
-          email: values.email,
-          phone: values.phone,
-          subject: values.subject,
-          message: values.message,
-          company_name: values.company_name || null,
-          preferred_contact: values.preferred_contact || 'email',
-          status: 'new'
-        })
-        .select();
-
-      if (error) {
-        console.error('Error submitting contact form:', error);
-        toast.error('Failed to submit contact form. Please try again.');
-        return;
-      }
-
-      console.log('Contact form submitted successfully:', data);
+      console.log('Contact form submitted:', values);
+      // For now, just show success message
+      // TODO: Implement actual email sending or database storage
       toast.success('Thank you for your message! We will get back to you soon.');
       form.reset();
       if (onSuccess) onSuccess();

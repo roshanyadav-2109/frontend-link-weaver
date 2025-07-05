@@ -15,8 +15,7 @@ interface DashboardStats {
   pendingJobApplications: number;
   totalCatalogRequests: number;
   pendingCatalogRequests: number;
-  totalContactSubmissions: number;
-  newContactSubmissions: number;
+  totalManufacturerPartnerships: number;
 }
 
 interface RecentActivity {
@@ -35,8 +34,7 @@ const AdminDashboard: React.FC = () => {
     pendingJobApplications: 0,
     totalCatalogRequests: 0,
     pendingCatalogRequests: 0,
-    totalContactSubmissions: 0,
-    newContactSubmissions: 0,
+    totalManufacturerPartnerships: 0,
   });
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,13 +61,6 @@ const AdminDashboard: React.FC = () => {
       supabase
         .channel('catalog_requests_admin')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'catalog_requests' }, () => {
-          fetchDashboardData();
-        })
-        .subscribe(),
-      
-      supabase
-        .channel('contact_submissions_admin')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'contact_submissions' }, () => {
           fetchDashboardData();
         })
         .subscribe(),
@@ -114,15 +105,14 @@ const AdminDashboard: React.FC = () => {
       const totalCatalogRequests = allCatalogs?.length || 0;
       const pendingCatalogRequests = allCatalogs?.filter(c => c.status === 'pending').length || 0;
 
-      // Fetch contact submissions stats
-      const { data: allContacts, error: contactError } = await supabase
-        .from('contact_submissions')
-        .select('id, status, subject, created_at');
+      // Fetch manufacturer partnerships stats
+      const { data: allPartnerships, error: partnershipError } = await supabase
+        .from('manufacturer_partnerships')
+        .select('id, status, created_at');
       
-      if (contactError) throw contactError;
+      if (partnershipError) throw partnershipError;
       
-      const totalContactSubmissions = allContacts?.length || 0;
-      const newContactSubmissions = allContacts?.filter(c => c.status === 'new').length || 0;
+      const totalManufacturerPartnerships = allPartnerships?.length || 0;
 
       setStats({
         totalQuoteRequests,
@@ -131,8 +121,7 @@ const AdminDashboard: React.FC = () => {
         pendingJobApplications,
         totalCatalogRequests,
         pendingCatalogRequests,
-        totalContactSubmissions,
-        newContactSubmissions,
+        totalManufacturerPartnerships,
       });
 
       // Prepare recent activity
@@ -274,14 +263,12 @@ const AdminDashboard: React.FC = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Contact Messages</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Partnerships</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalContactSubmissions}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.newContactSubmissions} new messages
-            </p>
+            <div className="text-2xl font-bold">{stats.totalManufacturerPartnerships}</div>
+            <p className="text-xs text-muted-foreground">Total requests</p>
           </CardContent>
         </Card>
       </div>
