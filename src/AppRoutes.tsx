@@ -72,8 +72,15 @@ const AppRoutes: React.FC = () => {
         } 
       />
 
+      {/* Admin Login (separate route) */}
+      <Route path="/admin/login" element={<AdminLogin />} />
+
       {/* Protected Routes - Admin with Layout */}
-      <Route path="/admin/*" element={<AdminLayout />}>
+      <Route path="/admin" element={
+        <ProtectedRoute requireAdmin={true}>
+          <AdminLayout />
+        </ProtectedRoute>
+      }>
         <Route index element={<Dashboard />} />
         <Route path="products" element={<ProductsManager />} />
         <Route path="quote-requests" element={<QuoteRequests />} />
@@ -92,9 +99,6 @@ const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         } 
       />
-
-      {/* Admin Login (separate route) */}
-      <Route path="/admin/login" element={<AdminLogin />} />
 
       {/* Catch all route */}
       <Route path="*" element={<NotFound />} />

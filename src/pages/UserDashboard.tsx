@@ -92,7 +92,7 @@ const UserDashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!user) return; // Don't fetch if no user
+    if (!user) return;
     fetchDashboardData();
 
     // Set up real-time subscriptions
@@ -429,7 +429,6 @@ const UserDashboard: React.FC = () => {
                     <p className="text-sm text-gray-600">Explore our catalog</p>
                   </div>
                 </Link>
-                
                 
                 <Link to="/contact" className="block">
                   <div className="p-4 bg-orange-50 rounded-lg border border-orange-100 hover:bg-orange-100 transition-colors cursor-pointer text-center">
