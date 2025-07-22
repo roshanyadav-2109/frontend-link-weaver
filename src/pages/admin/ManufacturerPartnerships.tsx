@@ -61,7 +61,47 @@ const ManufacturerPartnerships: React.FC = () => {
   const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
-    fetchPartnerships();
+    let mounted = true;
+
+    const loadData = async () => {
+      if (mounted) {
+        await fetchPartnerships();
+      }
+    };
+
+    loadData();
+
+    // Set up real-time subscription for partnerships
+    const partnershipsChannel = supabase
+      .channel('partnerships-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'manufacturer_partnerships'
+        },
+        (payload) => {
+          if (!mounted) return;
+          console.log('Real-time partnership update:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            toast.info('New partnership application received!', {
+              description: `From: ${payload.new.company_name}`,
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            toast.success('Partnership application updated!');
+          }
+          
+          fetchPartnerships();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      mounted = false;
+      supabase.removeChannel(partnershipsChannel);
+    };
   }, [statusFilter]);
 
   const fetchPartnerships = async () => {

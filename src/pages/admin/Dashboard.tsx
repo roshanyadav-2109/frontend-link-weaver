@@ -109,7 +109,15 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    let mounted = true;
+
+    const loadData = async () => {
+      if (mounted) {
+        await fetchDashboardData();
+      }
+    };
+
+    loadData();
 
     // Set up real-time subscriptions for live updates
     const quotesChannel = supabase
@@ -122,6 +130,7 @@ const Dashboard: React.FC = () => {
           table: 'quote_requests'
         },
         (payload) => {
+          if (!mounted) return;
           console.log('Real-time quote update:', payload);
           fetchDashboardData();
           
@@ -181,6 +190,7 @@ const Dashboard: React.FC = () => {
       .subscribe();
 
     return () => {
+      mounted = false;
       supabase.removeChannel(quotesChannel);
       supabase.removeChannel(partnershipsChannel);
       supabase.removeChannel(productsChannel);

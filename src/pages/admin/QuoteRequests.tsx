@@ -52,10 +52,52 @@ const QuoteRequests: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('');
 
   useEffect(() => {
-    fetchQuoteRequests();
+    let mounted = true;
+
+    const loadData = async () => {
+      if (mounted) {
+        await fetchQuoteRequests();
+      }
+    };
+
+    loadData();
+
+    // Set up real-time subscription for quote requests
+    const quotesChannel = supabase
+      .channel('quote-requests-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'quote_requests'
+        },
+        (payload) => {
+          if (!mounted) return;
+          console.log('Real-time quote update:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            toast.info('New quote request received!', {
+              description: `From: ${payload.new.name}`,
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            toast.success('Quote request updated!');
+          }
+          
+          fetchQuoteRequests();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      mounted = false;
+      supabase.removeChannel(quotesChannel);
+    };
   }, [statusFilter]);
 
   const fetchQuoteRequests = async () => {
+    if (!setLoading) return; // Prevent multiple simultaneous calls
+    
     try {
       setLoading(true);
       

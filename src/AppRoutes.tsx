@@ -26,6 +26,7 @@ import CareersManager from './pages/admin/CareersManager';
 import Settings from './pages/admin/Settings';
 import ManufacturerDashboard from './pages/manufacturer/ManufacturerDashboard';
 import AdminLogin from './pages/auth/AdminLogin';
+import AdminLayout from './components/admin/AdminLayout';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import ManufacturerPartnerships from './pages/admin/ManufacturerPartnerships';
@@ -71,63 +72,16 @@ const AppRoutes: React.FC = () => {
         } 
       />
 
-      {/* Protected Routes - Admin */}
-      <Route 
-        path="/admin" 
-        element={
-          <ProtectedRoute requireAdmin={true}>
-            <Dashboard />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/admin/products" 
-        element={
-          <ProtectedRoute requireAdmin={true}>
-            <ProductsManager />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/admin/quote-requests" 
-        element={
-          <ProtectedRoute requireAdmin={true}>
-            <QuoteRequests />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/admin/manufacturer-partnerships" 
-        element={
-          <ProtectedRoute requireAdmin={true}>
-            <ManufacturerPartnerships />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/admin/job-applications" 
-        element={
-          <ProtectedRoute requireAdmin={true}>
-            <JobApplications />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/admin/careers" 
-        element={
-          <ProtectedRoute requireAdmin={true}>
-            <CareersManager />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/admin/settings" 
-        element={
-          <ProtectedRoute requireAdmin={true}>
-            <Settings />
-          </ProtectedRoute>
-        } 
-      />
+      {/* Protected Routes - Admin with Layout */}
+      <Route path="/admin/*" element={<AdminLayout />}>
+        <Route index element={<Dashboard />} />
+        <Route path="products" element={<ProductsManager />} />
+        <Route path="quote-requests" element={<QuoteRequests />} />
+        <Route path="manufacturer-partnerships" element={<ManufacturerPartnerships />} />
+        <Route path="job-applications" element={<JobApplications />} />
+        <Route path="careers" element={<CareersManager />} />
+        <Route path="settings" element={<Settings />} />
+      </Route>
 
       {/* Protected Routes - Manufacturer */}
       <Route 

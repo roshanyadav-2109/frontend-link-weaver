@@ -143,6 +143,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const handlePostAuthNavigation = (profileData: Profile) => {
     const currentPath = location.pathname;
     
+    // Don't redirect if on admin login page or already on admin pages
+    if (currentPath.includes('/admin')) {
+      return;
+    }
+    
     // Check if profile is complete
     const isProfileComplete = profileData.full_name && profileData.user_type;
     
