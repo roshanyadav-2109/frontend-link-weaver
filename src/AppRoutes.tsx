@@ -18,7 +18,7 @@ import ProfileCompletion from './pages/auth/ProfileCompletion';
 import AuthCallback from './pages/auth/AuthCallback';
 import UpdateProfileClient from './pages/auth/UpdateProfileClient';
 import UpdateProfileManufacturer from './pages/auth/UpdateProfileManufacturer';
-import UserDashboard from './pages/user/UserDashboard';
+import UserDashboard from './pages/UserDashboard';
 import Dashboard from './pages/admin/Dashboard';
 import ProductsManager from './pages/admin/ProductsManager';
 import QuoteRequests from './pages/admin/QuoteRequests';

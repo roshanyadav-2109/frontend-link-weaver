@@ -77,8 +77,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             };
             setProfile(typedProfile);
             
-            // Only navigate on SIGNED_IN event and if not already navigating
-            if (event === 'SIGNED_IN' && !isNavigating && !location.pathname.includes('/auth/')) {
+            // Only navigate on SIGNED_IN event
+            if (event === 'SIGNED_IN' && !isNavigating) {
               setIsNavigating(true);
               setTimeout(() => {
                 handlePostAuthNavigation(typedProfile);
@@ -141,34 +141,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const handlePostAuthNavigation = (profileData: Profile) => {
-    // Don't redirect if on specific pages
     const currentPath = location.pathname;
-    if (currentPath.includes('/auth/') || 
-        currentPath.includes('/profile-completion') ||
-        currentPath === '/' ||
-        currentPath.includes('/products') ||
-        currentPath.includes('/about') ||
-        currentPath.includes('/contact') ||
-        currentPath.includes('/careers')) {
-      return;
-    }
-
+    
     // Check if profile is complete
     const isProfileComplete = profileData.full_name && profileData.user_type;
     
     if (!isProfileComplete) {
-      navigate(`/profile-completion?type=${profileData.user_type || 'client'}`);
+      navigate(`/auth/profile-completion?type=${profileData.user_type || 'client'}`);
       return;
     }
 
-    // Only redirect to dashboard if specifically requested
-    if (currentPath.includes('/dashboard') || currentPath.includes('/admin') || currentPath.includes('/manufacturer')) {
+    // Only redirect from auth pages or root
+    if (currentPath.includes('/auth/') || currentPath === '/') {
       if (profileData.is_admin) {
-        navigate('/admin');
+        navigate('/admin', { replace: true });
       } else if (profileData.user_type === 'manufacturer') {  
-        navigate('/manufacturer/dashboard');
+        navigate('/manufacturer/dashboard', { replace: true });
       } else {
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       }
     }
   };

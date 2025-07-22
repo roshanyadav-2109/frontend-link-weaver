@@ -92,6 +92,7 @@ const UserDashboard: React.FC = () => {
   };
 
   useEffect(() => {
+    if (!user) return; // Don't fetch if no user
     fetchDashboardData();
 
     // Set up real-time subscriptions
@@ -414,7 +415,7 @@ const UserDashboard: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div onClick={() => setShowQuoteForm(true)} className="p-4 bg-blue-50 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer text-center">
                   <FileText className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                   <h3 className="font-medium text-gray-800 mb-1">Custom Quote Request</h3>
@@ -429,13 +430,6 @@ const UserDashboard: React.FC = () => {
                   </div>
                 </Link>
                 
-                <Link to="/catalog-request" className="block">
-                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-100 hover:bg-purple-100 transition-colors cursor-pointer text-center">
-                    <Package className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                    <h3 className="font-medium text-gray-800 mb-1">Request Catalog</h3>
-                    <p className="text-sm text-gray-600">Get detailed catalogs</p>
-                  </div>
-                </Link>
                 
                 <Link to="/contact" className="block">
                   <div className="p-4 bg-orange-50 rounded-lg border border-orange-100 hover:bg-orange-100 transition-colors cursor-pointer text-center">
