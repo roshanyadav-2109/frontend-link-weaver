@@ -20,7 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { QuoteRequestForm } from '@/components/QuoteRequestForm';
+import QuoteRequestForm from '@/components/QuoteRequestForm';
 
 interface QuoteRequest {
   id: string;

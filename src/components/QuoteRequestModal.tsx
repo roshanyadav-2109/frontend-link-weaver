@@ -1,6 +1,6 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { QuoteRequestForm } from './QuoteRequestForm';
+import QuoteRequestForm from './QuoteRequestForm';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';

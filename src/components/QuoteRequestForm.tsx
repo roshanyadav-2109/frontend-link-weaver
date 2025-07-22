@@ -11,17 +11,17 @@ import { toast } from 'sonner';
 import { X } from 'lucide-react';
 
 interface QuoteRequestFormProps {
-  isOpen: boolean;
-  onClose: () => void;
-  productName?: string;
   productId?: string;
+  productName?: string;
+  onSuccess?: () => void;
+  userId?: string;
 }
 
 const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({ 
-  isOpen, 
-  onClose, 
   productName = '', 
-  productId 
+  productId,
+  onSuccess,
+  userId
 }) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -99,7 +99,7 @@ const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
         additionalDetails: ''
       });
       
-      onClose();
+      onSuccess?.();
     } catch (error) {
       console.error('Unexpected error:', error);
       toast.error('Failed to submit quote request. Please try again.');
@@ -108,26 +108,12 @@ const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <CardHeader className="relative">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute right-4 top-4"
-            onClick={onClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-          <CardTitle>Request a Quote</CardTitle>
-          <CardDescription>
-            Fill out the form below and we'll get back to you with a detailed quote
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-semibold mb-2">Request a Quote</h3>
+        <p className="text-gray-600 mb-6">Fill out the form below and we'll get back to you with a detailed quote</p>
+      </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -222,16 +208,11 @@ const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
             </div>
 
             <div className="flex gap-4 pt-4">
-              <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading} className="flex-1 bg-brand-blue hover:bg-brand-blue/90">
+              <Button type="submit" disabled={loading} className="w-full bg-brand-blue hover:bg-brand-blue/90">
                 {loading ? 'Submitting...' : 'Submit Quote Request'}
               </Button>
             </div>
           </form>
-        </CardContent>
-      </Card>
     </div>
   );
 };
