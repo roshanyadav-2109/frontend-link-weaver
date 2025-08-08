@@ -186,7 +186,7 @@ const GenericQuoteForm: React.FC<GenericQuoteFormProps> = ({
             {...register('name')}
             placeholder="Your full name"
           />
-          {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+          {errors.name && <p className="text-red-500 text-sm">{errors.name.message as string}</p>}
         </div>
         <div>
           <Label htmlFor="email">Email Address *</Label>
@@ -196,7 +196,7 @@ const GenericQuoteForm: React.FC<GenericQuoteFormProps> = ({
             {...register('email')}
             placeholder="your@email.com"
           />
-          {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+          {errors.email && <p className="text-red-500 text-sm">{errors.email.message as string}</p>}
         </div>
       </div>
 
@@ -208,7 +208,7 @@ const GenericQuoteForm: React.FC<GenericQuoteFormProps> = ({
             {...register('phone')}
             placeholder="+91 XXXXXXXXXX"
           />
-          {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}
+          {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message as string}</p>}
         </div>
         <div>
           <Label htmlFor="company">Company Name</Label>
@@ -227,7 +227,7 @@ const GenericQuoteForm: React.FC<GenericQuoteFormProps> = ({
           {...register('product_name')}
           placeholder="What product are you interested in?"
         />
-        {errors.product_name && <p className="text-red-500 text-sm">{errors.product_name.message}</p>}
+        {errors.product_name && <p className="text-red-500 text-sm">{errors.product_name.message as string}</p>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -238,7 +238,7 @@ const GenericQuoteForm: React.FC<GenericQuoteFormProps> = ({
             {...register('quantity')}
             placeholder="100"
           />
-          {errors.quantity && <p className="text-red-500 text-sm">{errors.quantity.message}</p>}
+          {errors.quantity && <p className="text-red-500 text-sm">{errors.quantity.message as string}</p>}
         </div>
         <div>
           <Label htmlFor="unit">Unit *</Label>
@@ -247,7 +247,7 @@ const GenericQuoteForm: React.FC<GenericQuoteFormProps> = ({
             {...register('unit')}
             placeholder="pieces, kg, tons, etc."
           />
-          {errors.unit && <p className="text-red-500 text-sm">{errors.unit.message}</p>}
+          {errors.unit && <p className="text-red-500 text-sm">{errors.unit.message as string}</p>}
         </div>
       </div>
 
@@ -346,8 +346,8 @@ const GenericQuoteForm: React.FC<GenericQuoteFormProps> = ({
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="sample_required"
-                checked={watchedValues.sample_required}
-                onCheckedChange={(checked) => setValue('sample_required', checked)}
+                checked={watchedValues.sample_required as boolean}
+                onCheckedChange={(checked) => setValue('sample_required', checked as boolean)}
               />
               <Label htmlFor="sample_required">Sample Required</Label>
             </div>

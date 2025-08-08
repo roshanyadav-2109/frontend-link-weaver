@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.error('Error fetching profile:', error);
             setProfile(null);
           } else {
-            setProfile(profileData);
+            setProfile(profileData as any);
             
             // Only navigate on SIGNED_IN event
             if (event === 'SIGNED_IN' && !isNavigating) {
@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (!mounted) return;
           
           if (!error && profileData) {
-            setProfile(profileData);
+            setProfile(profileData as any);
           }
         }
       } catch (error) {
