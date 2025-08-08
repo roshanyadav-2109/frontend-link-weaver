@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -65,13 +66,25 @@ interface GenericQuoteFormProps {
   isAdvanced: boolean;
   onSubmit: (data: QuoteFormData) => void;
   isLoading: boolean;
+  productId?: string;
+  productName?: string;
+  onSuccess?: () => void;
+  onClose?: () => void;
 }
 
-export const GenericQuoteForm: React.FC<GenericQuoteFormProps> = ({ isAdvanced, onSubmit, isLoading }) => {
+const GenericQuoteForm: React.FC<GenericQuoteFormProps> = ({ 
+  isAdvanced, 
+  onSubmit, 
+  isLoading,
+  productId,
+  productName = "",
+  onSuccess,
+  onClose 
+}) => {
   const form = useForm<QuoteFormData>({
     resolver: zodResolver(getSchema(isAdvanced)),
     defaultValues: {
-      name: "", email: "", phone: "", company: "", product_name: "", unit: "",
+      name: "", email: "", phone: "", company: "", product_name: productName, unit: "",
       sample_required: false, additional_details: "", delivery_country: "", delivery_address: "",
       specifications: { color: "", size: "", material: "", finish: "" },
       customization_requirements: "", technical_requirements: "", quality_standards: "",
@@ -80,32 +93,181 @@ export const GenericQuoteForm: React.FC<GenericQuoteFormProps> = ({ isAdvanced, 
     },
   });
 
+  const handleSubmit = (data: QuoteFormData) => {
+    if (onSubmit) {
+      onSubmit(data);
+    }
+    console.log('Form submitted:', data);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Form Fields as defined previously */}
-          <FormField control={form.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem> )} />
-          <FormField control={form.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="john.doe@example.com" {...field} /></FormControl><FormMessage /></FormItem> )} />
-          <FormField control={form.control} name="phone" render={({ field }) => ( <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="+1 234 567 890" {...field} /></FormControl><FormMessage /></FormItem> )} />
-          <FormField control={form.control} name="company" render={({ field }) => ( <FormItem><FormLabel>Company Name</FormLabel><FormControl><Input placeholder="Doe Inc." {...field} /></FormControl><FormMessage /></FormItem> )} />
-          <FormField control={form.control} name="product_name" render={({ field }) => ( <FormItem><FormLabel>Product Name</FormLabel><FormControl><Input placeholder="e.g., Custom Widget" {...field} /></FormControl><FormMessage /></FormItem> )} />
-          <FormField control={form.control} name="quantity" render={({ field }) => ( <FormItem><FormLabel>Quantity</FormLabel><FormControl><Input type="number" placeholder="1000" {...field} /></FormControl><FormMessage /></FormItem> )} />
-          <FormField control={form.control} name="unit" render={({ field }) => ( <FormItem><FormLabel>Unit</FormLabel><FormControl><Input placeholder="e.g., pcs, kg, meters" {...field} /></FormControl><FormMessage /></FormItem> )} />
+          <FormField control={form.control} name="name" render={({ field }) => ( 
+            <FormItem>
+              <FormLabel>Full Name</FormLabel>
+              <FormControl>
+                <Input placeholder="John Doe" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem> 
+          )} />
+          
+          <FormField control={form.control} name="email" render={({ field }) => ( 
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input placeholder="john.doe@example.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem> 
+          )} />
+          
+          <FormField control={form.control} name="phone" render={({ field }) => ( 
+            <FormItem>
+              <FormLabel>Phone Number</FormLabel>
+              <FormControl>
+                <Input placeholder="+1 234 567 890" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem> 
+          )} />
+          
+          <FormField control={form.control} name="company" render={({ field }) => ( 
+            <FormItem>
+              <FormLabel>Company Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Doe Inc." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem> 
+          )} />
+          
+          <FormField control={form.control} name="product_name" render={({ field }) => ( 
+            <FormItem>
+              <FormLabel>Product Name</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., Custom Widget" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem> 
+          )} />
+          
+          <FormField control={form.control} name="quantity" render={({ field }) => ( 
+            <FormItem>
+              <FormLabel>Quantity</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="1000" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem> 
+          )} />
+          
+          <FormField control={form.control} name="unit" render={({ field }) => ( 
+            <FormItem>
+              <FormLabel>Unit</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., pcs, kg, meters" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem> 
+          )} />
 
           {isAdvanced && (
             <>
-              <FormField control={form.control} name="specifications.material" render={({ field }) => ( <FormItem><FormLabel>Material</FormLabel><FormControl><Input placeholder="e.g., Stainless Steel" {...field} /></FormControl><FormMessage /></FormItem> )} />
-              <FormField control={form.control} name="technical_requirements" render={({ field }) => ( <FormItem><FormLabel>Technical Requirements</FormLabel><FormControl><Textarea placeholder="Describe technical details..." {...field} /></FormControl><FormMessage /></FormItem> )} />
-              <FormField control={form.control} name="delivery_timeline" render={({ field }) => ( <FormItem className="flex flex-col"><FormLabel>Target Delivery Timeline</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date()} initialFocus /></PopoverContent></Popover><FormMessage /></FormItem> )} />
+              <FormField control={form.control} name="specifications.material" render={({ field }) => ( 
+                <FormItem>
+                  <FormLabel>Material</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Stainless Steel" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem> 
+              )} />
+              
+              <FormField control={form.control} name="technical_requirements" render={({ field }) => ( 
+                <FormItem>
+                  <FormLabel>Technical Requirements</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Describe technical details..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem> 
+              )} />
+              
+              <FormField control={form.control} name="delivery_timeline" render={({ field }) => ( 
+                <FormItem className="flex flex-col">
+                  <FormLabel>Target Delivery Timeline</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                          {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar 
+                        mode="single" 
+                        selected={field.value} 
+                        onSelect={field.onChange} 
+                        disabled={(date) => date < new Date()} 
+                        initialFocus 
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem> 
+              )} />
             </>
           )}
 
-          <FormField control={form.control} name="delivery_country" render={({ field }) => ( <FormItem><FormLabel>Delivery Country</FormLabel><FormControl><Input placeholder="e.g., United States" {...field} /></FormControl><FormMessage /></FormItem> )} />
-          <FormField control={form.control} name="delivery_address" render={({ field }) => ( <FormItem className="md:col-span-2"><FormLabel>Delivery Address</FormLabel><FormControl><Textarea placeholder="123 Main St, Anytown, USA" {...field} /></FormControl><FormMessage /></FormItem> )} />
-          <FormField control={form.control} name="additional_details" render={({ field }) => ( <FormItem className="md:col-span-2"><FormLabel>Additional Details</FormLabel><FormControl><Textarea placeholder="Any other relevant information..." {...field} /></FormControl><FormMessage /></FormItem> )} />
+          <FormField control={form.control} name="delivery_country" render={({ field }) => ( 
+            <FormItem>
+              <FormLabel>Delivery Country</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., United States" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem> 
+          )} />
+          
+          <FormField control={form.control} name="delivery_address" render={({ field }) => ( 
+            <FormItem className="md:col-span-2">
+              <FormLabel>Delivery Address</FormLabel>
+              <FormControl>
+                <Textarea placeholder="123 Main St, Anytown, USA" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem> 
+          )} />
+          
+          <FormField control={form.control} name="additional_details" render={({ field }) => ( 
+            <FormItem className="md:col-span-2">
+              <FormLabel>Additional Details</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Any other relevant information..." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem> 
+          )} />
+          
           <div className="md:col-span-2 flex items-center space-x-2">
-             <FormField control={form.control} name="sample_required" render={({ field }) => ( <FormItem className="flex flex-row items-start space-x-3 space-y-0"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><div className="space-y-1 leading-none"><FormLabel>Sample Required?</FormLabel></div></FormItem> )} />
+             <FormField control={form.control} name="sample_required" render={({ field }) => ( 
+               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                 <FormControl>
+                   <Checkbox 
+                     checked={Boolean(field.value)} 
+                     onCheckedChange={(checked) => field.onChange(Boolean(checked))} 
+                   />
+                 </FormControl>
+                 <div className="space-y-1 leading-none">
+                   <FormLabel>Sample Required?</FormLabel>
+                 </div>
+               </FormItem> 
+             )} />
           </div>
         </div>
         <Button type="submit" disabled={isLoading}>
@@ -115,3 +277,5 @@ export const GenericQuoteForm: React.FC<GenericQuoteFormProps> = ({ isAdvanced, 
     </Form>
   );
 };
+
+export default GenericQuoteForm;
