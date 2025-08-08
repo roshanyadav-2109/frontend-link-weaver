@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -20,6 +20,9 @@ import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { supabase } from '@/integrations/supabase/client';
+import { useAuthStore } from '@/stores/authStore';
+import { toast } from 'sonner';
 
 // Base Schema: Defines fields present in BOTH forms.
 const baseSchema = z.object({
@@ -64,8 +67,8 @@ type QuoteFormData = z.infer<typeof advancedSchema>;
 
 interface GenericQuoteFormProps {
   isAdvanced: boolean;
-  onSubmit: (data: QuoteFormData) => void;
-  isLoading: boolean;
+  onSubmit?: (data: QuoteFormData) => void;
+  isLoading?: boolean;
   productId?: string;
   productName?: string;
   onSuccess?: () => void;
@@ -75,12 +78,16 @@ interface GenericQuoteFormProps {
 const GenericQuoteForm: React.FC<GenericQuoteFormProps> = ({ 
   isAdvanced, 
   onSubmit, 
-  isLoading,
+  isLoading: externalLoading,
   productId,
   productName = "",
   onSuccess,
   onClose 
 }) => {
+  const [internalLoading, setInternalLoading] = useState(false);
+  const { user } = useAuthStore();
+  const isLoading = externalLoading || internalLoading;
+
   const form = useForm<QuoteFormData>({
     resolver: zodResolver(getSchema(isAdvanced)),
     defaultValues: {
@@ -93,11 +100,52 @@ const GenericQuoteForm: React.FC<GenericQuoteFormProps> = ({
     },
   });
 
+  const handleInternalSubmit = async (data: QuoteFormData) => {
+    if (!user) {
+      toast.error('Please sign in to submit a quote request');
+      return;
+    }
+
+    setInternalLoading(true);
+    try {
+      const { error } = await supabase
+        .from('quote_requests')
+        .insert({
+          user_id: user.id,
+          product_id: productId || null,
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          company: data.company || null,
+          product_name: data.product_name,
+          quantity: String(data.quantity),
+          unit: data.unit,
+          additional_details: data.additional_details || null,
+          status: 'pending'
+        });
+
+      if (error) {
+        console.error('Quote request submission error:', error);
+        toast.error(`Failed to submit quote request: ${error.message}`);
+        return;
+      }
+
+      toast.success('Quote request submitted successfully! We will get back to you soon.');
+      onSuccess?.();
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast.error('Failed to submit quote request. Please try again.');
+    } finally {
+      setInternalLoading(false);
+    }
+  };
+
   const handleSubmit = (data: QuoteFormData) => {
     if (onSubmit) {
       onSubmit(data);
+    } else {
+      handleInternalSubmit(data);
     }
-    console.log('Form submitted:', data);
   };
 
   return (
