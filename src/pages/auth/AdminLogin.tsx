@@ -33,7 +33,7 @@ const AdminLogin: React.FC = () => {
       }
 
       // Verify admin status using server-side function
-      const { data: isAdmin, error: rpcError } = await supabase.rpc('is_admin') as { data: boolean, error: any };
+      const { data: isAdmin, error: rpcError } = await supabase.rpc('is_admin');
 
       if (rpcError) {
         console.error('Error checking admin status:', rpcError);
