@@ -4,20 +4,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
-
-type Profile = {
-  is_admin: boolean;
-  user_type?: 'manufacturer' | 'client';
-  gstin?: string;
-  full_name?: string;
-  company_name?: string;
-  phone?: string;
-  address?: string;
-};
+import { useAuthStore } from '@/stores/authStore';
 
 type AuthContextType = {
   user: User | null;
-  profile: Profile | null;
+  profile: any | null;
   session: Session | null;
   signIn: (email: string, password: string) => Promise<boolean>;
   signInWithGoogle: () => Promise<void>;
@@ -33,13 +24,12 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  
+  const { user, profile, isLoading, setUser, setProfile, setLoading, clearAuth } = useAuthStore();
   
   useEffect(() => {
     let mounted = true;
@@ -56,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (currentSession?.user) {
           const { data: profileData, error } = await supabase
             .from('profiles')
-            .select('is_admin, user_type, gstin, full_name, company_name, phone, address')
+            .select('*')
             .eq('id', currentSession.user.id)
             .single();
           
@@ -66,28 +56,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.error('Error fetching profile:', error);
             setProfile(null);
           } else {
-            const typedProfile: Profile = {
-              is_admin: profileData.is_admin || false,
-              user_type: profileData.user_type as 'manufacturer' | 'client' | undefined,
-              gstin: profileData.gstin || undefined,
-              full_name: profileData.full_name || undefined,
-              company_name: profileData.company_name || undefined,
-              phone: profileData.phone || undefined,
-              address: profileData.address || undefined,
-            };
-            setProfile(typedProfile);
+            setProfile(profileData);
             
             // Only navigate on SIGNED_IN event
             if (event === 'SIGNED_IN' && !isNavigating) {
               setIsNavigating(true);
               setTimeout(() => {
-                handlePostAuthNavigation(typedProfile);
+                handlePostAuthNavigation(profileData);
                 setIsNavigating(false);
               }, 100);
             }
           }
         } else {
-          setProfile(null);
+          clearAuth();
         }
         
         setLoading(false);
@@ -102,25 +83,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (!mounted) return;
         
         if (currentSession?.user) {
+          setUser(currentSession.user);
           const { data: profileData, error } = await supabase
             .from('profiles')
-            .select('is_admin, user_type, gstin, full_name, company_name, phone, address')
+            .select('*')
             .eq('id', currentSession.user.id)
             .single();
           
           if (!mounted) return;
           
           if (!error && profileData) {
-            const typedProfile: Profile = {
-              is_admin: profileData.is_admin || false,
-              user_type: profileData.user_type as 'manufacturer' | 'client' | undefined,
-              gstin: profileData.gstin || undefined,
-              full_name: profileData.full_name || undefined,
-              company_name: profileData.company_name || undefined,
-              phone: profileData.phone || undefined,
-              address: profileData.address || undefined,
-            };
-            setProfile(typedProfile);
+            setProfile(profileData);
           }
         }
       } catch (error) {
@@ -140,7 +113,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  const handlePostAuthNavigation = (profileData: Profile) => {
+  const handlePostAuthNavigation = (profileData: any) => {
     const currentPath = location.pathname;
     
     // Don't redirect if on admin login page or already on admin pages
@@ -229,9 +202,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       
-      setUser(null);
-      setProfile(null);
-      setSession(null);
+      clearAuth();
       
       const { error } = await supabase.auth.signOut();
       
@@ -286,7 +257,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isAdmin: profile?.is_admin || false,
         isManufacturer: profile?.user_type === 'manufacturer',
         isClient: profile?.user_type === 'client',
-        loading,
+        loading: isLoading,
         resendConfirmationEmail
       }}
     >

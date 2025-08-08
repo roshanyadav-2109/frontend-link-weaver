@@ -1,26 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { 
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Search, X, ExternalLink, Trash } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { Eye, MessageSquare, Clock, CheckCircle, XCircle } from 'lucide-react';
 
 interface QuoteRequest {
   id: string;
@@ -28,303 +19,287 @@ interface QuoteRequest {
   name: string;
   email: string;
   phone: string;
-  company: string | null;
-  product_id: string | null;
+  company?: string;
   product_name: string;
   quantity: string;
   unit: string;
-  additional_details: string | null;
-  status: 'pending' | 'contacted' | 'completed' | 'rejected';
-  user_id: string;
+  additional_details?: string;
+  status: string;
+  admin_response?: string;
+  delivery_address?: string;
+  delivery_country?: string;
+  delivery_timeline?: string;
+  payment_terms?: string;
+  estimated_budget?: string;
 }
 
-const statusOptions = [
-  { value: 'pending', label: 'Pending' },
-  { value: 'contacted', label: 'Contacted' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'rejected', label: 'Rejected' },
-];
-
-const QuoteRequests: React.FC = () => {
-  const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
+const QuoteRequests = () => {
+  const { user } = useAuthStore();
+  const [requests, setRequests] = useState<QuoteRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [selectedRequest, setSelectedRequest] = useState<QuoteRequest | null>(null);
+  const [response, setResponse] = useState('');
+  const [newStatus, setNewStatus] = useState('');
+  const [isResponding, setIsResponding] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
-
-    const loadData = async () => {
-      if (mounted) {
-        await fetchQuoteRequests();
-      }
-    };
-
-    loadData();
-
-    // Set up real-time subscription for quote requests
-    const quotesChannel = supabase
-      .channel('quote-requests-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'quote_requests'
-        },
-        (payload) => {
-          if (!mounted) return;
-          console.log('Real-time quote update:', payload);
-          
-          if (payload.eventType === 'INSERT') {
-            toast.info('New quote request received!', {
-              description: `From: ${payload.new.name}`,
-            });
-          } else if (payload.eventType === 'UPDATE') {
-            toast.success('Quote request updated!');
-          }
-          
-          fetchQuoteRequests();
+    fetchRequests();
+    
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('quote-requests-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'quote_requests' }, 
+        () => {
+          fetchRequests();
         }
       )
       .subscribe();
 
     return () => {
-      mounted = false;
-      supabase.removeChannel(quotesChannel);
+      supabase.removeChannel(channel);
     };
-  }, [statusFilter]);
+  }, []);
 
-  const fetchQuoteRequests = async () => {
-    if (!setLoading) return; // Prevent multiple simultaneous calls
-    
+  const fetchRequests = async () => {
     try {
-      setLoading(true);
-      
-      let query = supabase
+      const { data, error } = await supabase
         .from('quote_requests')
         .select('*')
         .order('created_at', { ascending: false });
-      
-      if (statusFilter) {
-        query = query.eq('status', statusFilter);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) {
-        throw error;
-      }
-      
-      setQuoteRequests(data as QuoteRequest[]);
+
+      if (error) throw error;
+      setRequests(data || []);
     } catch (error) {
       console.error('Error fetching quote requests:', error);
-      toast.error('Failed to load quote requests.');
+      toast.error('Failed to fetch quote requests');
     } finally {
       setLoading(false);
     }
   };
 
-  const updateRequestStatus = async (id: string, newStatus: string) => {
+  const handleStatusUpdate = async (requestId: string, status: string, adminResponse?: string) => {
     try {
+      setIsResponding(true);
+      const updateData: any = { status };
+      
+      if (adminResponse) {
+        updateData.admin_response = adminResponse;
+      }
+
       const { error } = await supabase
         .from('quote_requests')
-        .update({ status: newStatus })
-        .eq('id', id);
-      
-      if (error) {
-        throw error;
-      }
-      
-      setQuoteRequests(prevRequests => 
-        prevRequests.map(req => 
-          req.id === id ? { ...req, status: newStatus as any } : req
-        )
-      );
-      
-      toast.success('Status updated successfully.');
+        .update(updateData)
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      toast.success('Quote request updated successfully');
+      setSelectedRequest(null);
+      setResponse('');
+      setNewStatus('');
+      fetchRequests();
     } catch (error) {
-      console.error('Error updating status:', error);
-      toast.error('Failed to update status.');
+      console.error('Error updating quote request:', error);
+      toast.error('Failed to update quote request');
+    } finally {
+      setIsResponding(false);
     }
   };
 
-  const deleteRequest = async (id: string) => {
-    if (confirm('Are you sure you want to delete this quote request?')) {
-      try {
-        const { error } = await supabase
-          .from('quote_requests')
-          .delete()
-          .eq('id', id);
-        
-        if (error) {
-          throw error;
-        }
-        
-        setQuoteRequests(prevRequests => 
-          prevRequests.filter(req => req.id !== id)
-        );
-        
-        toast.success('Quote request deleted successfully.');
-      } catch (error) {
-        console.error('Error deleting quote request:', error);
-        toast.error('Failed to delete quote request.');
-      }
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
+      case 'approved':
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Approved</Badge>;
+      case 'rejected':
+        return <Badge className="bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
     }
   };
 
-  const filteredRequests = searchTerm 
-    ? quoteRequests.filter(req => 
-        req.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        req.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        req.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (req.company && req.company.toLowerCase().includes(searchTerm.toLowerCase()))
-      )
-    : quoteRequests;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue"></div>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4 sm:mb-0">Quote Requests</h1>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            <Input 
-              className="pl-10"
-              placeholder="Search by name, email or product..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="w-full sm:w-48">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
-                {statusOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {(searchTerm || statusFilter) && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => {
-                setSearchTerm('');
-                setStatusFilter('');
-              }}
-            >
-              <X size={18} />
-            </Button>
-          )}
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Quote Requests</h1>
+        <div className="text-sm text-gray-600">
+          Total: {requests.length} requests
         </div>
-        
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin h-6 w-6 border-2 border-brand-blue border-t-transparent rounded-full mr-2"></div>
-                      Loading...
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : filteredRequests.length > 0 ? (
-                filteredRequests.map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell>
-                      {new Date(request.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{request.name}</div>
-                        <div className="text-sm text-gray-500">{request.email}</div>
-                        {request.company && (
-                          <div className="text-xs text-gray-500">{request.company}</div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="max-w-xs truncate" title={request.product_name}>
-                        {request.product_name}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {request.quantity} {request.unit}
-                    </TableCell>
-                    <TableCell>
-                      <Select 
-                        value={request.status} 
-                        onValueChange={(value) => updateRequestStatus(request.id, value)}
-                      >
-                        <SelectTrigger className="w-[130px] h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {statusOptions.map(option => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {request.product_id && (
-                        <a 
-                          href={`/product/${request.product_id}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="inline-block mr-2"
-                        >
-                          <Button variant="ghost" size="sm">
-                            <ExternalLink size={16} />
-                          </Button>
-                        </a>
-                      )}
+      </div>
+
+      <div className="grid gap-4">
+        {requests.map((request) => (
+          <Card key={request.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="font-semibold text-lg">{request.name}</h3>
+                  <p className="text-gray-600">{request.email} • {request.phone}</p>
+                  {request.company && <p className="text-gray-500">{request.company}</p>}
+                </div>
+                <div className="flex gap-2 items-center">
+                  {getStatusBadge(request.status)}
+                  <Dialog>
+                    <DialogTrigger asChild>
                       <Button 
-                        variant="ghost" 
+                        variant="outline" 
                         size="sm"
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => deleteRequest(request.id)}
+                        onClick={() => setSelectedRequest(request)}
                       >
-                        <Trash size={16} />
+                        <Eye className="w-4 h-4 mr-2" />
+                        View Details
                       </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                    No quote requests found.
-                  </TableCell>
-                </TableRow>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Quote Request Details</DialogTitle>
+                      </DialogHeader>
+                      
+                      {selectedRequest && (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label>Name</Label>
+                              <p className="font-medium">{selectedRequest.name}</p>
+                            </div>
+                            <div>
+                              <Label>Email</Label>
+                              <p className="font-medium">{selectedRequest.email}</p>
+                            </div>
+                            <div>
+                              <Label>Phone</Label>
+                              <p className="font-medium">{selectedRequest.phone}</p>
+                            </div>
+                            <div>
+                              <Label>Company</Label>
+                              <p className="font-medium">{selectedRequest.company || 'N/A'}</p>
+                            </div>
+                          </div>
+
+                          <div>
+                            <Label>Product</Label>
+                            <p className="font-medium">{selectedRequest.product_name}</p>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label>Quantity</Label>
+                              <p className="font-medium">{selectedRequest.quantity} {selectedRequest.unit}</p>
+                            </div>
+                            {selectedRequest.estimated_budget && (
+                              <div>
+                                <Label>Budget</Label>
+                                <p className="font-medium">{selectedRequest.estimated_budget}</p>
+                              </div>
+                            )}
+                          </div>
+
+                          {selectedRequest.additional_details && (
+                            <div>
+                              <Label>Additional Details</Label>
+                              <p className="font-medium">{selectedRequest.additional_details}</p>
+                            </div>
+                          )}
+
+                          {selectedRequest.delivery_address && (
+                            <div>
+                              <Label>Delivery Address</Label>
+                              <p className="font-medium">{selectedRequest.delivery_address}</p>
+                            </div>
+                          )}
+
+                          <div className="border-t pt-4">
+                            <Label>Current Status</Label>
+                            <div className="mb-4">{getStatusBadge(selectedRequest.status)}</div>
+
+                            <div className="space-y-4">
+                              <div>
+                                <Label>Update Status</Label>
+                                <Select value={newStatus} onValueChange={setNewStatus}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select new status" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="approved">Approved</SelectItem>
+                                    <SelectItem value="rejected">Rejected</SelectItem>
+                                    <SelectItem value="completed">Completed</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div>
+                                <Label>Admin Response</Label>
+                                <Textarea
+                                  placeholder="Enter your response to the customer..."
+                                  value={response}
+                                  onChange={(e) => setResponse(e.target.value)}
+                                  rows={4}
+                                />
+                              </div>
+
+                              <Button
+                                onClick={() => handleStatusUpdate(selectedRequest.id, newStatus, response)}
+                                disabled={!newStatus || isResponding}
+                                className="w-full"
+                              >
+                                {isResponding ? 'Updating...' : 'Update Request'}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Product:</span>
+                  <span className="font-medium">{request.product_name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Quantity:</span>
+                  <span className="font-medium">{request.quantity} {request.unit}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600">Date:</span>
+                  <span className="font-medium">{new Date(request.created_at).toLocaleDateString()}</span>
+                </div>
+              </div>
+
+              {request.admin_response && (
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MessageSquare className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-800">Admin Response</span>
+                  </div>
+                  <p className="text-sm text-blue-700">{request.admin_response}</p>
+                </div>
               )}
-            </TableBody>
-          </Table>
-        </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
+
+      {requests.length === 0 && (
+        <Card>
+          <CardContent className="text-center py-8">
+            <p className="text-gray-500">No quote requests found</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

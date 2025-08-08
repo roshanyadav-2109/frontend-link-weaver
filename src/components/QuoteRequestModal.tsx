@@ -1,7 +1,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import QuoteRequestForm from './QuoteRequestForm';
-import { useAuth } from '@/hooks/useAuth';
+import GenericQuoteForm from './GenericQuoteForm';
+import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -11,15 +11,17 @@ type QuoteRequestModalProps = {
   onClose: () => void;
   productId?: string;
   productName?: string;
+  isAdvanced?: boolean;
 };
 
 export function QuoteRequestModal({ 
   isOpen, 
   onClose, 
   productId, 
-  productName 
+  productName,
+  isAdvanced = false
 }: QuoteRequestModalProps) {
-  const { isAuthenticated, user } = useAuth();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
 
   const handleLoginRedirect = () => {
@@ -29,17 +31,18 @@ export function QuoteRequestModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Request a Quote</DialogTitle>
         </DialogHeader>
         
-        {isAuthenticated ? (
-          <QuoteRequestForm 
+        {user ? (
+          <GenericQuoteForm 
+            isAdvanced={isAdvanced}
             productId={productId} 
             productName={productName} 
-            onSuccess={onClose} 
-            userId={user?.id}
+            onSuccess={onClose}
+            onClose={onClose}
           />
         ) : (
           <div className="py-6 text-center">
