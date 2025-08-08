@@ -14,25 +14,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
-// ====================================================================================
-// COMPLETE ZOD SCHEMAS
-// This section now includes every field from your form to resolve all TS errors.
-// ====================================================================================
-
-// 1. Base Schema: Defines fields present in BOTH the simple and advanced forms.
+// Base Schema: Defines fields present in BOTH forms.
 const baseSchema = z.object({
   name: z.string().min(2, "Full name is required"),
   email: z.string().email("Please enter a valid email address"),
@@ -51,7 +39,7 @@ const baseSchema = z.object({
   delivery_address: z.string().min(5, "A valid delivery address is required"),
 });
 
-// 2. Advanced Schema: Extends the base schema with fields ONLY for the advanced form.
+// Advanced Schema: Extends the base schema with advanced fields.
 const advancedSchema = baseSchema.extend({
   specifications: z.object({
     color: z.string().optional(),
@@ -70,10 +58,7 @@ const advancedSchema = baseSchema.extend({
   payment_terms: z.string().optional(),
 });
 
-// Helper to select the right schema
 const getSchema = (isAdvanced: boolean) => isAdvanced ? advancedSchema : baseSchema;
-
-// Infer the TypeScript type from the combined schema possibilities
 type QuoteFormData = z.infer<typeof advancedSchema>;
 
 interface GenericQuoteFormProps {
@@ -86,26 +71,12 @@ export const GenericQuoteForm: React.FC<GenericQuoteFormProps> = ({ isAdvanced, 
   const form = useForm<QuoteFormData>({
     resolver: zodResolver(getSchema(isAdvanced)),
     defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      company: "",
-      product_name: "",
-      unit: "",
-      sample_required: false,
-      additional_details: "",
-      delivery_country: "",
-      delivery_address: "",
-      // Advanced fields
+      name: "", email: "", phone: "", company: "", product_name: "", unit: "",
+      sample_required: false, additional_details: "", delivery_country: "", delivery_address: "",
       specifications: { color: "", size: "", material: "", finish: "" },
-      customization_requirements: "",
-      technical_requirements: "",
-      quality_standards: "",
-      sample_requirements: "",
-      testing_requirements: "",
-      compliance_requirements: "",
-      estimated_budget: "",
-      payment_terms: "",
+      customization_requirements: "", technical_requirements: "", quality_standards: "",
+      sample_requirements: "", testing_requirements: "", compliance_requirements: "",
+      estimated_budget: "", payment_terms: "",
     },
   });
 
@@ -113,103 +84,29 @@ export const GenericQuoteForm: React.FC<GenericQuoteFormProps> = ({ isAdvanced, 
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Personal Information */}
-          <FormField control={form.control} name="name" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full Name</FormLabel>
-              <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="email" render={({ field }) => (
-             <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl><Input placeholder="john.doe@example.com" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="phone" render={({ field }) => (
-             <FormItem>
-              <FormLabel>Phone Number</FormLabel>
-              <FormControl><Input placeholder="+1 234 567 890" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="company" render={({ field }) => (
-             <FormItem>
-              <FormLabel>Company Name</FormLabel>
-              <FormControl><Input placeholder="Doe Inc." {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-
-          {/* Product Information */}
-          <FormField control={form.control} name="product_name" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Product Name</FormLabel>
-              <FormControl><Input placeholder="e.g., Custom Widget" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-           <FormField control={form.control} name="quantity" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Quantity</FormLabel>
-              <FormControl><Input type="number" placeholder="1000" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-           <FormField control={form.control} name="unit" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Unit</FormLabel>
-              <FormControl><Input placeholder="e.g., pcs, kg, meters" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
+          {/* Form Fields as defined previously */}
+          <FormField control={form.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem> )} />
+          <FormField control={form.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="john.doe@example.com" {...field} /></FormControl><FormMessage /></FormItem> )} />
+          <FormField control={form.control} name="phone" render={({ field }) => ( <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="+1 234 567 890" {...field} /></FormControl><FormMessage /></FormItem> )} />
+          <FormField control={form.control} name="company" render={({ field }) => ( <FormItem><FormLabel>Company Name</FormLabel><FormControl><Input placeholder="Doe Inc." {...field} /></FormControl><FormMessage /></FormItem> )} />
+          <FormField control={form.control} name="product_name" render={({ field }) => ( <FormItem><FormLabel>Product Name</FormLabel><FormControl><Input placeholder="e.g., Custom Widget" {...field} /></FormControl><FormMessage /></FormItem> )} />
+          <FormField control={form.control} name="quantity" render={({ field }) => ( <FormItem><FormLabel>Quantity</FormLabel><FormControl><Input type="number" placeholder="1000" {...field} /></FormControl><FormMessage /></FormItem> )} />
+          <FormField control={form.control} name="unit" render={({ field }) => ( <FormItem><FormLabel>Unit</FormLabel><FormControl><Input placeholder="e.g., pcs, kg, meters" {...field} /></FormControl><FormMessage /></FormItem> )} />
 
           {isAdvanced && (
             <>
-              {/* All Advanced Fields Go Here */}
-              <FormField control={form.control} name="specifications.material" render={({ field }) => (
-                <FormItem><FormLabel>Material</FormLabel><FormControl><Input placeholder="e.g., Stainless Steel" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name="technical_requirements" render={({ field }) => (
-                <FormItem><FormLabel>Technical Requirements</FormLabel><FormControl><Textarea placeholder="Describe technical details..." {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
-               <FormField control={form.control} name="delivery_timeline" render={({ field }) => (
-                <FormItem className="flex flex-col"><FormLabel>Target Delivery Timeline</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date()} initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>
-              )} />
-              {/* ... Add all other advanced fields in a similar fashion ... */}
+              <FormField control={form.control} name="specifications.material" render={({ field }) => ( <FormItem><FormLabel>Material</FormLabel><FormControl><Input placeholder="e.g., Stainless Steel" {...field} /></FormControl><FormMessage /></FormItem> )} />
+              <FormField control={form.control} name="technical_requirements" render={({ field }) => ( <FormItem><FormLabel>Technical Requirements</FormLabel><FormControl><Textarea placeholder="Describe technical details..." {...field} /></FormControl><FormMessage /></FormItem> )} />
+              <FormField control={form.control} name="delivery_timeline" render={({ field }) => ( <FormItem className="flex flex-col"><FormLabel>Target Delivery Timeline</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date()} initialFocus /></PopoverContent></Popover><FormMessage /></FormItem> )} />
             </>
           )}
 
-          {/* Common Fields Continued */}
-           <FormField control={form.control} name="delivery_country" render={({ field }) => (
-            <FormItem>
-              <FormLabel>Delivery Country</FormLabel>
-              <FormControl><Input placeholder="e.g., United States" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="delivery_address" render={({ field }) => (
-            <FormItem className="md:col-span-2">
-              <FormLabel>Delivery Address</FormLabel>
-              <FormControl><Textarea placeholder="123 Main St, Anytown, USA" {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-           <FormField control={form.control} name="additional_details" render={({ field }) => (
-            <FormItem className="md:col-span-2">
-              <FormLabel>Additional Details</FormLabel>
-              <FormControl><Textarea placeholder="Any other relevant information..." {...field} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
+          <FormField control={form.control} name="delivery_country" render={({ field }) => ( <FormItem><FormLabel>Delivery Country</FormLabel><FormControl><Input placeholder="e.g., United States" {...field} /></FormControl><FormMessage /></FormItem> )} />
+          <FormField control={form.control} name="delivery_address" render={({ field }) => ( <FormItem className="md:col-span-2"><FormLabel>Delivery Address</FormLabel><FormControl><Textarea placeholder="123 Main St, Anytown, USA" {...field} /></FormControl><FormMessage /></FormItem> )} />
+          <FormField control={form.control} name="additional_details" render={({ field }) => ( <FormItem className="md:col-span-2"><FormLabel>Additional Details</FormLabel><FormControl><Textarea placeholder="Any other relevant information..." {...field} /></FormControl><FormMessage /></FormItem> )} />
           <div className="md:col-span-2 flex items-center space-x-2">
-             <FormField control={form.control} name="sample_required" render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><div className="space-y-1 leading-none"><FormLabel>Sample Required?</FormLabel></div></FormItem>
-              )} />
+             <FormField control={form.control} name="sample_required" render={({ field }) => ( <FormItem className="flex flex-row items-start space-x-3 space-y-0"><FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl><div className="space-y-1 leading-none"><FormLabel>Sample Required?</FormLabel></div></FormItem> )} />
           </div>
-
         </div>
         <Button type="submit" disabled={isLoading}>
           {isLoading ? 'Submitting...' : 'Submit Quote Request'}
